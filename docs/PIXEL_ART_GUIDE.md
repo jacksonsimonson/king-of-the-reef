@@ -10,7 +10,7 @@ This guide keeps fish readable, consistently sized, and fast to produce.
 - Padding: only enough transparent space to center the sprite on the fixed canvas
 - Direction: face right by default
 - Edges: hard pixels only; do not use antialiasing or soft transparency
-- Card frame, ownership border, and directional arrows: never include these in the sprite
+- Card frame, ownership border, and boxed edge-effect icons: never include these in the sprite
 
 The approved visual reference is the red Octopus. New creatures should match its chunky clusters, clean dark outline, readable face, limited shading, strong silhouette, and amount of detail. Generate each species independently as a transparent, right-facing pixel-art creature using the Octopus only as a style reference. Do not ask image generation to draw the card frame, ownership color, arrows, text, scenery, or shadow.
 
@@ -75,7 +75,7 @@ The Phaser canvas itself is always displayed at a 1:1 CSS-to-canvas-pixel ratio.
 ## Export checklist
 
 1. Confirm the background is transparent.
-2. Confirm the canvas is exactly 32×32 pixels.
+2. Confirm the canvas is exactly 64×64 pixels.
 3. Confirm that each visible reference cluster became one logical pixel; do not judge only by final dimensions or color count.
 4. Confirm the image is crisp at 1× zoom.
 5. Confirm that the palette is intentionally limited to roughly eight total colors including transparency and contains no dithering.
@@ -90,8 +90,9 @@ The three-arrow Octopus is the approved style and complexity reference. Its mant
 
 ## Eye guideline
 
-- Every side-profile creature must have exactly one isolated white eye pixel on the visible side of its head.
+- Every side-profile creature must preserve at least one pure-white eye pixel on the visible side of its head at native 64×64 size. This pixel becomes a crisp 2×2 white block in the hand render.
 - Do not leave a second isolated white pixel on the snout or elsewhere in the face where it could read as another eye.
+- Multi-eyed, front-facing, or top-down creatures should preserve every white eye that is visible in the chosen pose.
 - Eye placement is a required manual inspection after cluster collapse; species-specific pixel corrections belong in `EYE_TOUCHUPS` inside `scripts/prepare_generated_sprite.py` so regenerating the sprite preserves them.
 - Tiny fish: at least one high-contrast eye cluster with a distinct surrounding face color
 - Typical fish: a dark pupil and optional highlight that remain distinct at native resolution

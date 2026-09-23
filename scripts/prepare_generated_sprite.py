@@ -14,13 +14,24 @@ CANVAS_SIZE = 64
 DEFAULT_CLUSTER_SIZE = 20
 OPAQUE_THRESHOLD = 128
 OPAQUE_COLORS = 7
+CLUSTER_SIZE_OVERRIDES = {
+    "barracuda-generated": 23,
+}
 
 # Small species-specific corrections are applied after mechanical cluster collapse.
 # Coordinates refer to the final 64x64 canvas. Every side-profile creature must
 # finish with exactly one isolated white eye pixel in its visible eye socket.
 EYE_TOUCHUPS = {
-    "anchovy-generated": {"eye": (57, 32), "remove": [(60, 33), (56, 34)]},
-    "goby-generated": {"eye": (55, 31), "remove": []},
+    "anchovy-generated": {"eyes": [(57, 32)], "remove": [(60, 33), (56, 34)]},
+    "goby-generated": {"eyes": [(55, 31)], "remove": []},
+    "crab-generated": {"eyes": [(33, 30), (41, 28)], "remove": []},
+    "blenny-generated": {"eyes": [(53, 29)], "remove": []},
+    "shrimp-generated": {"eyes": [(46, 28)], "remove": []},
+    "swordfish-generated": {"eyes": [(41, 33)], "remove": []},
+    "barracuda-generated": {"eyes": [(51, 32)], "remove": []},
+    "hypno-squid-generated": {"eyes": [(36, 30)], "remove": []},
+    "lure-generated": {"eyes": [(20, 16)], "remove": []},
+    "ocean-sunfish-generated": {"eyes": [(47, 29)], "remove": []},
 }
 
 
@@ -109,7 +120,8 @@ def prepare(source_path: Path, output_path: Path, cluster_size: int) -> None:
         darkest = (*min(palette, key=lambda color: sum(color)), 255)
         for coordinate in touchup["remove"]:
             canvas.putpixel(coordinate, darkest)
-        canvas.putpixel(touchup["eye"], (255, 255, 255, 255))
+        for coordinate in touchup["eyes"]:
+            canvas.putpixel(coordinate, (255, 255, 255, 255))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(output_path, optimize=True)
@@ -119,9 +131,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--cluster-size", type=int, default=DEFAULT_CLUSTER_SIZE)
+    parser.add_argument("--cluster-size", type=int)
     args = parser.parse_args()
-    prepare(args.source, args.output, args.cluster_size)
+    cluster_size = args.cluster_size or CLUSTER_SIZE_OVERRIDES.get(
+        args.source.stem,
+        DEFAULT_CLUSTER_SIZE,
+    )
+    prepare(args.source, args.output, cluster_size)
 
 
 if __name__ == "__main__":

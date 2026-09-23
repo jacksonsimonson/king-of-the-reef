@@ -40,7 +40,7 @@ King of the Reef is a browser-based tactical card roguelike in which fish compet
 
 Fish cards exert force in marked directions. A newly placed fish may push an adjacent fish when its directional pattern and the destination permit the move. Opposing direction markers can resist a push.
 
-The exact rules for chain pushes, stronger resistance, edge removal, and simultaneous interactions remain to be tested.
+The prototype now supports Standard, Double, Shield, Bigger Fish, Swap, Hook, and Wave as side-specific edge effects. Their current resolution rules are defined in [EDGE_EFFECTS.md](EDGE_EFFECTS.md). Chain pushes and simultaneous interactions remain to be tested.
 
 ### Match pacing
 
@@ -67,6 +67,8 @@ Fish species, rarity, location, equipment, and run progression may affect the ch
 ## Map
 
 The run uses a branching route map inspired by roguelike deck-building games.
+
+Runs progress through three aquatic regions: the Shoreline, the Open Ocean, and the Bermuda Triangle. Early cards come from recognizable shoreline, tidepool, and reef life; later regions can introduce more specialized and unusual creatures.
 
 Confirmed location concepts:
 
@@ -107,4 +109,4 @@ Run-based progression should emphasize discovering fish and building combination
 
 ## Current prototype
 
-The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, directional pushes, resistance, objective control, a basic opponent, match scoring, and rematches. Four weak fish each test one direction. A more complex Octopus tests a left/up/right pattern and establishes the approved 64×64 sprite standard. Player creatures face right and rival creatures face left.
+The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, seven side-specific edge effects, resistance, objective control, a basic opponent, match scoring, and rematches. The pool includes simple directional shoreline creatures plus Swordfish, Barracuda, Hypno Squid, Lure, and Ocean Sunfish as the first special-effect cards. These creatures use the approved 64×64 sprite standard. Player creatures face right and rival creatures face left.

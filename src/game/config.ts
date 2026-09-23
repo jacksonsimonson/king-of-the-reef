@@ -13,7 +13,7 @@ export function createGameConfig(view: GameView): Phaser.Types.Core.GameConfig {
   type: Phaser.AUTO,
   parent: gallery ? "gallery-game" : "game",
   width: canvasWidth,
-  height: gallery ? 360 : playHeight,
+  height: gallery ? 600 : playHeight,
   backgroundColor: "#00233a",
   scene: gallery ? [GalleryScene] : [FoundationScene],
   scale: {

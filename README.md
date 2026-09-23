@@ -32,6 +32,7 @@ The terminal will display the local URL. Stop the server with `Ctrl+C`.
 ## Documentation
 
 - [Game design](docs/GAME_DESIGN.md)
+- [Edge-effect rules](docs/EDGE_EFFECTS.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Idea backlog](docs/IDEA_BACKLOG.md)
 - [Design decisions](docs/DECISIONS.md)

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { createStarterDeck, type Direction, type FishCard } from "../data/starterFish";
+import { createStarterDeck, STARTERS, type Direction, type FishCard } from "../data/starterFish";
 import { drawFishCard } from "../ui/drawFishCard";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
@@ -36,8 +36,8 @@ export class FoundationScene extends Phaser.Scene {
 
   preload(): void {
     const base = import.meta.env.BASE_URL;
-    for (const fish of ["minnow", "anchovy", "sardine", "goby", "octopus"]) {
-      this.load.image(fish, `${base}assets/fish/${fish}.png`);
+    for (const fish of STARTERS) {
+      this.load.image(fish.texture, `${base}assets/fish/${fish.texture}.png`);
     }
   }
 
@@ -132,11 +132,11 @@ export class FoundationScene extends Phaser.Scene {
 
   private handPosition(index: number, centerX: number, boardY: number): { x: number; y: number } {
     const positions = [
-      { x: -160, y: 82 },
+      { x: -164, y: 82 },
       { x: 0, y: 82 },
-      { x: 160, y: 82 },
-      { x: -80, y: 252 },
-      { x: 80, y: 252 },
+      { x: 164, y: 82 },
+      { x: -82, y: 252 },
+      { x: 82, y: 252 },
     ];
     return { x: centerX + positions[index].x, y: boardY + positions[index].y };
   }
@@ -296,44 +296,124 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private evaluateMove(index: number, card: FishCard): number {
-    return card.directions.reduce((score, direction) => {
-      const next = this.neighbor(index, direction);
-      if (next === null) return score;
-      const target = this.board[next];
-      if (!target || target.directions.includes(DIRECTIONS[direction].opposite)) return score;
-      const beyond = this.neighbor(next, direction);
-      return score + (beyond !== null && REEFS.has(beyond) ? 9 : 0) + (target.owner === "player" ? 3 : 1);
-    }, 0);
+    const simulation = [...this.board];
+    const beforeScores = this.getScores(simulation);
+    const opposingOwner = card.owner === "player" ? "rival" : "player";
+    const opposingBefore = simulation.filter((fish) => fish?.owner === opposingOwner).length;
+    simulation[index] = card;
+    this.resolveEdges(simulation, index, card);
+    const afterScores = this.getScores(simulation);
+    const opposingAfter = simulation.filter((fish) => fish?.owner === opposingOwner).length;
+    const ownScoreChange = afterScores[card.owner] - beforeScores[card.owner];
+    const opposingScoreChange = afterScores[opposingOwner] - beforeScores[opposingOwner];
+    return ownScoreChange * 9 - opposingScoreChange * 7 + (opposingBefore - opposingAfter) * 6;
   }
 
   private placeCard(index: number, card: FishCard): void {
     this.board[index] = card;
-    for (const direction of card.directions) {
-      const targetIndex = this.neighbor(index, direction);
+    this.resolveEdges(this.board, index, card);
+  }
+
+  private resolveEdges(board: Array<FishCard | null>, placedIndex: number, card: FishCard): void {
+    let sourceIndex = placedIndex;
+    for (const edge of card.edges) {
+      if (edge.effect === "weak") continue;
+      if (edge.effect === "wave") {
+        this.resolveWave(board, sourceIndex, edge.direction);
+        continue;
+      }
+      if (edge.effect === "hook") {
+        this.resolveHook(board, sourceIndex, edge.direction);
+        continue;
+      }
+
+      const targetIndex = this.neighbor(sourceIndex, edge.direction);
       if (targetIndex === null) continue;
-      const target = this.board[targetIndex];
-      if (!target || target.directions.includes(DIRECTIONS[direction].opposite)) continue;
-      const destination = this.neighbor(targetIndex, direction);
-      if (destination === null) this.board[targetIndex] = null;
-      else if (!this.board[destination]) {
-        this.board[destination] = target;
-        this.board[targetIndex] = null;
+      const target = board[targetIndex];
+      if (!target || this.edgeBlocks(target, edge.direction, edge.effect)) continue;
+
+      if (edge.effect === "swap") {
+        board[sourceIndex] = target;
+        board[targetIndex] = card;
+        sourceIndex = targetIndex;
+      } else {
+        this.tryPush(board, targetIndex, edge.direction, edge.effect === "bigger-fish");
       }
     }
   }
 
-  private neighbor(index: number, direction: Direction): number | null {
-    const row = Math.floor(index / BOARD_SIZE) + DIRECTIONS[direction].row;
-    const column = (index % BOARD_SIZE) + DIRECTIONS[direction].column;
+  private resolveHook(board: Array<FishCard | null>, sourceIndex: number, direction: Direction): void {
+    const gapIndex = this.neighbor(sourceIndex, direction);
+    if (gapIndex === null || board[gapIndex]) return;
+    const targetIndex = this.neighbor(gapIndex, direction);
+    if (targetIndex === null) return;
+    const target = board[targetIndex];
+    if (!target || this.edgeBlocks(target, direction, "hook")) return;
+    board[gapIndex] = target;
+    board[targetIndex] = null;
+  }
+
+  private resolveWave(board: Array<FishCard | null>, sourceIndex: number, direction: Direction): void {
+    const forward = DIRECTIONS[direction];
+    const perpendicular = { row: forward.column, column: -forward.row };
+    for (const spread of [-1, 0, 1]) {
+      const rowStep = forward.row + perpendicular.row * spread;
+      const columnStep = forward.column + perpendicular.column * spread;
+      const ray: number[] = [];
+      for (let distance = 1; distance < BOARD_SIZE; distance += 1) {
+        const rayIndex = this.offsetNeighbor(sourceIndex, rowStep * distance, columnStep * distance);
+        if (rayIndex === null) break;
+        ray.push(rayIndex);
+      }
+      for (let rayIndex = ray.length - 1; rayIndex >= 0; rayIndex -= 1) {
+        const targetIndex = ray[rayIndex];
+        const target = board[targetIndex];
+        if (!target || this.edgeBlocks(target, direction, "wave")) continue;
+        const destination = this.offsetNeighbor(targetIndex, rowStep, columnStep);
+        if (destination === null) board[targetIndex] = null;
+        else if (!board[destination]) {
+          board[destination] = target;
+          board[targetIndex] = null;
+        }
+      }
+    }
+  }
+
+  private tryPush(board: Array<FishCard | null>, targetIndex: number, direction: Direction, remove: boolean): boolean {
+    const target = board[targetIndex];
+    if (!target) return false;
+    const destination = this.neighbor(targetIndex, direction);
+    if (destination !== null && board[destination]) return false;
+    board[targetIndex] = null;
+    if (!remove && destination !== null) board[destination] = target;
+    return true;
+  }
+
+  private edgeBlocks(target: FishCard, incomingDirection: Direction, effect: FishCard["edges"][number]["effect"]): boolean {
+    const defendingDirection = DIRECTIONS[incomingDirection].opposite;
+    const defender = target.edges.find((edge) => edge.direction === defendingDirection);
+    if (!defender) return false;
+    if (effect === "double" || effect === "hook") return defender.effect !== "standard";
+    return true;
+  }
+
+  private offsetNeighbor(index: number, rowOffset: number, columnOffset: number): number | null {
+    const row = Math.floor(index / BOARD_SIZE) + rowOffset;
+    const column = (index % BOARD_SIZE) + columnOffset;
     return row < 0 || row >= BOARD_SIZE || column < 0 || column >= BOARD_SIZE ? null : row * BOARD_SIZE + column;
   }
 
-  private getScores(): { player: number; rival: number } {
+  private neighbor(index: number, direction: Direction): number | null {
+    const vector = DIRECTIONS[direction];
+    return this.offsetNeighbor(index, vector.row, vector.column);
+  }
+
+  private getScores(board: Array<FishCard | null> = this.board): { player: number; rival: number } {
     let player = 0;
     let rival = 0;
     for (const index of REEFS) {
-      if (this.board[index]?.owner === "player") player += 1;
-      if (this.board[index]?.owner === "rival") rival += 1;
+      if (board[index]?.owner === "player") player += 1;
+      if (board[index]?.owner === "rival") rival += 1;
     }
     return { player, rival };
   }

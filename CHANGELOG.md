@@ -13,6 +13,16 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
+- Added boxed, side-specific Standard, Double, Shield, Bite, Swap, Hook, and Wave effects
+- Added Swordfish, Barracuda, Hypno Squid, Lure, and Ocean Sunfish cards with native 64×64 pixel art
+- Added combat resolution for stronger pushes, defensive shields, removal, swapping, two-space hooks, and three-ray waves
+- Kept non-arrow ability icons upright and moved smaller badges onto the outer card edge for clear sprite separation
+- Added Crab, Tidepool Blenny, Shore Shrimp, and Sea Star cards with native 64×64 shoreline pixel art
+- Added common two-direction patterns and gave Crab the left/up/right pattern
+- Preserved pure-white eye pixels through sprite conversion so eyes remain visible at board and hand sizes
+- Set Sea Star's directional pattern to left/right
+- Changed Octopus to left/down/right and centered partial Gallery rows
+- Established Shoreline, Open Ocean, and Bermuda Triangle as the three roguelike regions
 - Expanded Quick Match into a desktop-first, near-full-viewport battle layout
 - Moved the player hand and deck left and the rival hand and deck right
 - Added fixed hand slots with played-card silhouettes and faded used rival card backs
@@ -22,14 +32,14 @@ All notable playable changes to King of the Reef will be recorded here.
 - Arranged each five-card hand in a centered three-over-two formation
 - Kept player-card silhouettes beneath live cards so they appear immediately during dragging
 - Stabilized menu heights and removed Gallery canvas scaling during navigation
-- Added randomized five-card round hands drawn from ten-card healthy starter schools
+- Added randomized five-card round hands drawn from each side's healthy starter school
 - Ended matches after both players place every card in their round hands
 - Added visible player and rival decks, hidden rival card backs, and reserved powerup slots
 - Added a dedicated main menu with Quick Match and Gallery options
 - Split the main menu, quick match, and gallery into separate hash-routed views
 - Standardized general menu and navigation UI around deep ocean blue and ultra-green
-- Moved card arrows outside the sprite canvas and extended them beyond the outer card border
-- Widened hand/gallery arrows by one pixel per side and routed all top-level page changes through the Main Menu
+- Moved card edge markers outside each creature's visible sprite bounds
+- Routed all top-level page changes through the Main Menu
 - Added project documentation and development roadmap
 - Added the TypeScript, Vite, and Phaser foundation
 - Preserved the original prototype in Git history, then removed it from the shipped application after reaching feature parity

@@ -35,6 +35,7 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 
 - Create the first structured fish-card data model
 - Define a small starter set of fish
+- Add side-specific Standard, Double, Shield, Bite, Swap, Hook, and Wave effects
 - Add a creation-order card gallery with eight entries per desktop row
 - Test weight or resistance
 - Add concise species abilities
@@ -43,6 +44,7 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 ## First roguelike loop
 
 - Create a branching map
+- Progress through Shoreline, Open Ocean, and Bermuda Triangle regions
 - Add battle, fishing, shop, event, hydration, and boss spaces
 - Track a school across encounters
 - Add knockout and hydration recovery

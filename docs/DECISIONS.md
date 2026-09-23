@@ -1,5 +1,22 @@
 # Design Decisions
 
+## 2026-09-23 — Side-specific edge effects
+
+- Standard, Double, Shield, Bigger Fish, Swap, Hook, and Wave are properties of individual card sides rather than whole-card text abilities.
+- Standard and Double use arrows that rotate with their side. Every non-arrow ability icon remains upright on all four sides.
+- Every side icon sits in a small opaque box centered on the card's outer edge, outside the creature's visible bounds.
+- Weak Arrow is represented and named as Shield because it defends without applying force.
+- Bigger Fish uses a bite symbol rather than an arrow-shaped mark.
+- The complete prototype behavior and first five cards are recorded in [EDGE_EFFECTS.md](EDGE_EFFECTS.md).
+
+## 2026-09-23 — Shoreline starter creatures and regions
+
+- The roguelike progresses through three regions: Shoreline, Open Ocean, and Bermuda Triangle.
+- The first expanded card pool uses familiar shoreline, tidepool, and reef creatures before later regions introduce stranger aquatic life.
+- Crab uses left/up/right, Tidepool Blenny uses up/right, Shore Shrimp uses right/down, and Sea Star uses left/right.
+- Octopus changes to left/down/right so Crab owns the upward three-arrow pattern.
+- Gallery rows center independently, keeping partial rows visually balanced as the collection grows.
+
 ## 2026-09-23 — Standalone build and future game hub
 
 - GitHub Pages remains the standalone deployment target for the current playable build.
@@ -21,7 +38,7 @@
 
 ## 2026-09-23 — Round hands and visible schools
 
-- Each side currently brings a ten-card starter school and draws five random healthy cards for a battle.
+- Each side draws five random healthy cards from its expanded starter school for a battle.
 - A battle ends after both five-card hands have been placed, for ten total placements before final reef scoring.
 - Undealt cards remain visible as player and rival decks so future powerups can shuffle a hand or reveal rival cards.
 - Rival hands use card backs until played. Played cards remain face-up on the board, while used hand slots stay visible as silhouettes or faded card backs.
@@ -35,11 +52,11 @@
 - Moving between pages intentionally destroys the active Phaser instance; match state is not preserved yet.
 - General menu and navigation UI use deep ocean blue and ultra-green. Rival red, player blue, and pearl pink remain gameplay-specific colors rather than general interface accents.
 
-## 2026-09-23 — Guaranteed arrow clearance
+## 2026-09-23 — Guaranteed edge-icon clearance
 
-- Directional arrows begin at the inner portrait-frame edge, outside the fixed sprite canvas, so arrows can never overlap creature art.
-- Arrow tips extend beyond the outer card border: eight pixels on hand/gallery cards and six pixels on board cards.
-- Hand/gallery arrows are one pixel wider on each side than the initial shared geometry; compact board arrows retain their original width.
+- Edge badges are centered on the outer card border and sized so they remain outside each creature's visible sprite bounds.
+- Hand and gallery cards use 20-pixel badges; board cards use 14-pixel badges.
+- Every badge uses an opaque deep-ocean backing and a high-contrast colored outline.
 - This geometry belongs in the shared card renderer so battle and gallery cards remain identical.
 
 ## 2026-09-23 — Generated sprite production standard
@@ -49,7 +66,7 @@
 - Preserve each generated reference, then convert it through `scripts/prepare_generated_sprite.py` by collapsing each visible same-color source cluster into one logical pixel. Ordinary resizing and post-resize quantization are prohibited because they preserve noise or blur the art.
 - Use no interpolation or soft alpha. Player art faces right; the renderer flips rival art left.
 - Battle and gallery cards must use the same Phaser card-rendering function so their frames, arrows, scaling, and ownership colors remain identical.
-- Side-profile creature sprites use exactly one isolated white eye pixel on the visible side. Any required per-species correction is recorded in the conversion script so it survives regeneration.
+- Side-profile creature sprites preserve at least one pure-white eye pixel on the visible side at native 64×64 size. Multi-eyed poses preserve each visible white eye. Front-facing or top-down creatures may show their anatomically appropriate number of eyes. Required per-species corrections are recorded in the conversion script so they survive regeneration.
 
 This log records important choices and their reasoning.
 
