@@ -23,4 +23,4 @@ All notable playable changes to King of the Reef will be recorded here.
 - Sharpened the visual palette to deep navy, ultra green, and pearl pink
 - Added four original 48×48 starter-fish sprites
 - Added playable card selection, placement, directional pushes, reef scoring, a basic rival, and rematches to the Phaser build
-- Redesigned fish cards as square, art-first tiles with darker inset portraits and edge-centered square arrow sockets
+- Redesigned fish cards as square, art-first tiles with darker inset portraits, uniformly sized edge arrows, and blue/red ownership borders

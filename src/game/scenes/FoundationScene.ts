@@ -1,7 +1,15 @@
 import Phaser from "phaser";
 import { createStarterSchool, type Direction, type FishCard } from "../data/starterFish";
 
-const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
+const COLORS = {
+  deep: 0x00233a,
+  water: 0x063d58,
+  hover: 0x0b5267,
+  green: 0x39ff14,
+  pink: 0xff5ca8,
+  playerBlue: 0x1597ff,
+  rivalRed: 0xff3b3b,
+};
 const BOARD_SIZE = 5;
 const CELL = 82;
 const GAP = 6;
@@ -112,11 +120,9 @@ export class FoundationScene extends Phaser.Scene {
     size: number,
     selected: boolean,
   ): Phaser.GameObjects.Rectangle {
-    const ownerColor = fish.owner === "player" ? COLORS.green : COLORS.pink;
-    const frameColor = selected ? COLORS.pink : ownerColor;
+    const frameColor = fish.owner === "player" ? COLORS.playerBlue : COLORS.rivalRed;
     const border = size >= 100 ? (selected ? 6 : 4) : 3;
     const insetSize = size >= 100 ? 78 : 52;
-    const socketSize = size >= 100 ? 24 : 18;
     const spriteSize = size >= 100 ? 48 : 40;
 
     const outer = this.add.rectangle(x, y, size, size, COLORS.water)
@@ -126,21 +132,41 @@ export class FoundationScene extends Phaser.Scene {
     const sprite = this.add.image(x, y, fish.texture).setDisplaySize(spriteSize, spriteSize);
     if (fish.owner === "rival") sprite.setFlipX(true);
 
-    const direction = DIRECTIONS[fish.direction];
-    const edgeOffset = size / 2 - socketSize / 2;
-    const socketX = x + direction.column * edgeOffset;
-    const socketY = y + direction.row * edgeOffset;
-    const socket = this.add.rectangle(socketX, socketY, socketSize, socketSize, 0xf2fff7)
-      .setStrokeStyle(2, COLORS.deep);
-    const arrow = this.add.text(
-      socketX,
-      socketY,
-      direction.glyph,
-      this.textStyle(size >= 100 ? 16 : 12, "#00233a", true),
-    ).setOrigin(0.5);
+    const arrow = this.drawCardArrow(x, y, size, insetSize, fish.direction);
 
-    this.ui?.add([outer, inset, sprite, socket, arrow]);
+    this.ui?.add([outer, inset, sprite, arrow]);
     return outer;
+  }
+
+  private drawCardArrow(
+    x: number,
+    y: number,
+    outerSize: number,
+    insetSize: number,
+    direction: Direction,
+  ): Phaser.GameObjects.Graphics {
+    const arrow = this.add.graphics();
+    const innerEdge = insetSize / 2;
+    const outerEdge = outerSize / 2;
+    const halfWidth = outerSize >= 100 ? 11 : 8;
+    const vector = DIRECTIONS[direction];
+    const perpendicularX = -vector.row;
+    const perpendicularY = vector.column;
+    const tipX = x + vector.column * outerEdge;
+    const tipY = y + vector.row * outerEdge;
+    const baseX = x + vector.column * innerEdge;
+    const baseY = y + vector.row * innerEdge;
+
+    arrow.fillStyle(0xf2fff7, 1);
+    arrow.lineStyle(2, COLORS.deep, 1);
+    arrow.beginPath();
+    arrow.moveTo(tipX, tipY);
+    arrow.lineTo(baseX + perpendicularX * halfWidth, baseY + perpendicularY * halfWidth);
+    arrow.lineTo(baseX - perpendicularX * halfWidth, baseY - perpendicularY * halfWidth);
+    arrow.closePath();
+    arrow.fillPath();
+    arrow.strokePath();
+    return arrow;
   }
 
   private playPlayerCard(index: number): void {
