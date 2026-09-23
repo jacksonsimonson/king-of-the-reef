@@ -87,7 +87,7 @@ export class FoundationScene extends Phaser.Scene {
     add(this.add.text(36, 188, "REEFS", this.textStyle(14, "#ff5ca8", true)));
     add(this.add.text(36, 215, "Push fish onto\n2 of 3 pearls\nto rule the reef.", this.textStyle(15, "#b8ffd0")).setLineSpacing(6));
     add(this.add.text(36, 625, this.turn === "player" ? "YOUR SCHOOL" : "RIVAL TURN", this.textStyle(16, "#39ff14", true)));
-    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 130 + index * 160, 720));
+    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 88 + index * 181, 735));
     if (this.finished) this.drawResult(scores.player, scores.rival);
   }
 
@@ -104,7 +104,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private drawHandCard(fish: FishCard, x: number, y: number): void {
     const selected = this.selectedId === fish.id;
-    const card = this.drawFishCard(fish, x, y, 128, selected);
+    const card = this.drawFishCard(fish, x, y, 144, selected);
     if (this.turn === "player" && !this.finished) {
       card.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
         this.selectedId = selected ? null : fish.id;
@@ -122,14 +122,14 @@ export class FoundationScene extends Phaser.Scene {
   ): Phaser.GameObjects.Rectangle {
     const frameColor = fish.owner === "player" ? COLORS.playerBlue : COLORS.rivalRed;
     const border = size >= 100 ? (selected ? 6 : 4) : 3;
-    const insetSize = size >= 100 ? 104 : 72;
+    const insetSize = size >= 100 ? 132 : 72;
 
     const outer = this.add.rectangle(x, y, size, size, COLORS.water)
       .setStrokeStyle(border, frameColor);
     const inset = this.add.rectangle(x, y, insetSize, insetSize, COLORS.deep)
       .setStrokeStyle(2, 0x001725);
     const source = this.textures.get(fish.texture).getSourceImage() as HTMLImageElement;
-    const targetSize = size >= 100 ? 96 : 64;
+    const targetSize = size >= 100 ? 128 : 64;
     const integerScale = Math.max(
       1,
       Math.floor(targetSize / Math.max(source.width, source.height)),
