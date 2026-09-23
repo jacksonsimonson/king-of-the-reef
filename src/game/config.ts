@@ -4,9 +4,9 @@ import { FoundationScene } from "./scenes/FoundationScene";
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "game",
-  width: 720,
-  height: 720,
-  backgroundColor: "#071f2d",
+  width: 900,
+  height: 730,
+  backgroundColor: "#00233a",
   scene: [FoundationScene],
   scale: {
     mode: Phaser.Scale.FIT,

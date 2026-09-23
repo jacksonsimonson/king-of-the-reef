@@ -20,3 +20,6 @@ All notable playable changes to King of the Reef will be recorded here.
 - Replaced the temporary yellow-and-red foundation with an ocean-blue, aquatic-green, and pearl-pink palette
 - Improved foundation-page text sizing and wrapping
 - Planned 5×5 battle board with three reefs
+- Sharpened the visual palette to deep navy, ultra green, and pearl pink
+- Added four original 48×48 starter-fish sprites
+- Added playable card selection, placement, directional pushes, reef scoring, a basic rival, and rematches to the Phaser build
