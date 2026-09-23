@@ -13,6 +13,9 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
+- Added a dedicated main menu with Quick Match and Gallery options
+- Split the main menu, quick match, and gallery into separate hash-routed views
+- Standardized general menu and navigation UI around deep ocean blue and ultra-green
 - Added project documentation and development roadmap
 - Added the TypeScript, Vite, and Phaser foundation
 - Preserved the original prototype in Git history, then removed it from the shipped application after reaching feature parity

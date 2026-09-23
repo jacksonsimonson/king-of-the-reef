@@ -1,5 +1,12 @@
 # Design Decisions
 
+## 2026-09-23 — Main-menu navigation
+
+- The root view is a dedicated main menu rather than loading directly into a match.
+- Quick Match and Gallery are separate hash-routed pages.
+- Moving between pages intentionally destroys the active Phaser instance; match state is not preserved yet.
+- General menu and navigation UI use deep ocean blue and ultra-green. Rival red, player blue, and pearl pink remain gameplay-specific colors rather than general interface accents.
+
 ## 2026-09-23 — Generated sprite production standard
 
 - Use the approved red Octopus as the style and complexity reference.
