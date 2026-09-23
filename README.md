@@ -35,6 +35,7 @@ The terminal will display the local URL. Stop the server with `Ctrl+C`.
 - [Roadmap](docs/ROADMAP.md)
 - [Idea backlog](docs/IDEA_BACKLOG.md)
 - [Design decisions](docs/DECISIONS.md)
+- [Pixel-art sprite guide](docs/PIXEL_ART_GUIDE.md)
 - [Changelog](CHANGELOG.md)
 
 ## Technology

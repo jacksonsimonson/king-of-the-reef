@@ -17,9 +17,13 @@
           <p class="eyebrow">Tactical card roguelike</p>
           <h1>King of the Reef</h1>
         </div>
+        <nav class="site-nav" aria-label="Prototype views">
+          <a class="nav-link" href="#play">Play</a>
+          <a class="nav-link" href="#gallery">Gallery</a>
+        </nav>
       </header>
 
-      <section class="game-panel" aria-labelledby="prototype-heading">
+      <section id="play" class="game-panel" aria-labelledby="prototype-heading">
         <div class="panel-copy">
           <p class="status">Playable battle build</p>
           <h2 id="prototype-heading">Build your school. Claim the reef.</h2>
@@ -29,6 +33,17 @@
           </p>
         </div>
         <div id="game" aria-label="King of the Reef game canvas"></div>
+      </section>
+
+      <section id="gallery" class="gallery-panel" aria-labelledby="gallery-heading" hidden>
+        <div class="gallery-heading-row">
+          <div>
+            <p class="status">School collection</p>
+            <h2 id="gallery-heading">Fish Gallery</h2>
+          </div>
+          <a class="nav-link" href="#play">Back to battle</a>
+        </div>
+        <div id="gallery-game" aria-label="King of the Reef fish gallery"></div>
       </section>
     </main>
     <script type="module" src="/src/main.ts"></script>

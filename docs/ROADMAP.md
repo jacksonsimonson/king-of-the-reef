@@ -32,6 +32,7 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 
 - Create the first structured fish-card data model
 - Define a small starter set of fish
+- Add a creation-order card gallery with eight entries per desktop row
 - Test weight or resistance
 - Add concise species abilities
 - Add temporary pixel-art card assets

@@ -1,11 +1,18 @@
 import Phaser from "phaser";
 import { createStarterSchool, type Direction, type FishCard } from "../data/starterFish";
+import { drawFishCard } from "../ui/drawFishCard";
 
-const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
+const COLORS = {
+  deep: 0x00233a,
+  water: 0x063d58,
+  hover: 0x0b5267,
+  green: 0x39ff14,
+  pink: 0xff5ca8,
+};
 const BOARD_SIZE = 5;
-const CELL = 82;
+const CELL = 96;
 const GAP = 6;
-const BOARD_X = 240;
+const BOARD_X = 198;
 const BOARD_Y = 92;
 const REEFS = new Set([2, 11, 18]);
 const DIRECTIONS: Record<Direction, { row: number; column: number; opposite: Direction; glyph: string }> = {
@@ -28,7 +35,7 @@ export class FoundationScene extends Phaser.Scene {
 
   preload(): void {
     const base = import.meta.env.BASE_URL;
-    for (const fish of ["minnow", "anchovy", "sardine", "goby"]) {
+    for (const fish of ["minnow", "anchovy", "sardine", "goby", "octopus"]) {
       this.load.image(fish, `${base}assets/fish/${fish}.png`);
     }
   }
@@ -78,8 +85,8 @@ export class FoundationScene extends Phaser.Scene {
     add(this.add.text(36, 137, `${this.rivalHand.length} fish remain`, this.textStyle(16, "#f2fff7")));
     add(this.add.text(36, 188, "REEFS", this.textStyle(14, "#ff5ca8", true)));
     add(this.add.text(36, 215, "Push fish onto\n2 of 3 pearls\nto rule the reef.", this.textStyle(15, "#b8ffd0")).setLineSpacing(6));
-    add(this.add.text(36, 565, this.turn === "player" ? "YOUR SCHOOL" : "RIVAL TURN", this.textStyle(16, "#39ff14", true)));
-    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 190 + index * 175, 650));
+    add(this.add.text(36, 625, this.turn === "player" ? "YOUR SCHOOL" : "RIVAL TURN", this.textStyle(16, "#39ff14", true)));
+    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 88 + index * 181, 735));
     if (this.finished) this.drawResult(scores.player, scores.rival);
   }
 
@@ -91,36 +98,29 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private drawBoardFish(fish: FishCard, x: number, y: number): void {
-    const tint = fish.owner === "player" ? COLORS.green : COLORS.pink;
-    const backing = this.add.rectangle(x + CELL / 2, y + CELL / 2, CELL - 8, CELL - 8, COLORS.deep, 0.94).setStrokeStyle(3, tint);
-    const sprite = this.add.image(x + CELL / 2, y + CELL / 2, fish.texture).setDisplaySize(48, 48);
-    if (fish.owner === "rival") sprite.setFlipX(true).setTint(0xffadd1);
-    const arrow = this.add.text(x + CELL / 2, y + CELL / 2, DIRECTIONS[fish.direction].glyph, this.textStyle(19, fish.owner === "player" ? "#39ff14" : "#ff5ca8", true)).setOrigin(0.5);
-    this.positionArrow(arrow, fish.direction, x + CELL / 2, y + CELL / 2, 31);
-    this.ui?.add([backing, sprite, arrow]);
+    this.drawFishCard(fish, x + CELL / 2, y + CELL / 2, 88, false);
   }
 
   private drawHandCard(fish: FishCard, x: number, y: number): void {
     const selected = this.selectedId === fish.id;
-    const card = this.add.rectangle(x, y, 154, 112, selected ? COLORS.hover : COLORS.water)
-      .setStrokeStyle(selected ? 5 : 3, selected ? COLORS.pink : COLORS.green)
-      .setInteractive({ useHandCursor: this.turn === "player" && !this.finished });
-    const sprite = this.add.image(x - 42, y - 5, fish.texture).setDisplaySize(48, 48);
-    const name = this.add.text(x - 70, y + 34, fish.name.toUpperCase(), this.textStyle(13, "#f2fff7", true));
-    const type = this.add.text(x + 8, y + 9, fish.species, this.textStyle(11, "#b8ffd0")).setOrigin(0.5);
-    const arrow = this.add.text(x + 45, y - 20, DIRECTIONS[fish.direction].glyph, this.textStyle(28, "#39ff14", true)).setOrigin(0.5);
+    const card = this.drawFishCard(fish, x, y, 144, selected);
     if (this.turn === "player" && !this.finished) {
-      card.on("pointerdown", () => {
+      card.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
         this.selectedId = selected ? null : fish.id;
         this.render(this.selectedId ? `${fish.name} selected — choose open water.` : "Selection cleared.");
       });
     }
-    this.ui?.add([card, sprite, name, type, arrow]);
   }
 
-  private positionArrow(text: Phaser.GameObjects.Text, direction: Direction, x: number, y: number, offset: number): void {
-    const delta = DIRECTIONS[direction];
-    text.setPosition(x + delta.column * offset, y + delta.row * offset);
+  private drawFishCard(
+    fish: FishCard,
+    x: number,
+    y: number,
+    size: number,
+    selected: boolean,
+  ): Phaser.GameObjects.Rectangle {
+    if (!this.ui) throw new Error("Card UI container is unavailable");
+    return drawFishCard({ scene: this, container: this.ui, fish, x, y, size, selected });
   }
 
   private playPlayerCard(index: number): void {
@@ -152,25 +152,29 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private evaluateMove(index: number, card: FishCard): number {
-    const next = this.neighbor(index, card.direction);
-    if (next === null) return 0;
-    const target = this.board[next];
-    if (!target || target.direction === DIRECTIONS[card.direction].opposite) return 0;
-    const beyond = this.neighbor(next, card.direction);
-    return (beyond !== null && REEFS.has(beyond) ? 9 : 0) + (target.owner === "player" ? 3 : 1);
+    return card.directions.reduce((score, direction) => {
+      const next = this.neighbor(index, direction);
+      if (next === null) return score;
+      const target = this.board[next];
+      if (!target || target.directions.includes(DIRECTIONS[direction].opposite)) return score;
+      const beyond = this.neighbor(next, direction);
+      return score + (beyond !== null && REEFS.has(beyond) ? 9 : 0) + (target.owner === "player" ? 3 : 1);
+    }, 0);
   }
 
   private placeCard(index: number, card: FishCard): void {
     this.board[index] = card;
-    const targetIndex = this.neighbor(index, card.direction);
-    if (targetIndex === null) return;
-    const target = this.board[targetIndex];
-    if (!target || target.direction === DIRECTIONS[card.direction].opposite) return;
-    const destination = this.neighbor(targetIndex, card.direction);
-    if (destination === null) this.board[targetIndex] = null;
-    else if (!this.board[destination]) {
-      this.board[destination] = target;
-      this.board[targetIndex] = null;
+    for (const direction of card.directions) {
+      const targetIndex = this.neighbor(index, direction);
+      if (targetIndex === null) continue;
+      const target = this.board[targetIndex];
+      if (!target || target.directions.includes(DIRECTIONS[direction].opposite)) continue;
+      const destination = this.neighbor(targetIndex, direction);
+      if (destination === null) this.board[targetIndex] = null;
+      else if (!this.board[destination]) {
+        this.board[destination] = target;
+        this.board[targetIndex] = null;
+      }
     }
   }
 
