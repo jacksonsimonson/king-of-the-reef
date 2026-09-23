@@ -12,7 +12,9 @@ This guide keeps fish readable, consistently sized, and fast to produce.
 - Edges: hard pixels only; do not use antialiasing or soft transparency
 - Card frame, ownership border, and directional arrows: never include these in the sprite
 
-Design directly on the 32×32 grid. Do not create a large illustration and shrink it afterward. The extra room is specifically for readable eyes, fins, markings, and species-defining anatomy—not smooth edges or unnecessary noise.
+Design for the final 32×32 grid from the beginning. Do not create or supply a detailed reference illustration first: it encourages texture and anatomy that cannot survive at the production resolution. Start from the species description, build a simple silhouette with large pixel clusters, and inspect the actual 32×32 output before considering the enlarged card view. The extra room is specifically for readable eyes, fins, markings, and species-defining anatomy—not smooth edges or unnecessary noise.
+
+The starter sprites are authored as explicit pixel-coordinate runs in `scripts/generate-sprites.mjs`. The generator writes one RGBA value per source pixel. Converting that pixel buffer to PNG must never resize, resample, interpolate, or trace another image.
 
 ## Color
 
@@ -26,7 +28,7 @@ The project palette belongs to the surrounding UI:
 - Board and interface highlights: ultra green
 - Backgrounds and sprite outlines: deep ocean navy
 
-Use a restrained set of natural colors within each sprite so it remains readable at native 1× size. Species identification takes priority over matching the interface.
+Use a restrained set of natural colors within each sprite so it remains readable at native 1× size. The starter-creature target is seven total colors including transparency. Species identification takes priority over matching the interface.
 
 ## Runtime scaling
 
@@ -49,8 +51,10 @@ Never use fractional scaling for fish sprites.
 2. Confirm the canvas is exactly 32×32 pixels.
 3. Center the sprite and keep its longest visible dimension near 28–30 pixels.
 4. Confirm the image is crisp at 1× zoom.
-5. Save the PNG under `public/assets/fish/`.
-6. Test it in both a hand card and a board card.
+5. Confirm that the palette is intentionally limited; use roughly seven total colors including transparency unless a species genuinely requires more.
+6. Confirm that no detailed reference art was used as an intermediate source.
+7. Save the PNG under `public/assets/fish/`.
+8. Test it in both a hand card and a board card.
 
 ## Complexity test
 
