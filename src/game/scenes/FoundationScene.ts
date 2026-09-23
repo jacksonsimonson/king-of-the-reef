@@ -123,7 +123,7 @@ export class FoundationScene extends Phaser.Scene {
     const frameColor = fish.owner === "player" ? COLORS.playerBlue : COLORS.rivalRed;
     const border = size >= 100 ? (selected ? 6 : 4) : 3;
     const insetSize = size >= 100 ? 78 : 52;
-    const spriteSize = size >= 100 ? 48 : 40;
+    const spriteSize = size >= 100 ? 70 : 48;
 
     const outer = this.add.rectangle(x, y, size, size, COLORS.water)
       .setStrokeStyle(border, frameColor);
