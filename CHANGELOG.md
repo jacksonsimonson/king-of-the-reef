@@ -13,6 +13,8 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
-- Project documentation and development roadmap
-- Planned migration to TypeScript, Vite, and Phaser
+- Added project documentation and development roadmap
+- Added the TypeScript, Vite, and Phaser foundation
+- Preserved the original prototype as a legacy reference
+- Added automated GitHub Pages deployment
 - Planned 5×5 battle board with three reefs
