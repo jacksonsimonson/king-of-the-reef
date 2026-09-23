@@ -63,22 +63,6 @@ h1 {
   color: #39ff14;
 }
 
-.legacy-link {
-  border: 3px solid #39ff14;
-  padding: 12px 16px;
-  background: #063d58;
-  color: #f2fff7;
-  font-weight: 800;
-  text-decoration: none;
-  box-shadow: 5px 5px 0 #ff5ca8;
-}
-
-.legacy-link:hover,
-.legacy-link:focus-visible {
-  transform: translate(2px, 2px);
-  box-shadow: 3px 3px 0 #ff5ca8;
-}
-
 .game-panel {
   display: grid;
   grid-template-columns: 1fr;
@@ -136,10 +120,6 @@ h1 {
   .site-header {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .legacy-link {
-    display: inline-block;
   }
 
   .panel-copy {

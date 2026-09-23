@@ -15,7 +15,7 @@ All notable playable changes to King of the Reef will be recorded here.
 
 - Added project documentation and development roadmap
 - Added the TypeScript, Vite, and Phaser foundation
-- Preserved the original prototype as a legacy reference
+- Preserved the original prototype in Git history, then removed it from the shipped application after reaching feature parity
 - Added automated GitHub Pages deployment
 - Replaced the temporary yellow-and-red foundation with an ocean-blue, aquatic-green, and pearl-pink palette
 - Improved foundation-page text sizing and wrapping

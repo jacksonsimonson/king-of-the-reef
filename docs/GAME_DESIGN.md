@@ -96,4 +96,4 @@ Run-based progression should emphasize discovering fish and building combination
 
 ## Current prototype
 
-The recovered prototype is an exploratory 4×4 implementation. It validates card selection, directional pushes, objective control, a basic opponent, match scoring, and rematches. It is not the final ruleset.
+The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, directional pushes, resistance, objective control, a basic opponent, match scoring, and rematches. Its fish set and rules remain intentionally small while the battle system is tested.

@@ -4,9 +4,7 @@ A fish-based tactical card roguelike about building a school of fish and battlin
 
 ## Project status
 
-King of the Reef is in early development. The repository currently contains the original playable combat experiment recovered from its first browser prototype.
-
-The current prototype uses a 4×4 board, directional card pushing, two objective spaces, a simple computer opponent, scoring, and rematches. The planned core battle format is a 5×5 board with three reefs.
+King of the Reef is in early development. The current playable build uses a 5×5 board, three reef objectives, directional fish-card pushing, a computer opponent, scoring, and rematches.
 
 ## Vision
 
@@ -30,12 +28,6 @@ npm.cmd run dev
 ```
 
 The terminal will display the local URL. Stop the server with `Ctrl+C`.
-
-## Original prototype
-
-The recovered first prototype remains available at `public/legacy-prototype/index.html` and is copied into every production build.
-
-It is intentionally preserved as the project's starting point and behavioral reference while its systems are migrated into the TypeScript, Vite, and Phaser implementation.
 
 ## Documentation
 
