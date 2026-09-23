@@ -13,6 +13,12 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
+- Added Voyage: three seeded, left-to-right branching regions with shoreline/reef, deep-ocean/arctic and stormy Bermuda scenery
+- Added weighted encounter generation, guaranteed milestones, original pixel space icons and region previews
+- Connected fishing, shops, events, hydration, battles and Colossals to a saved school, shells, resolve and region progression
+- Added run defeat/victory, save/resume, school inventory and deterministic regional catches
+- Added generation and run-state tests and recorded the feature-branch workflow
+
 - Added boxed, side-specific Standard, Double, Shield, Bite, Swap, Hook, and Wave effects
 - Added Swordfish, Barracuda, Hypno Squid, Lure, and Ocean Sunfish cards with native 64×64 pixel art
 - Added combat resolution for stronger pushes, defensive shields, removal, swapping, two-space hooks, and three-ray waves

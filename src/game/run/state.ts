@@ -1,0 +1,124 @@
+import { STARTERS, type FishCard } from "../data/starterFish.ts";
+import { generateMap, random, REGIONS, type MapNode, type RegionMap } from "./maps.ts";
+
+export interface Run {
+  version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
+  visited: string[]; pending: string | null; school: FishCard[]; shells: number;
+  resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
+}
+export const SAVE_KEY = "king-of-the-reef-voyage-v1";
+export function recruit(run: Run, texture: string): void {
+  const definition = STARTERS.find((fish) => fish.texture === texture);
+  if (!definition) throw new Error("Unknown creature");
+  run.school.push({ ...definition, id: `run-${++run.serial}`, owner: "player", condition: "healthy" });
+}
+export function createRun(seed: string): Run {
+  const maps = REGIONS.map((_, i) => generateMap(seed, i));
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  for (const texture of ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"]) recruit(run, texture);
+  return run;
+}
+export function activeNode(run: Run): MapNode {
+  return run.maps[run.region].nodes.find((node) => node.id === (run.pending ?? run.current))!;
+}
+export function reachable(run: Run): string[] {
+  if (run.status !== "active" || run.pending) return [];
+  return activeNode(run).next;
+}
+export function enterNode(run: Run, id: string): boolean {
+  if (!reachable(run).includes(id)) return false;
+  run.pending = id;
+  return true;
+}
+export function offers(run: Run): string[] {
+  const pool: string[] = [...REGIONS[run.region].pool];
+  const rng = random(`${run.seed}:${run.pending}:offers`);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 3);
+}
+function finishNode(run: Run, message: string): void {
+  if (!run.pending) return;
+  run.current = run.pending;
+  run.visited.push(run.pending);
+  run.pending = null;
+  run.log = message;
+}
+export function resolveVisit(run: Run, choice: string): boolean {
+  if (!run.pending || run.status !== "active") return false;
+  const node = activeNode(run);
+  if (node.type === "battle" || node.type === "boss") return false;
+  if (node.type === "fishing" || node.type === "shop") {
+    if (choice !== "leave") {
+      if (!offers(run).includes(choice) || (node.type === "shop" && run.shells < 18)) return false;
+      if (node.type === "shop") run.shells -= 18;
+      recruit(run, choice);
+      finishNode(run, `${run.school.at(-1)!.name} joined your school.`);
+    } else finishNode(run, "You followed the current onward.");
+  } else if (node.type === "hydration") {
+    run.school.forEach((fish) => { fish.condition = "healthy"; });
+    run.resolve = Math.min(3, run.resolve + 1);
+    finishNode(run, "The spring restored your school and one resolve.");
+  } else if (node.type === "event") {
+    if (choice === "salvage") {
+      run.shells += 14;
+      if (run.resolve > 1) run.resolve--;
+      finishNode(run, "Recovered 14 shells from the wreck. The dangerous dive cost one resolve (minimum one).");
+    } else if (choice === "rescue") {
+      recruit(run, offers(run)[0]);
+      finishNode(run, `You rescued a ${run.school.at(-1)!.name} from the drifting net.`);
+    } else return false;
+  } else return false;
+  return true;
+}
+export function battleResult(run: Run, player: number, rival: number): void {
+  if (!run.pending || run.status !== "active") return;
+  const node = activeNode(run);
+  if (node.type !== "battle" && node.type !== "boss") return;
+  if (player < rival) {
+    run.resolve--;
+    const healthy = run.school.filter((fish) => fish.condition === "healthy");
+    // Keep a playable five-card school; recovery still matters for deck options.
+    if (healthy.length > 5) healthy.at(-1)!.condition = "knocked-out";
+    run.log = healthy.length > 5
+      ? "The rival won. Lost one resolve; a reserve creature rests until hydration."
+      : "The rival won. Lost one resolve.";
+    if (run.resolve <= 0) { run.status = "lost"; run.pending = null; return; }
+    if (node.type === "battle") finishNode(run, run.log);
+    return;
+  }
+  if (node.type === "boss" && player === rival) {
+    run.log = "The Colossal held the reef. Rematch to pass; no resolve lost.";
+    return;
+  }
+  run.shells += player > rival ? (node.type === "boss" ? 25 : 12) : 4;
+  finishNode(run, player > rival ? "Victory! Your school secured the reef and earned shells." : "A tied tide. Earned 4 shells and sailed onward.");
+  if (node.type === "boss") {
+    if (run.region === 2) { run.status = "won"; run.log = "You reached the heart of the Triangle. The three seas are yours."; }
+    else {
+      run.region++;
+      run.current = run.maps[run.region].nodes[0].id;
+      run.visited.push(run.current);
+      run.log = `The Colossal yields. Welcome to ${REGIONS[run.region].name}.`;
+    }
+  }
+}
+export function loadRun(): Run | null {
+  try {
+    const run: Run = JSON.parse(localStorage.getItem(SAVE_KEY) ?? "null");
+    if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
+    // Rebuild maps from the versioned seed instead of trusting saved topology.
+    run.maps = REGIONS.map((_, i) => generateMap(run.seed, i));
+    if (!run.maps[run.region].nodes.some((node) => node.id === run.current)) return null;
+    if (run.pending && !run.maps[run.region].nodes.find((node) => node.id === run.current)?.next.includes(run.pending)) return null;
+    if (!run.school.every((fish) => STARTERS.some((s) => s.texture === fish.texture) && ["healthy", "knocked-out"].includes(fish.condition))) return null;
+    if (![run.shells, run.resolve, run.serial].every(Number.isFinite)) return null;
+    return run;
+  } catch { return null; }
+}
+export function saveRun(run: Run): boolean {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(run)); return true; }
+  catch { return false; }
+}
