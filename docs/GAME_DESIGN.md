@@ -31,7 +31,9 @@ King of the Reef is a browser-based tactical card roguelike in which fish compet
 - Players: player versus computer opponent
 - Primary action: play one fish card
 - Primary interaction: directional pushing
-- Initial victory concept: control at least two reefs when the match ends
+- Round hand: five random healthy fish drawn from each side's current school
+- Match end: after both players place every card in their round hand
+- Victory: control more reefs than the rival when the match ends
 - Reef rule: fish should reach reefs through movement rather than being placed directly on them
 
 ### Directional pushing
@@ -42,7 +44,7 @@ The exact rules for chain pushes, stronger resistance, edge removal, and simulta
 
 ### Match pacing
 
-A 5×5 board creates space for maneuvering, specialized fish, and environmental effects. A turn or round limit will likely be required to keep matches decisive.
+A 5×5 board creates space for maneuvering, specialized fish, and environmental effects. Each side draws five healthy fish per encounter, creating ten placements before reef control is scored. The undealt school remains visible as a deck so later powerups can shuffle or reveal cards.
 
 ## Fish cards
 
@@ -94,6 +96,14 @@ Run-based progression should emphasize discovering fish and building combination
 - Strong card silhouettes
 - Natural, species-appropriate animal colors separated from player/rival UI colors
 - Aquatic environments differentiated through color, vegetation, hazards, and fish populations
+
+## Interface direction
+
+- Desktop is the current interface target; mobile adaptation comes after the battle layout is established.
+- Game screens should occupy nearly the full browser viewport.
+- The game canvas is never fractionally resized. Canvas pixels, text, and UI geometry render 1:1; creature sprites use whole-number scales only.
+- Battle information surrounds a centered board: the player school is on the left and the rival school is on the right.
+- Five-card hands use a centered three-over-two arrangement. Dragging a card shows the card in motion and previews a translucent board-scale copy over legal placement spaces.
 
 ## Current prototype
 

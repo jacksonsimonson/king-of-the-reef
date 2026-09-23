@@ -24,45 +24,51 @@ export interface DrawFishCardOptions {
   y: number;
   size: number;
   selected?: boolean;
+  silhouette?: boolean;
 }
 
 export function drawFishCard({
   scene,
-  container,
+  container: parent,
   fish,
   x,
   y,
   size,
   selected = false,
-}: DrawFishCardOptions): Phaser.GameObjects.Rectangle {
+  silhouette = false,
+}: DrawFishCardOptions): Phaser.GameObjects.Container {
   const large = size >= 100;
   const frameColor = fish.owner === "player" ? COLORS.playerBlue : COLORS.rivalRed;
   const border = large ? (selected ? 6 : 4) : 3;
   const insetSize = large ? size - 12 : size - 16;
-  const targetSize = large ? 128 : 64;
+  const card = scene.add.container(x, y).setSize(size, size);
 
-  const outer = scene.add.rectangle(x, y, size, size, COLORS.water)
+  const outer = scene.add.rectangle(0, 0, size, size, COLORS.water)
     .setStrokeStyle(border, frameColor);
-  const inset = scene.add.rectangle(x, y, insetSize, insetSize, COLORS.deep)
+  const inset = scene.add.rectangle(0, 0, insetSize, insetSize, COLORS.deep)
     .setStrokeStyle(2, 0x001725);
 
-  const source = scene.textures.get(fish.texture).getSourceImage() as HTMLImageElement;
-  const integerScale = Math.max(1, Math.floor(targetSize / Math.max(source.width, source.height)));
-  const sprite = scene.add.image(x, y, fish.texture).setScale(integerScale);
+  const integerScale = large ? 2 : 1;
+  const sprite = scene.add.image(0, 0, fish.texture).setScale(integerScale);
   sprite.setFlipX(fish.owner === "rival");
+  if (silhouette) {
+    outer.setAlpha(0.3);
+    inset.setAlpha(0.3);
+    sprite.setTintFill(fish.owner === "player" ? 0x0a568a : 0x8a2020).setAlpha(0.42);
+  }
 
   const arrows = fish.directions.map((direction) =>
-    drawCardArrow(scene, x, y, size, insetSize, direction),
+    drawCardArrow(scene, size, insetSize, direction),
   );
 
-  container.add([outer, inset, sprite, ...arrows]);
-  return outer;
+  card.add([outer, inset, sprite, ...arrows]);
+  parent.add(card);
+  card.setDepth(2);
+  return card;
 }
 
 function drawCardArrow(
   scene: Phaser.Scene,
-  x: number,
-  y: number,
   outerSize: number,
   insetSize: number,
   direction: Direction,
@@ -80,10 +86,10 @@ function drawCardArrow(
   // extends beyond the outer card border for a stronger directional silhouette.
   const baseRadius = innerEdge;
   const tipRadius = outerEdge + protrusion;
-  const tipX = x + vector.column * tipRadius;
-  const tipY = y + vector.row * tipRadius;
-  const baseX = x + vector.column * baseRadius;
-  const baseY = y + vector.row * baseRadius;
+  const tipX = vector.column * tipRadius;
+  const tipY = vector.row * tipRadius;
+  const baseX = vector.column * baseRadius;
+  const baseY = vector.row * baseRadius;
 
   arrow.fillStyle(COLORS.arrow, 1);
   arrow.lineStyle(2, COLORS.deep, 1);

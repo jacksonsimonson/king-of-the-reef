@@ -56,7 +56,7 @@ Use a restrained set of natural colors within each sprite so it remains readable
 
 ## Runtime scaling
 
-The renderer automatically chooses a whole-number scale based on the fixed 64×64 canvas:
+The renderer uses fixed whole-number scales based on the 64×64 source canvas:
 
 - Hand portrait: the complete canvas renders at exactly 2×, producing 128×128 pixels
 - Gallery portrait: the shared renderer uses the largest whole-number scale that fits the selected card size
@@ -69,6 +69,8 @@ Whole-number scaling means every original pixel becomes an exact square:
 - 4× becomes 4×4 pixels
 
 Never use fractional scaling for fish sprites.
+
+The Phaser canvas itself is always displayed at a 1:1 CSS-to-canvas-pixel ratio. Do not stretch the canvas, use camera zoom, or apply responsive transforms that resample game art, card geometry, or text. The canvas may grow to use the available desktop viewport, but every game object retains its fixed pixel dimensions.
 
 ## Export checklist
 

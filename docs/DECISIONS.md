@@ -1,5 +1,26 @@
 # Design Decisions
 
+## 2026-09-23 — Desktop-first battle layout
+
+- Active development targets desktop play first. Mobile and narrow-screen optimization will follow after the main battle interface is established.
+- Playable screens should use nearly the full available viewport rather than presenting the game as a narrow centered mockup.
+- The battle board stays centered, with the player's hand, deck, and powerups on the left and the rival's equivalent areas on the right.
+- The page-level Quick Match heading remains compact so the game surface receives most of the screen.
+- Hand cards keep fixed slots after being played. A silhouette marks the used player slot, while a faded card back marks the used rival slot.
+- Hand portraits render at an exact 2× scale (128×128) and board portraits at an exact 1× scale (64×64). The canvas and text always render 1:1 with browser pixels.
+- Five-card hands use a centered three-over-two arrangement modeled after the Olympic rings.
+- Each unplayed player card sits above its silhouette, so dragging it immediately reveals the used-slot treatment underneath.
+- Main Menu, Quick Match, and Gallery use consistent full-height shells. Phaser canvases render at native size on every route to prevent route changes from resizing pixel art or text.
+- Players can drag cards to legal water spaces. A translucent board-sized card previews the placement under the pointer.
+
+## 2026-09-23 — Round hands and visible schools
+
+- Each side currently brings a ten-card starter school and draws five random healthy cards for a battle.
+- A battle ends after both five-card hands have been placed, for ten total placements before final reef scoring.
+- Undealt cards remain visible as player and rival decks so future powerups can shuffle a hand or reveal rival cards.
+- Rival hands use card backs until played. Played cards remain face-up on the board, while used hand slots stay visible as silhouettes or faded card backs.
+- Both sides reserve three visible powerup slots while the roguelike inventory and acquisition rules are developed.
+
 ## 2026-09-23 — Main-menu navigation
 
 - The root view is a dedicated main menu rather than loading directly into a match.
