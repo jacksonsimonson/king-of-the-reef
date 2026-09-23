@@ -36,7 +36,7 @@ export class FoundationScene extends Phaser.Scene {
 
   preload(): void {
     const base = import.meta.env.BASE_URL;
-    for (const fish of ["minnow", "anchovy", "sardine", "goby"]) {
+    for (const fish of ["minnow", "anchovy", "sardine", "goby", "octopus"]) {
       this.load.image(fish, `${base}assets/fish/${fish}.png`);
     }
   }
@@ -87,7 +87,7 @@ export class FoundationScene extends Phaser.Scene {
     add(this.add.text(36, 188, "REEFS", this.textStyle(14, "#ff5ca8", true)));
     add(this.add.text(36, 215, "Push fish onto\n2 of 3 pearls\nto rule the reef.", this.textStyle(15, "#b8ffd0")).setLineSpacing(6));
     add(this.add.text(36, 565, this.turn === "player" ? "YOUR SCHOOL" : "RIVAL TURN", this.textStyle(16, "#39ff14", true)));
-    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 225 + index * 150, 650));
+    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 150 + index * 150, 650));
     if (this.finished) this.drawResult(scores.player, scores.rival);
   }
 
@@ -137,9 +137,11 @@ export class FoundationScene extends Phaser.Scene {
     const sprite = this.add.image(x, y, fish.texture).setScale(integerScale);
     if (fish.owner === "rival") sprite.setFlipX(true);
 
-    const arrow = this.drawCardArrow(x, y, size, insetSize, fish.direction);
+    const arrows = fish.directions.map((direction) =>
+      this.drawCardArrow(x, y, size, insetSize, direction),
+    );
 
-    this.ui?.add([outer, inset, sprite, arrow]);
+    this.ui?.add([outer, inset, sprite, ...arrows]);
     return outer;
   }
 
@@ -203,25 +205,29 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private evaluateMove(index: number, card: FishCard): number {
-    const next = this.neighbor(index, card.direction);
-    if (next === null) return 0;
-    const target = this.board[next];
-    if (!target || target.direction === DIRECTIONS[card.direction].opposite) return 0;
-    const beyond = this.neighbor(next, card.direction);
-    return (beyond !== null && REEFS.has(beyond) ? 9 : 0) + (target.owner === "player" ? 3 : 1);
+    return card.directions.reduce((score, direction) => {
+      const next = this.neighbor(index, direction);
+      if (next === null) return score;
+      const target = this.board[next];
+      if (!target || target.directions.includes(DIRECTIONS[direction].opposite)) return score;
+      const beyond = this.neighbor(next, direction);
+      return score + (beyond !== null && REEFS.has(beyond) ? 9 : 0) + (target.owner === "player" ? 3 : 1);
+    }, 0);
   }
 
   private placeCard(index: number, card: FishCard): void {
     this.board[index] = card;
-    const targetIndex = this.neighbor(index, card.direction);
-    if (targetIndex === null) return;
-    const target = this.board[targetIndex];
-    if (!target || target.direction === DIRECTIONS[card.direction].opposite) return;
-    const destination = this.neighbor(targetIndex, card.direction);
-    if (destination === null) this.board[targetIndex] = null;
-    else if (!this.board[destination]) {
-      this.board[destination] = target;
-      this.board[targetIndex] = null;
+    for (const direction of card.directions) {
+      const targetIndex = this.neighbor(index, direction);
+      if (targetIndex === null) continue;
+      const target = this.board[targetIndex];
+      if (!target || target.directions.includes(DIRECTIONS[direction].opposite)) continue;
+      const destination = this.neighbor(targetIndex, direction);
+      if (destination === null) this.board[targetIndex] = null;
+      else if (!this.board[destination]) {
+        this.board[destination] = target;
+        this.board[targetIndex] = null;
+      }
     }
   }
 

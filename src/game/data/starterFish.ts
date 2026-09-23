@@ -6,15 +6,16 @@ export interface FishCard {
   name: string;
   species: string;
   texture: string;
-  direction: Direction;
+  directions: Direction[];
   owner: Owner;
 }
 
 const STARTERS = [
-  { id: "minnow", name: "Minnow", species: "Shallows", texture: "minnow", direction: "up" },
-  { id: "anchovy", name: "Anchovy", species: "Coast", texture: "anchovy", direction: "right" },
-  { id: "sardine", name: "Sardine", species: "Open Water", texture: "sardine", direction: "down" },
-  { id: "goby", name: "Goby", species: "Tidepool", texture: "goby", direction: "left" },
+  { id: "minnow", name: "Minnow", species: "Shallows", texture: "minnow", directions: ["up"] },
+  { id: "anchovy", name: "Anchovy", species: "Coast", texture: "anchovy", directions: ["right"] },
+  { id: "sardine", name: "Sardine", species: "Open Water", texture: "sardine", directions: ["down"] },
+  { id: "goby", name: "Goby", species: "Tidepool", texture: "goby", directions: ["left"] },
+  { id: "octopus", name: "Octopus", species: "Reef", texture: "octopus", directions: ["left", "up", "right"] },
 ] satisfies Omit<FishCard, "owner">[];
 
 export function createStarterSchool(owner: Owner): FishCard[] {

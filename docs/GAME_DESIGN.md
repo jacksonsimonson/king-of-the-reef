@@ -92,8 +92,9 @@ Run-based progression should emphasize discovering fish and building combination
 - Lighter aquatic green for cards, board structure, and readable highlights
 - Shiny pink pearls for major objectives and special rewards
 - Strong card silhouettes
+- Natural, species-appropriate animal colors separated from player/rival UI colors
 - Aquatic environments differentiated through color, vegetation, hazards, and fish populations
 
 ## Current prototype
 
-The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, directional pushes, resistance, objective control, a basic opponent, match scoring, and rematches. Its fish set and rules remain intentionally small while the battle system is tested.
+The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, directional pushes, resistance, objective control, a basic opponent, match scoring, and rematches. Four weak fish each test one direction. A more complex Octopus tests a left/up/right pattern and confirms that detailed species remain readable within the 24×24 sprite standard.

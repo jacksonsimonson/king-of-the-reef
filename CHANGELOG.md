@@ -26,3 +26,8 @@ All notable playable changes to King of the Reef will be recorded here.
 - Redesigned fish cards as square, art-first tiles with darker inset portraits, uniformly sized edge arrows, and blue/red ownership borders
 - Standardized fish sprites to a maximum 24-pixel source dimension and whole-number 3×/2× scaling for crisp hand and board portraits
 - Added a permanent pixel-art production guide for consistent, fast sprite creation
+- Rebuilt the starter fish as intentionally designed fixed-canvas 24×24 sprites
+- Added a 24×24 Octopus complexity test with left, up, and right arrows
+- Expanded card data and push resolution to support multiple directions per fish
+- Recolored all animal sprites with natural species-appropriate palettes while reserving bright project colors for UI and objectives
+- Added a creation-order card gallery with names and eight cards per desktop row
