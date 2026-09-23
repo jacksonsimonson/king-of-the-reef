@@ -4,9 +4,7 @@ A fish-based tactical card roguelike about building a school of fish and battlin
 
 ## Project status
 
-King of the Reef is in early development. The repository currently contains the original playable combat experiment recovered from its first browser prototype.
-
-The current prototype uses a 4×4 board, directional card pushing, two objective spaces, a simple computer opponent, scoring, and rematches. The planned core battle format is a 5×5 board with three reefs.
+King of the Reef is in early development. The current playable build uses a 5×5 board, three reef objectives, directional fish-card pushing, a computer opponent, scoring, and rematches.
 
 ## Vision
 
@@ -20,11 +18,16 @@ The game combines:
 
 The goal is to take inspiration from positional card games without reproducing Joustus exactly. Fish species, reef control, currents, environmental tiles, weight, and roguelike progression will give the game its own identity.
 
-## Play the recovered prototype
+## Run locally
 
-Open `dist/index.html` in a browser.
+Install dependencies and start the development server:
 
-The prototype is intentionally preserved as the project's starting point. It will be replaced incrementally by a TypeScript, Vite, and Phaser implementation.
+```powershell
+npm.cmd install
+npm.cmd run dev
+```
+
+The terminal will display the local URL. Stop the server with `Ctrl+C`.
 
 ## Documentation
 
@@ -34,17 +37,18 @@ The prototype is intentionally preserved as the project's starting point. It wil
 - [Design decisions](docs/DECISIONS.md)
 - [Changelog](CHANGELOG.md)
 
-## Planned technology
+## Technology
 
 - TypeScript
 - Vite
 - Phaser
 - GitHub Pages
+- GitHub Actions deployment
 - Pixel-art visual direction
 
 ## Visual direction
 
-The intended presentation uses a slightly faded bright-yellow foundation with sharp red accents, readable card silhouettes, and simple pixel art.
+The intended presentation uses deep ocean blue, lighter aquatic green, shiny pink objective pearls, readable card silhouettes, and simple pixel art.
 
 ## Development approach
 

@@ -88,11 +88,12 @@ Run-based progression should emphasize discovering fish and building combination
 ## Art direction
 
 - Simple, readable pixel art
-- Slightly faded bright-yellow backgrounds
-- Sharp red highlights for major actions and information
+- Deep ocean-blue backgrounds
+- Lighter aquatic green for cards, board structure, and readable highlights
+- Shiny pink pearls for major objectives and special rewards
 - Strong card silhouettes
 - Aquatic environments differentiated through color, vegetation, hazards, and fish populations
 
 ## Current prototype
 
-The recovered prototype is an exploratory 4×4 implementation. It validates card selection, directional pushes, objective control, a basic opponent, match scoring, and rematches. It is not the final ruleset.
+The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, directional pushes, resistance, objective control, a basic opponent, match scoring, and rematches. Its fish set and rules remain intentionally small while the battle system is tested.

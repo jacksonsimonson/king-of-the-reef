@@ -50,6 +50,6 @@ This log records important choices and their reasoning.
 
 ## Preserve the original prototype
 
-**Decision:** Keep the recovered 4×4 browser prototype in version history.
+**Decision:** Keep the recovered 4×4 browser prototype in Git history, but remove it from the current application once the scalable build reaches feature parity.
 
-**Reasoning:** It documents the project's real starting point and provides a working reference during the transition to a scalable architecture.
+**Reasoning:** Git retains the project's real starting point without exposing an obsolete second version in the shipped game.

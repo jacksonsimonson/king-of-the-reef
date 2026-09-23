@@ -9,13 +9,13 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 - Add directional pushing
 - Add objective spaces and scoring
 - Add a basic computer opponent
-- Recover the original prototype into GitHub
+- Preserve the first prototype in Git history
 
 ## Current foundation
 
 - Document the game vision
 - Establish TypeScript, Vite, and Phaser
-- Preserve the playable prototype during the architectural transition
+- Replace the first prototype with the scalable playable build
 - Add automated GitHub Pages deployment
 
 ## Battle prototype v2

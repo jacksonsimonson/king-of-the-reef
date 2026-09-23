@@ -13,6 +13,13 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
-- Project documentation and development roadmap
-- Planned migration to TypeScript, Vite, and Phaser
+- Added project documentation and development roadmap
+- Added the TypeScript, Vite, and Phaser foundation
+- Preserved the original prototype in Git history, then removed it from the shipped application after reaching feature parity
+- Added automated GitHub Pages deployment
+- Replaced the temporary yellow-and-red foundation with an ocean-blue, aquatic-green, and pearl-pink palette
+- Improved foundation-page text sizing and wrapping
 - Planned 5×5 battle board with three reefs
+- Sharpened the visual palette to deep navy, ultra green, and pearl pink
+- Added four original 48×48 starter-fish sprites
+- Added playable card selection, placement, directional pushes, reef scoring, a basic rival, and rematches to the Phaser build
