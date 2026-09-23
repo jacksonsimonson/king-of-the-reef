@@ -7,6 +7,12 @@
 - Moving between pages intentionally destroys the active Phaser instance; match state is not preserved yet.
 - General menu and navigation UI use deep ocean blue and ultra-green. Rival red, player blue, and pearl pink remain gameplay-specific colors rather than general interface accents.
 
+## 2026-09-23 — Guaranteed arrow clearance
+
+- Directional arrows begin at the inner portrait-frame edge, outside the fixed sprite canvas, so arrows can never overlap creature art.
+- Arrow tips extend beyond the outer card border: eight pixels on hand/gallery cards and six pixels on board cards.
+- This geometry belongs in the shared card renderer so battle and gallery cards remain identical.
+
 ## 2026-09-23 — Generated sprite production standard
 
 - Use the approved red Octopus as the style and complexity reference.
