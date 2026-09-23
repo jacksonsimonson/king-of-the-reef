@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="King of the Reef, a fish-based tactical card roguelike."
+    />
+    <link rel="icon" type="image/svg+xml" href="/king-of-the-reef/favicon.svg" />
+    <title>King of the Reef</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="site-header">
+        <div>
+          <p class="eyebrow">Tactical card roguelike</p>
+          <h1>King of the Reef</h1>
+        </div>
+        <a class="legacy-link" href="./legacy-prototype/index.html">Play original prototype</a>
+      </header>
+
+      <section class="game-panel" aria-labelledby="prototype-heading">
+        <div class="panel-copy">
+          <p class="status">Foundation build</p>
+          <h2 id="prototype-heading">Build your school. Claim the reef.</h2>
+          <p>
+            The new Phaser foundation is running. The next gameplay batch will
+            bring directional fish cards onto this 5×5, three-reef board.
+          </p>
+        </div>
+        <div id="game" aria-label="King of the Reef game canvas"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
