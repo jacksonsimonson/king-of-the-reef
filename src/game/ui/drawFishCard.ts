@@ -71,11 +71,15 @@ function drawCardArrow(
   const vector = VECTORS[direction];
   const perpendicularX = -vector.row;
   const perpendicularY = vector.column;
-  const centerRadius = (outerSize + insetSize) / 4;
-  const arrowLength = outerSize >= 100 ? 22 : 16;
-  const halfWidth = outerSize >= 100 ? 11 : 8;
-  const tipRadius = centerRadius + arrowLength / 2;
-  const baseRadius = centerRadius - arrowLength / 2;
+  const innerEdge = insetSize / 2;
+  const outerEdge = outerSize / 2;
+  const protrusion = outerSize >= 100 ? 8 : 6;
+  const halfWidth = outerSize >= 100 ? 12 : 8;
+  // The sprite canvas ends before innerEdge. Starting the arrow at innerEdge
+  // guarantees that no opaque fish pixel can overlap it. The tip deliberately
+  // extends beyond the outer card border for a stronger directional silhouette.
+  const baseRadius = innerEdge;
+  const tipRadius = outerEdge + protrusion;
   const tipX = x + vector.column * tipRadius;
   const tipY = y + vector.row * tipRadius;
   const baseX = x + vector.column * baseRadius;

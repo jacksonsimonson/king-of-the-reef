@@ -4,18 +4,28 @@ import { createGameConfig, type GameView } from "./game/config";
 
 const playView = document.querySelector<HTMLElement>("#play");
 const galleryView = document.querySelector<HTMLElement>("#gallery");
+const menuView = document.querySelector<HTMLElement>("#menu");
 let activeGame: Phaser.Game | undefined;
-let activeView: GameView | undefined;
+let activeView: GameView | "menu" | undefined;
 
 function syncView(): void {
-  const nextView: GameView = window.location.hash === "#gallery" ? "gallery" : "play";
+  const nextView: GameView | "menu" = window.location.hash === "#gallery"
+    ? "gallery"
+    : window.location.hash === "#quick-match"
+      ? "play"
+      : "menu";
   const showGallery = nextView === "gallery";
-  if (playView) playView.hidden = showGallery;
+  const showPlay = nextView === "play";
+  if (menuView) menuView.hidden = nextView !== "menu";
+  if (playView) playView.hidden = !showPlay;
   if (galleryView) galleryView.hidden = !showGallery;
   if (activeView === nextView) return;
   activeGame?.destroy(true);
-  document.querySelector(showGallery ? "#gallery-game" : "#game")?.replaceChildren();
-  activeGame = new Phaser.Game(createGameConfig(nextView));
+  activeGame = undefined;
+  if (nextView !== "menu") {
+    document.querySelector(showGallery ? "#gallery-game" : "#game")?.replaceChildren();
+    activeGame = new Phaser.Game(createGameConfig(nextView));
+  }
   activeView = nextView;
 }
 

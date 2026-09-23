@@ -12,18 +12,31 @@
   </head>
   <body>
     <main class="app-shell">
-      <header class="site-header">
-        <div>
-          <p class="eyebrow">Tactical card roguelike</p>
-          <h1>King of the Reef</h1>
+      <section id="menu" class="menu-screen" aria-labelledby="menu-title">
+        <div class="menu-emblem" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
-        <nav class="site-nav" aria-label="Prototype views">
-          <a class="nav-link" href="#play">Play</a>
-          <a class="nav-link" href="#gallery">Gallery</a>
+        <p class="eyebrow">Tactical card roguelike</p>
+        <h1 id="menu-title">King of the Reef</h1>
+        <p class="menu-tagline">Build your school. Command the current. Claim the reef.</p>
+        <nav class="menu-actions" aria-label="Main menu">
+          <a class="menu-button menu-button-primary" href="#quick-match">Quick Match</a>
+          <a class="menu-button" href="#gallery">Gallery</a>
         </nav>
-      </header>
+      </section>
 
-      <section id="play" class="game-panel" aria-labelledby="prototype-heading">
+      <section id="play" class="game-panel" aria-labelledby="prototype-heading" hidden>
+        <div class="view-heading-row">
+          <div>
+            <p class="eyebrow">King of the Reef</p>
+            <h2 class="view-title">Quick Match</h2>
+          </div>
+          <nav class="site-nav" aria-label="Quick match navigation">
+            <a class="nav-link" href="#menu">Main Menu</a>
+          </nav>
+        </div>
         <div class="panel-copy">
           <p class="status">Playable battle build</p>
           <h2 id="prototype-heading">Build your school. Claim the reef.</h2>
@@ -38,10 +51,12 @@
       <section id="gallery" class="gallery-panel" aria-labelledby="gallery-heading" hidden>
         <div class="gallery-heading-row">
           <div>
-            <p class="status">School collection</p>
+            <p class="eyebrow">King of the Reef</p>
             <h2 id="gallery-heading">Fish Gallery</h2>
           </div>
-          <a class="nav-link" href="#play">Back to battle</a>
+          <nav class="site-nav" aria-label="Gallery navigation">
+            <a class="nav-link" href="#menu">Main Menu</a>
+          </nav>
         </div>
         <div id="gallery-game" aria-label="King of the Reef fish gallery"></div>
       </section>
