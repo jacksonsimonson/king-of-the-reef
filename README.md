@@ -56,7 +56,7 @@ It is intentionally preserved as the project's starting point and behavioral ref
 
 ## Visual direction
 
-The intended presentation uses a slightly faded bright-yellow foundation with sharp red accents, readable card silhouettes, and simple pixel art.
+The intended presentation uses deep ocean blue, lighter aquatic green, shiny pink objective pearls, readable card silhouettes, and simple pixel art.
 
 ## Development approach
 
