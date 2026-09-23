@@ -14,13 +14,30 @@ This guide keeps fish readable, consistently sized, and fast to produce.
 
 The approved visual reference is the red Octopus. New creatures should match its chunky clusters, clean dark outline, readable face, limited shading, strong silhouette, and amount of detail. Generate each species independently as a transparent, right-facing pixel-art creature using the Octopus only as a style reference. Do not ask image generation to draw the card frame, ownership color, arrows, text, scenery, or shadow.
 
-The generated reference is not used directly. Preserve it under `art/source-references/`, then run `scripts/prepare_generated_sprite.py` to produce the game asset. The conversion crops visible content, hard-thresholds transparency, fits the creature inside a 58-pixel visible limit, uses nearest-neighbor resizing only, reduces the image to seven opaque colors, centers it on a transparent 64×64 canvas, and never interpolates pixels.
+The generated reference is not used directly. Preserve it under `art/source-references/`, then run `scripts/prepare_generated_sprite.py` to produce the game asset.
+
+The conversion must be **cluster-to-pixel translation**, not ordinary image resizing:
+
+1. Detect the visible creature and crop away transparent space.
+2. Treat each approximately 20×20 rendered same-color block as one logical source pixel.
+3. Choose the majority palette color inside each block and write exactly one output pixel.
+4. Preserve connected same-color regions while discarding isolated partial-block noise.
+5. Use seven opaque palette colors plus transparency, with dithering disabled.
+6. Center the collapsed logical sprite on a transparent 64×64 canvas.
+
+Never use bilinear, bicubic, Lanczos, box-filter, antialiased, or conventional nearest-neighbor image resizing as a substitute for cluster collapse. Those methods either blur the art or preserve excessive high-resolution texture. One visible generated pixel cluster must become one game pixel.
 
 Example:
 
 ```powershell
 python -m pip install Pillow
 python scripts/prepare_generated_sprite.py art/source-references/minnow-generated.png public/assets/fish/minnow.png
+```
+
+The default assumes the current generated clusters are approximately 20 source pixels wide. If that source format changes, measure the repeated square cluster size and pass it explicitly:
+
+```powershell
+python scripts/prepare_generated_sprite.py source.png output.png --cluster-size 20
 ```
 
 ## Color
@@ -57,9 +74,9 @@ Never use fractional scaling for fish sprites.
 
 1. Confirm the background is transparent.
 2. Confirm the canvas is exactly 32×32 pixels.
-3. Center the sprite and keep its longest visible dimension near 56–58 pixels.
+3. Confirm that each visible reference cluster became one logical pixel; do not judge only by final dimensions or color count.
 4. Confirm the image is crisp at 1× zoom.
-5. Confirm that the palette is intentionally limited to roughly eight total colors including transparency.
+5. Confirm that the palette is intentionally limited to roughly eight total colors including transparency and contains no dithering.
 6. Confirm that the creature faces right in the source file. The renderer flips only rival-owned cards to face left.
 7. Preserve the generated source reference under `art/source-references/`.
 8. Save the processed PNG under `public/assets/fish/`.
