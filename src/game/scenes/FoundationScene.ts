@@ -3,7 +3,7 @@ import Phaser from "phaser";
 const BOARD_SIZE = 5;
 const CELL_SIZE = 104;
 const GAP = 8;
-const REEFS = new Set(["0,2", "2,1", "3,3"]);
+const PEARL_REEFS = new Set(["0,2", "2,1", "3,3"]);
 
 export class FoundationScene extends Phaser.Scene {
   constructor() {
@@ -17,7 +17,7 @@ export class FoundationScene extends Phaser.Scene {
 
     this.add
       .text(this.scale.width / 2, 42, "5 × 5 TIDAL BOARD", {
-        color: "#271b18",
+        color: "#8bf0c8",
         fontFamily: "monospace",
         fontSize: "24px",
         fontStyle: "bold",
@@ -28,7 +28,7 @@ export class FoundationScene extends Phaser.Scene {
       for (let column = 0; column < BOARD_SIZE; column += 1) {
         const x = originX + column * (CELL_SIZE + GAP);
         const y = originY + row * (CELL_SIZE + GAP);
-        const isReef = REEFS.has(`${row},${column}`);
+        const isPearlReef = PEARL_REEFS.has(`${row},${column}`);
 
         this.add
           .rectangle(
@@ -36,16 +36,26 @@ export class FoundationScene extends Phaser.Scene {
             y + CELL_SIZE / 2,
             CELL_SIZE,
             CELL_SIZE,
-            isReef ? 0xd52b2f : 0xfff4b3,
+            0x103b4b,
           )
-          .setStrokeStyle(4, 0x271b18);
+          .setStrokeStyle(4, isPearlReef ? 0xff64ae : 0x78e6bd);
 
-        if (isReef) {
+        if (isPearlReef) {
           this.add
-            .text(x + CELL_SIZE / 2, y + CELL_SIZE / 2, "REEF", {
-              color: "#fff8dc",
+            .circle(x + CELL_SIZE / 2, y + CELL_SIZE / 2 - 6, 28, 0xff64ae)
+            .setStrokeStyle(4, 0xffc3e1);
+          this.add.circle(
+            x + CELL_SIZE / 2 - 9,
+            y + CELL_SIZE / 2 - 15,
+            7,
+            0xfff5fb,
+            0.9,
+          );
+          this.add
+            .text(x + CELL_SIZE / 2, y + CELL_SIZE - 13, "PEARL", {
+              color: "#ffc3e1",
               fontFamily: "monospace",
-              fontSize: "18px",
+              fontSize: "14px",
               fontStyle: "bold",
             })
             .setOrigin(0.5);
@@ -59,7 +69,7 @@ export class FoundationScene extends Phaser.Scene {
         this.scale.height - 38,
         "Board foundation ready — cards arrive next",
         {
-          color: "#271b18",
+          color: "#8bf0c8",
           fontFamily: "monospace",
           fontSize: "18px",
         },
