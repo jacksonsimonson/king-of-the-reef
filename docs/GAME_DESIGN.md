@@ -97,4 +97,4 @@ Run-based progression should emphasize discovering fish and building combination
 
 ## Current prototype
 
-The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, directional pushes, resistance, objective control, a basic opponent, match scoring, and rematches. Four weak fish each test one direction. A more complex Octopus tests a left/up/right pattern and confirms that detailed species remain readable within the 32×32 sprite standard.
+The current playable prototype uses the planned 5×5 board and three reefs. It validates card selection, directional pushes, resistance, objective control, a basic opponent, match scoring, and rematches. Four weak fish each test one direction. A more complex Octopus tests a left/up/right pattern and establishes the approved 64×64 sprite standard. Player creatures face right and rival creatures face left.

@@ -10,7 +10,7 @@ export interface FishCard {
   owner: Owner;
 }
 
-const STARTERS = [
+export const STARTERS = [
   { id: "minnow", name: "Minnow", species: "Shallows", texture: "minnow", directions: ["up"] },
   { id: "anchovy", name: "Anchovy", species: "Coast", texture: "anchovy", directions: ["right"] },
   { id: "sardine", name: "Sardine", species: "Open Water", texture: "sardine", directions: ["down"] },

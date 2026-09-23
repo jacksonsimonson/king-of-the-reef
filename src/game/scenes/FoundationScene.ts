@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { createStarterSchool, type Direction, type FishCard } from "../data/starterFish";
+import { drawFishCard } from "../ui/drawFishCard";
 
 const COLORS = {
   deep: 0x00233a,
@@ -7,8 +8,6 @@ const COLORS = {
   hover: 0x0b5267,
   green: 0x39ff14,
   pink: 0xff5ca8,
-  playerBlue: 0x1597ff,
-  rivalRed: 0xff3b3b,
 };
 const BOARD_SIZE = 5;
 const CELL = 96;
@@ -120,60 +119,8 @@ export class FoundationScene extends Phaser.Scene {
     size: number,
     selected: boolean,
   ): Phaser.GameObjects.Rectangle {
-    const frameColor = fish.owner === "player" ? COLORS.playerBlue : COLORS.rivalRed;
-    const border = size >= 100 ? (selected ? 6 : 4) : 3;
-    const insetSize = size >= 100 ? 132 : 72;
-
-    const outer = this.add.rectangle(x, y, size, size, COLORS.water)
-      .setStrokeStyle(border, frameColor);
-    const inset = this.add.rectangle(x, y, insetSize, insetSize, COLORS.deep)
-      .setStrokeStyle(2, 0x001725);
-    const source = this.textures.get(fish.texture).getSourceImage() as HTMLImageElement;
-    const targetSize = size >= 100 ? 128 : 64;
-    const integerScale = Math.max(
-      1,
-      Math.floor(targetSize / Math.max(source.width, source.height)),
-    );
-    const sprite = this.add.image(x, y, fish.texture).setScale(integerScale);
-    if (fish.owner === "rival") sprite.setFlipX(true);
-
-    const arrows = fish.directions.map((direction) =>
-      this.drawCardArrow(x, y, size, insetSize, direction),
-    );
-
-    this.ui?.add([outer, inset, sprite, ...arrows]);
-    return outer;
-  }
-
-  private drawCardArrow(
-    x: number,
-    y: number,
-    outerSize: number,
-    insetSize: number,
-    direction: Direction,
-  ): Phaser.GameObjects.Graphics {
-    const arrow = this.add.graphics();
-    const innerEdge = insetSize / 2;
-    const outerEdge = outerSize / 2;
-    const halfWidth = outerSize >= 100 ? 11 : 8;
-    const vector = DIRECTIONS[direction];
-    const perpendicularX = -vector.row;
-    const perpendicularY = vector.column;
-    const tipX = x + vector.column * outerEdge;
-    const tipY = y + vector.row * outerEdge;
-    const baseX = x + vector.column * innerEdge;
-    const baseY = y + vector.row * innerEdge;
-
-    arrow.fillStyle(0xf2fff7, 1);
-    arrow.lineStyle(2, COLORS.deep, 1);
-    arrow.beginPath();
-    arrow.moveTo(tipX, tipY);
-    arrow.lineTo(baseX + perpendicularX * halfWidth, baseY + perpendicularY * halfWidth);
-    arrow.lineTo(baseX - perpendicularX * halfWidth, baseY - perpendicularY * halfWidth);
-    arrow.closePath();
-    arrow.fillPath();
-    arrow.strokePath();
-    return arrow;
+    if (!this.ui) throw new Error("Card UI container is unavailable");
+    return drawFishCard({ scene: this, container: this.ui, fish, x, y, size, selected });
   }
 
   private playPlayerCard(index: number): void {

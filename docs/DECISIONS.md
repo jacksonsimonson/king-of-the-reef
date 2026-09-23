@@ -1,5 +1,13 @@
 # Design Decisions
 
+## 2026-09-23 — Generated sprite production standard
+
+- Use the approved red Octopus as the style and complexity reference.
+- Generate one creature at a time, facing right, with natural species colors and a transparent background.
+- Preserve each generated reference, then convert it through `scripts/prepare_generated_sprite.py` into a crisp 64×64, limited-palette game asset.
+- Use no interpolation or soft alpha. Player art faces right; the renderer flips rival art left.
+- Battle and gallery cards must use the same Phaser card-rendering function so their frames, arrows, scaling, and ownership colors remain identical.
+
 This log records important choices and their reasoning.
 
 ## Browser-first development
