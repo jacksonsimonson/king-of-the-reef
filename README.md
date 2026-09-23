@@ -47,6 +47,11 @@ The terminal will display the local URL. Stop the server with `Ctrl+C`.
 - GitHub Actions deployment
 - Pixel-art visual direction
 
+## Hosting
+
+- The standalone playable build is deployed through [GitHub Pages](https://jacksonsimonson.github.io/king-of-the-reef/).
+- The long-term public home is the [Jackson Game Dev hub](https://jackson-game-dev.cheme911.chatgpt.site/), which is intended to host King of the Reef alongside future games.
+
 ## Visual direction
 
 The intended presentation uses deep ocean blue, lighter aquatic green, shiny pink objective pearls, readable card silhouettes, and simple pixel art.

@@ -1,5 +1,11 @@
 # Design Decisions
 
+## 2026-09-23 — Standalone build and future game hub
+
+- GitHub Pages remains the standalone deployment target for the current playable build.
+- The long-term public entry point is `https://jackson-game-dev.cheme911.chatgpt.site/`, a shared Jackson Game Dev hub intended to host multiple games.
+- The hub integration method—direct link, embedded build, or another publishing flow—will be chosen when the hub is ready to expose individual games.
+
 ## 2026-09-23 — Desktop-first battle layout
 
 - Active development targets desktop play first. Mobile and narrow-screen optimization will follow after the main battle interface is established.
