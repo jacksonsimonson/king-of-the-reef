@@ -18,6 +18,11 @@ const DIRECTIONS: Record<Direction, { row: number; column: number; opposite: Dir
 };
 
 interface HandSlot { card: FishCard; played: boolean }
+interface VoyageBattle {
+  playerDeck: FishCard[]; rivalDeck: FishCard[]; rng: () => number;
+  onResult: (player: number, rival: number) => void;
+  onComplete: () => void;
+}
 
 export class FoundationScene extends Phaser.Scene {
   private board: Array<FishCard | null> = [];
@@ -31,6 +36,7 @@ export class FoundationScene extends Phaser.Scene {
   private ui?: Phaser.GameObjects.Container;
   private placementPreview?: Phaser.GameObjects.Container;
   private previewIndex: number | null = null;
+  private voyageBattle?: VoyageBattle;
 
   constructor() { super("foundation"); }
 
@@ -41,12 +47,16 @@ export class FoundationScene extends Phaser.Scene {
     }
   }
 
-  create(): void { this.resetMatch(); }
+  create(): void {
+    this.input.dragDistanceThreshold = 6;
+    this.voyageBattle = this.registry.get("voyageBattle") as VoyageBattle | undefined;
+    this.resetMatch();
+  }
 
   private resetMatch(): void {
     this.board = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
-    const playerRound = this.dealRound(createStarterDeck("player"));
-    const rivalRound = this.dealRound(createStarterDeck("rival"));
+    const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createStarterDeck("player"));
+    const rivalRound = this.dealRound(this.voyageBattle?.rivalDeck ?? createStarterDeck("rival"));
     this.playerHand = playerRound.hand.map((card) => ({ card, played: false }));
     this.rivalHand = rivalRound.hand.map((card) => ({ card, played: false }));
     this.playerDeck = playerRound.deck;
@@ -151,10 +161,11 @@ export class FoundationScene extends Phaser.Scene {
     card.setInteractive({ useHandCursor: true });
     this.input.setDraggable(card);
     let dragged = false;
+    card.on("pointerdown", () => { dragged = false; });
     card.on("dragstart", () => {
       dragged = true;
       this.selectedId = slot.card.id;
-      card.setDepth(100).setScale(1.04);
+      card.setDepth(100);
     });
     card.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       card.setPosition(dragX, dragY);
@@ -225,7 +236,7 @@ export class FoundationScene extends Phaser.Scene {
   private dealRound(school: FishCard[]): { hand: FishCard[]; deck: FishCard[] } {
     const healthy = school.filter((card) => card.condition === "healthy");
     for (let index = healthy.length - 1; index > 0; index -= 1) {
-      const swap = Math.floor(Math.random() * (index + 1));
+      const swap = Math.floor((this.voyageBattle?.rng() ?? Math.random()) * (index + 1));
       [healthy[index], healthy[swap]] = [healthy[swap], healthy[index]];
     }
     return { hand: healthy.slice(0, HAND_SIZE), deck: healthy.slice(HAND_SIZE) };
@@ -427,8 +438,10 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private finishMatch(): void {
+    if (this.finished) return;
     this.finished = true;
     const score = this.getScores();
+    this.voyageBattle?.onResult(score.player, score.rival);
     this.render(score.player > score.rival ? "You rule the reef!" : score.rival > score.player ? "The rival rules this tide." : "The tide ends in a draw.");
   }
 
@@ -440,8 +453,12 @@ export class FoundationScene extends Phaser.Scene {
     const heading = this.add.text(centerX, centerY - 43, title, this.textStyle(29, "#39ff14", true)).setOrigin(0.5);
     const score = this.add.text(centerX, centerY + 3, `${player} PEARLS  ·  ${rival} PEARLS`, this.textStyle(19, "#ff5ca8", true)).setOrigin(0.5);
     const button = this.add.rectangle(centerX, centerY + 58, 196, 46, COLORS.green).setInteractive({ useHandCursor: true });
-    const label = this.add.text(centerX, centerY + 58, "PLAY AGAIN", this.textStyle(16, "#00233a", true)).setOrigin(0.5);
-    button.on("pointerdown", () => this.resetMatch());
+    const label = this.add.text(centerX, centerY + 58, this.voyageBattle ? "RETURN TO MAP" : "PLAY AGAIN", this.textStyle(16, "#00233a", true)).setOrigin(0.5);
+    button.once("pointerdown", () => {
+      button.disableInteractive();
+      if (this.voyageBattle) this.voyageBattle.onComplete();
+      else this.resetMatch();
+    });
     this.ui?.add([panel, heading, score, button, label]);
   }
 

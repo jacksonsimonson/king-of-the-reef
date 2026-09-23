@@ -13,7 +13,7 @@ The game combines:
 - Positional card combat inspired by the push-and-control structure of Joustus
 - A branching roguelike map
 - A fishing minigame used to acquire fish cards
-- Shops, random events, hydration spaces, and boss encounters
+- Shops, random events, hydration spaces, and Colossal encounters
 - A growing collection of fish with distinct tactical identities
 
 The goal is to take inspiration from positional card games without reproducing Joustus exactly. Fish species, reef control, currents, environmental tiles, weight, and roguelike progression will give the game its own identity.
@@ -32,6 +32,7 @@ The terminal will display the local URL. Stop the server with `Ctrl+C`.
 ## Documentation
 
 - [Game design](docs/GAME_DESIGN.md)
+- [Voyage maps and roguelike rules](docs/VOYAGE.md)
 - [Edge-effect rules](docs/EDGE_EFFECTS.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Idea backlog](docs/IDEA_BACKLOG.md)
@@ -60,3 +61,5 @@ The intended presentation uses deep ocean blue, lighter aquatic green, shiny pin
 ## Development approach
 
 Features are implemented in small, playable batches. Speculative ideas remain in the idea backlog until they are accepted into the game design and scheduled on the roadmap.
+
+Start work on a `codex/` feature branch, validate with `npm test` and `npm run build`, then merge completed, authorized work into `main`. Voyage in the main menu starts or resumes a three-region run; each region ends at a Colossal.

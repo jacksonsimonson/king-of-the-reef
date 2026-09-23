@@ -1,5 +1,14 @@
 # Design Decisions
 
+## 2026-09-23 — Procedural voyages and Colossals
+
+- Runs cross three left-to-right branching charts: Shoreline, Open Ocean and Bermuda Triangle.
+- All charts are generated at run creation from a shared seed with region-specific weights and guaranteed encounter columns; see [VOYAGE.md](VOYAGE.md).
+- Region-ending encounters are called **Colossals**, giant ocean creatures ruling parts of the sea. The user will design their identities later; current names and combat schools are provisional.
+- Voyage tracks a persistent school, shells, three resolve, completed nodes and pending encounters in browser storage. Quick Match remains independent.
+- Fishing currently offers regional catch selection; its timing minigame will be built later.
+- Future work starts on a feature branch and merges after validation. The repository's AGENTS.md records this workflow.
+
 ## 2026-09-23 — Side-specific edge effects
 
 - Standard, Double, Shield, Bigger Fish, Swap, Hook, and Wave are properties of individual card sides rather than whole-card text abilities.

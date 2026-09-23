@@ -45,10 +45,12 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 
 - Create a branching map
 - Progress through Shoreline, Open Ocean, and Bermuda Triangle regions
-- Add battle, fishing, shop, event, hydration, and boss spaces
+- Add battle, fishing, shop, event, hydration, and Colossal spaces
 - Track a school across encounters
 - Add knockout and hydration recovery
 - Add a basic run win/loss flow
+
+The first playable version of the above loop is implemented in Voyage; see [generation rules and current encounter scope](VOYAGE.md). Next: fishing timing gameplay, richer events, exact knockout rules, custom Colossal creatures and encounter mechanics, and saving individual combat turns.
 
 ## Fishing prototype
 
@@ -62,7 +64,7 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 - Multiple aquatic regions
 - Environmental board tiles and currents
 - Expanded events and shops
-- Boss-specific rules
+- Colossal-specific rules
 - Collection journal
 - Accessibility and input options
 - Sound and music

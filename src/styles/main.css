@@ -6,6 +6,65 @@
   text-rendering: optimizeLegibility;
 }
 
+/* Voyage uses native-size canvases and fixed-size pixel marks; only layout grows. */
+.voyage-screen { min-height: calc(100vh - 24px); padding: 24px; background: #0b1b29; border: 2px solid #486774; color: #e3ece5; font-family: monospace; }
+.voyage-top, .voyage-region-heading, .voyage-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.voyage-top { margin-bottom: 24px; }
+.voyage-kicker { font-size: 11px; letter-spacing: 3px; color: #91b9af; margin-bottom: 8px; }
+.voyage-title { font-size: 32px; margin: 0; color: #e8e6d4; letter-spacing: -1px; }
+.voyage-controls, .encounter-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.voyage-button, .region-tab { font: bold 13px monospace; background: #18313e; color: #deebdc; border: 1px solid #78978e; padding: 12px 18px; cursor: pointer; text-decoration: none; }
+.voyage-button:hover, .voyage-button:focus-visible, .catch-choice:hover { background: #2b4c54; border-color: #dfddaf; }
+.voyage-regions { display: flex; border-bottom: 1px solid #3d5560; gap: 0; }
+.region-tab { flex: 1; border: 0; border-bottom: 3px solid transparent; padding: 16px 12px; background: #112330; color: #849baa; }
+.region-tab[aria-pressed="true"] { border-bottom-color: #b9d9b6; color: #e6f1db; background: #213b44; }
+.voyage-region-heading { justify-content: flex-start; padding: 24px 0 18px; flex-wrap: wrap; }
+.voyage-region-heading h3 { font-size: 23px; margin: 0; color: #f3e2bb; }
+.voyage-region-heading p { font-size: 13px; margin: 0; color: #9ab7c2; }
+.voyage-resources { margin-left: auto; font-size: 13px; color: #e2cb92; }
+.voyage-map-scroll { overflow: auto; border: 1px solid #4f6973; background: #123241; }
+.voyage-map { position: relative; isolation: isolate; }
+.voyage-scenery, .voyage-paths { position: absolute; inset: 0; pointer-events: none; image-rendering: pixelated; }
+.voyage-paths { z-index: 1; }
+.voyage-zones { position: absolute; left: 108px; right: 80px; top: 30px; display: flex; justify-content: space-between; color: #b9ccc7; font-size: 10px; letter-spacing: 3px; z-index: 2; pointer-events: none; }
+.map-node { position: absolute; width: 48px; height: 48px; border: 2px solid #718796; background: #0d2333; color: var(--node-color); padding: 8px; cursor: pointer; z-index: 3; box-shadow: 4px 4px #091823; }
+.map-node canvas { display: block; width: 28px; height: 28px; image-rendering: pixelated; opacity: .72; }
+.map-node.available { border: 3px solid #e9e2b0; padding: 7px; background: #254c4e; box-shadow: 0 0 0 4px #7dc9aa33, 4px 4px #091823; }
+.map-node.available canvas, .map-node:hover canvas { opacity: 1; }
+.map-node.visited { background: #37525a; border-color: #8fa59d; }
+.map-node.current { outline: 3px solid #efdbac; outline-offset: 5px; }
+.map-node:hover, .map-node:focus-visible { outline: 2px solid #e8ebcc; outline-offset: 3px; z-index: 5; }
+.node-label { position: absolute; top: 52px; left: -34px; width: 112px; text-align: center; font: bold 10px monospace; color: #d6e0da; text-shadow: 1px 2px #102331; pointer-events: none; }
+.node-boss { border-color: #e6b980; }
+.voyage-footer { padding: 18px 0; flex-wrap: wrap; }
+.voyage-legend { display: flex; gap: 24px; flex-wrap: wrap; }
+.voyage-legend > span { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #acbdc5; }
+.voyage-legend canvas { width: 28px; height: 28px; image-rendering: pixelated; }
+.voyage-seed { color: #829d9f; font-size: 11px; margin: 0; }
+.voyage-detail { background: #132936; border: 1px solid #385460; border-left: 3px solid #b9d9b6; padding: 20px 24px; min-height: 130px; }
+.voyage-detail h3 { margin: 0 0 10px; color: #e9d9b0; font-size: 20px; }
+.voyage-detail p { margin: 0 0 12px; line-height: 1.6; font-size: 13px; color: #b6c7ce; }
+.catch-choice { display: grid; grid-template-columns: 64px auto; grid-template-rows: 32px 32px; align-items: center; column-gap: 16px; border: 1px solid #748e94; background: #183641; color: #e2e9df; padding: 12px; cursor: pointer; font: 13px monospace; text-align: left; }
+.catch-choice img { grid-row: 1 / 3; width: 64px; height: 64px; image-rendering: pixelated; }
+.catch-choice small { color: #e2cb92; }
+.catch-choice:disabled { opacity: .45; cursor: not-allowed; }
+.voyage-school { margin-top: 20px; padding: 16px; border: 1px solid #35515d; }
+.voyage-school summary { cursor: pointer; color: #b8caba; }
+.school-cards { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; }
+.school-cards > div { width: 116px; text-align: center; display: grid; justify-items: center; gap: 6px; font-size: 11px; }
+.school-cards img { image-rendering: pixelated; }
+.school-cards small { color: #90b6a5; }
+.school-cards .resting img { opacity: .35; }
+.voyage-intro { border-left: 3px solid #cfca9c; margin: 26px 0; padding: 20px 26px; }
+.voyage-intro h3 { font-size: 27px; margin: 10px 0; color: #eedeb9; }
+.voyage-intro p { max-width: 820px; line-height: 1.6; color: #a5bfc5; }
+.voyage-intro input, .voyage-dialog input { padding: 12px; font: 13px monospace; color: #e1e8d9; background: #0e2331; border: 1px solid #67858c; margin-right: 12px; }
+.voyage-dialog { background: #142b39; color: #dde8dc; border: 2px solid #91b7a9; padding: 32px; max-width: 640px; font-family: monospace; }
+.voyage-dialog::backdrop { background: #03101cbb; }
+.voyage-dialog button { margin: 16px 12px 0 0; }
+.voyage-screen[data-region="bermuda"] { border-color: #796486; }
+.voyage-screen[data-region="bermuda"] .region-tab[aria-pressed="true"] { border-color: #b5a1d8; background: #30293f; }
+
 * {
   box-sizing: border-box;
 }

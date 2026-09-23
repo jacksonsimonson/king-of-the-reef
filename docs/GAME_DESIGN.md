@@ -20,7 +20,7 @@ King of the Reef is a browser-based tactical card roguelike in which fish compet
 3. Catch fish and improve the school.
 4. Win positional battles to continue.
 5. Recover or replace knocked-out fish.
-6. Defeat a regional boss and progress to a new environment.
+6. Defeat a regional Colossal and progress to a new environment.
 
 ## Battle foundation
 
@@ -77,9 +77,11 @@ Confirmed location concepts:
 - Shop
 - Random event
 - Hydration
-- Boss
+- Colossal (regional boss)
 
 A hydration space restores a knocked-out fish card to the usable school.
+
+The playable [Voyage foundation](VOYAGE.md) now generates all three regions from a seed with weighted encounter types, guaranteed route milestones, persistent schools, and encounter rewards. Colossals are giant ocean creatures that rule parts of the sea; their identities and special mechanics will be designed separately.
 
 ## Knockouts and recovery
 
