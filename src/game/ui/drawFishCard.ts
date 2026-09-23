@@ -74,7 +74,7 @@ function drawCardArrow(
   const innerEdge = insetSize / 2;
   const outerEdge = outerSize / 2;
   const protrusion = outerSize >= 100 ? 8 : 6;
-  const halfWidth = outerSize >= 100 ? 11 : 8;
+  const halfWidth = outerSize >= 100 ? 12 : 8;
   // The sprite canvas ends before innerEdge. Starting the arrow at innerEdge
   // guarantees that no opaque fish pixel can overlap it. The tip deliberately
   // extends beyond the outer card border for a stronger directional silhouette.

@@ -4,6 +4,7 @@
 
 - The root view is a dedicated main menu rather than loading directly into a match.
 - Quick Match and Gallery are separate hash-routed pages.
+- Quick Match and Gallery do not link directly to one another. Each returns to the Main Menu, which owns top-level state transitions.
 - Moving between pages intentionally destroys the active Phaser instance; match state is not preserved yet.
 - General menu and navigation UI use deep ocean blue and ultra-green. Rival red, player blue, and pearl pink remain gameplay-specific colors rather than general interface accents.
 
@@ -11,6 +12,7 @@
 
 - Directional arrows begin at the inner portrait-frame edge, outside the fixed sprite canvas, so arrows can never overlap creature art.
 - Arrow tips extend beyond the outer card border: eight pixels on hand/gallery cards and six pixels on board cards.
+- Hand/gallery arrows are one pixel wider on each side than the initial shared geometry; compact board arrows retain their original width.
 - This geometry belongs in the shared card renderer so battle and gallery cards remain identical.
 
 ## 2026-09-23 — Generated sprite production standard

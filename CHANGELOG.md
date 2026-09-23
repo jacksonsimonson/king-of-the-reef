@@ -17,6 +17,7 @@ All notable playable changes to King of the Reef will be recorded here.
 - Split the main menu, quick match, and gallery into separate hash-routed views
 - Standardized general menu and navigation UI around deep ocean blue and ultra-green
 - Moved card arrows outside the sprite canvas and extended them beyond the outer card border
+- Widened hand/gallery arrows by one pixel per side and routed all top-level page changes through the Main Menu
 - Added project documentation and development roadmap
 - Added the TypeScript, Vite, and Phaser foundation
 - Preserved the original prototype in Git history, then removed it from the shipped application after reaching feature parity
