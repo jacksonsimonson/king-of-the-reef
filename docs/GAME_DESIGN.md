@@ -77,15 +77,16 @@ Confirmed location concepts:
 - Shop
 - Random event
 - Hydration
+- Release
 - Colossal (regional boss)
 
-A hydration space restores a knocked-out fish card to the usable school.
+A Hydration space lets the player select up to three killed cards to restore. A rare Release space permanently removes one selected card to thin the school.
 
 The playable [Voyage foundation](VOYAGE.md) now generates all three regions from a seed with weighted encounter types, guaranteed route milestones, persistent schools, and encounter rewards. Colossals are giant ocean creatures that rule parts of the sea; their identities and special mechanics will be designed separately.
 
 ## Knockouts and recovery
 
-Fish can become unavailable during a run. Hydration spaces provide the thematic recovery mechanism. The exact causes, duration, and cost of knockouts remain open design questions.
+Fish killed by an edge ability or pushed off the playable board become unavailable during a run. Their status persists when the match ends. Hydration restores up to three selected cards; losses alone no longer kill reserve creatures.
 
 ## Progression
 

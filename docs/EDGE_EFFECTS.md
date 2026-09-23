@@ -18,6 +18,8 @@ Effects resolve in the order listed on the card after it is placed.
 
 Pushes and pulls fail when their destination is occupied. Fish may be moved onto reef spaces, but cards still cannot be placed directly on reefs.
 
+In Voyage, removal by Bite or being pushed beyond the board marks that specific card as killed when the match ends. Killed cards cannot be drawn until selected at a Hydration space (up to three per visit). Losing a battle does not kill unrelated cards.
+
 ## First cards
 
 | Card | Edge effects |

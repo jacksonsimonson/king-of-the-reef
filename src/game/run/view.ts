@@ -1,7 +1,8 @@
 import { STARTERS } from "../data/starterFish.ts";
+import { cardElement } from "../ui/cardElement";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { COLUMNS, REGIONS, SPACE_INFO, type Space } from "./maps.ts";
-import { activeNode, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
+import { activeNode, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
 
 let memory: Run | null = null;
 export function currentRun(): Run | null { return memory ??= loadRun(); }
@@ -113,7 +114,7 @@ export class VoyageView {
     draw(); this.observer = new ResizeObserver(draw); this.observer.observe(viewport);
     const footer = element("div", "voyage-footer");
     const legend = element("div", "voyage-legend");
-    (["battle", "fishing", "shop", "event", "hydration", "boss"] as Space[]).forEach((type) => {
+    (["battle", "fishing", "shop", "event", "hydration", "release", "boss"] as Space[]).forEach((type) => {
       const item = element("span"); const icon = element("canvas"); drawIcon(icon, type, SPACE_INFO[type].color);
       item.append(icon, element("span", "", SPACE_INFO[type].name)); legend.append(item);
     });
@@ -122,12 +123,11 @@ export class VoyageView {
     const detail = element("section", "voyage-detail"); detail.id = "voyage-detail"; detail.setAttribute("aria-live", "polite"); this.root.append(detail);
     this.renderDetail();
     if (run) {
-      const school = element("details", "voyage-school"); school.append(element("summary", "", `Your school · ${run.school.length} creatures`));
+      const school = element("details", "voyage-school"); school.append(element("summary", "", `Your School · ${run.school.length} Cards`));
       const cards = element("div", "school-cards");
       run.school.forEach((fish) => {
         const card = element("div", fish.condition === "healthy" ? "" : "resting");
-        const img = element("img"); img.src = `${import.meta.env.BASE_URL}assets/fish/${fish.texture}.png`; img.alt = fish.name; img.width = 64; img.height = 64;
-        card.append(img, element("span", "", fish.name), element("small", "", fish.condition === "healthy" ? "Ready" : "Needs hydration")); cards.append(card);
+        card.append(cardElement(fish), element("span", "", fish.name), element("small", "", fish.condition === "healthy" ? "Ready" : "Killed · Needs Hydration")); cards.append(card);
       });
       school.append(cards); this.root.append(school);
     }
@@ -160,13 +160,48 @@ export class VoyageView {
       for (const texture of offers(run)) {
         const fish = STARTERS.find((f) => f.texture === texture)!;
         const pick = button("", () => this.resolve(texture), "catch-choice");
-        const img = element("img"); img.src = `${import.meta.env.BASE_URL}assets/fish/${texture}.png`; img.alt = ""; img.width = 64; img.height = 64;
-        pick.append(img, element("strong", "", fish.name), element("small", "", node.type === "shop" ? "18 shells" : "Add to school"));
+        pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", node.type === "shop" ? "18 Shells" : "Add to School"));
         pick.disabled = node.type === "shop" && run.shells < 18;
         actions.append(pick);
       }
       actions.append(button("Sail on", () => this.resolve("leave")));
-    } else if (node.type === "hydration") actions.append(button("Rest in the spring →", () => this.resolve("rest")));
+    } else if (node.type === "hydration" || node.type === "release") {
+      const hydration = node.type === "hydration";
+      const choices = hydration ? run.school.filter((f) => f.condition === "killed") : run.school;
+      const selected = new Set<string>();
+      const limit = hydration ? 3 : 1;
+      const status = element("p", "care-selection");
+      const confirm = button("", () => {
+        if (resolveVisit(run, hydration ? "rest" : [...selected][0], [...selected])) {
+          this.selected = null; this.save(); this.render();
+        }
+      });
+      const picks: HTMLButtonElement[] = [];
+      const update = () => {
+        status.textContent = hydration ? `${selected.size} / ${Math.min(3, choices.length)} Cards Selected` : "Choose One Card to Release Permanently";
+        confirm.textContent = hydration ? `Hydrate ${selected.size} Cards · +1 Resolve` : "Confirm Release";
+        confirm.disabled = !hydration && selected.size === 0;
+        picks.forEach((pick) => {
+          const checked = selected.has(pick.dataset.cardId!);
+          pick.setAttribute("aria-pressed", String(checked));
+          pick.disabled = (!checked && selected.size >= limit) || (!hydration && !canRelease(run, pick.dataset.cardId!));
+        });
+      };
+      for (const fish of choices) {
+        const pick = button("", () => {
+          if (selected.has(fish.id)) selected.delete(fish.id); else selected.add(fish.id);
+          update();
+        }, "catch-choice care-choice");
+        pick.dataset.cardId = fish.id;
+        pick.append(cardElement(fish), element("strong", "", fish.name), element("small", "", fish.condition === "killed" ? "Killed" : "Ready"));
+        picks.push(pick); actions.append(pick);
+      }
+      if (hydration && !choices.length) panel.append(element("p", "", "All your cards are healthy. You can still recover one resolve."));
+      panel.append(status); update();
+      const controls = element("div", "care-controls"); controls.append(confirm);
+      if (!hydration) controls.append(button("Keep My School", () => this.resolve("leave")));
+      actions.append(controls);
+    }
     else if (node.type === "event") {
       panel.append(element("p", "", ["A tide-stranded skiff carries a shell chest and a tangled fishing net.", "Beneath the ice, a wreck holds a chest and a creature caught in its rigging.", "Lightning exposes a ghost ship. A trapped creature calls from beside its treasure."][run.region]));
       actions.append(button("Rescue the creature", () => this.resolve("rescue")), button("Salvage: +14 shells, −1 resolve (min 1)", () => this.resolve("salvage")));

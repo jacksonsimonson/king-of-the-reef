@@ -18,7 +18,8 @@ export function createGameConfig(view: GameView): Phaser.Types.Core.GameConfig {
   scene: gallery ? [GalleryScene] : [FoundationScene],
   scale: {
     mode: Phaser.Scale.NONE,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+    // CSS centers canvases that fit; oversized native canvases scroll from the left edge.
+    autoCenter: Phaser.Scale.NO_CENTER,
   },
   render: {
     antialias: false,

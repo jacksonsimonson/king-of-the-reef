@@ -3,10 +3,11 @@ import { random, type RegionId, type Space } from "./maps.ts";
 const ICONS: Record<Space, string[]> = {
   start: ["0001000", "0011100", "0111110", "0001000", "0001000", "0111110", "1111111"],
   battle: ["1000001", "1100011", "0110110", "0011100", "0011100", "0110110", "1100011"],
-  fishing: ["0000110", "0000110", "0111111", "1111110", "0111111", "0000110", "0000110"],
+  fishing: ["0001111", "0010001", "0100001", "0100001", "1000101", "1000011", "1000000"],
   shop: ["0111110", "1100011", "1111111", "1010101", "1000001", "1011101", "1111111"],
   event: ["0111110", "1100011", "0000011", "0001110", "0001100", "0000000", "0001100"],
   hydration: ["0001000", "0011100", "0011100", "0111110", "1111111", "1111111", "0111110"],
+  release: ["0001000", "0001100", "1111110", "0001100", "0001000", "1000001", "0111110"],
   boss: ["1001001", "1101011", "1111111", "0111110", "0101010", "0111110", "0011100"],
 };
 export function drawIcon(canvas: HTMLCanvasElement, type: Space, color: string): void {
@@ -82,12 +83,45 @@ export function drawSeascape(canvas: HTMLCanvasElement, region: RegionId, seed: 
     const heartX = w - 100, heartY = Math.floor(h / 2);
     ctx.strokeStyle = "#765491"; ctx.lineWidth = 4;
     ctx.beginPath(); ctx.moveTo(heartX, heartY - 155); ctx.lineTo(heartX - 145, heartY + 110); ctx.lineTo(heartX + 74, heartY + 110); ctx.closePath(); ctx.stroke();
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 24; i++) {
       const x = 200 + rng() * (w - 300), y = i % 2 ? h - 108 : 14;
       for (let step = 0; step < 9; step++) {
         const shift = step < 4 ? step * 4 : (8 - step) * 4;
         rect(x + shift, y + step * 8, 8, 12, step % 3 ? "#a291bd" : "#d4c6e4");
+        if (step === 3) {
+          rect(x + shift + 8, y + step * 8, 16, 4, "#a291bd");
+          rect(x + shift + 20, y + step * 8 + 4, 4, 16, "#a291bd");
+        }
       }
+    }
+    // Stepped whirlpools, curling rogue waves and waterspouts at the chart edges.
+    for (let i = 0; i < 6; i++) {
+      const x = 160 + i * (w - 380) / 6, y = i % 2 ? h - 55 : 62;
+      for (let ring = 5; ring > 0; ring--) {
+        const r = ring * 6;
+        const shade = ring % 2 ? "#695081" : "#372c55";
+        rect(x - r, y - r / 2, r * 2, 4, shade);
+        rect(x - r, y + r / 2, r * 2, 4, shade);
+        rect(x - r, y - r / 2, 4, r, shade);
+        rect(x + r, y - r / 2, 4, r, shade);
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      const x = 280 + i * (w - 540) / 4, y = i % 2 ? h - 76 : 20;
+      for (let step = 0; step < 8; step++) {
+        const span = 48 - step * 5, sway = Math.round(Math.sin(step) * 4);
+        rect(x - span / 2 + sway, y + step * 7, span, 4, step % 2 ? "#726286" : "#9784aa");
+      }
+      rect(x - 32, y + 60, 64, 4, "#635681");
+    }
+    for (let i = 0; i < 5; i++) {
+      const x = 80 + i * (w - 200) / 5, y = i % 2 ? h - 28 : 84;
+      for (let step = 0; step < 7; step++) {
+        rect(x + step * 8, y - step * 4, 8, 12 + step * 4, "#3f5579");
+        rect(x + step * 8, y - step * 4, 8, 4, "#99b3c4");
+      }
+      rect(x + 48, y - 28, 24, 4, "#b1c1d2");
+      rect(x + 68, y - 24, 4, 12, "#99b3c4");
     }
     for (let ring = 0; ring < 4; ring++) {
       ctx.strokeStyle = "#55416f";

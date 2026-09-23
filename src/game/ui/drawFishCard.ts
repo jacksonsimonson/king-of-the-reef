@@ -8,7 +8,7 @@ const COLORS = {
   rivalRed: 0xff3b3b,
 };
 
-const EFFECT_COLORS: Record<EdgeEffect, number> = {
+export const EFFECT_COLORS: Record<EdgeEffect, number> = {
   standard: 0xf2fff7,
   double: 0x62e9ff,
   weak: 0xffd65c,
@@ -25,7 +25,7 @@ const VECTORS: Record<Direction, { row: number; column: number }> = {
   left: { row: 0, column: -1 },
 };
 
-const STANDARD_ARROW_PATTERN = [
+export const STANDARD_ARROW_PATTERN = [
   "....#...",
   "....##..",
   ".....##.",
@@ -36,7 +36,7 @@ const STANDARD_ARROW_PATTERN = [
   "....#...",
 ];
 
-const DOUBLE_ARROW_PATTERN = [
+export const DOUBLE_ARROW_PATTERN = [
   "#...#...",
   ".#...#..",
   "..#...#.",
@@ -47,7 +47,7 @@ const DOUBLE_ARROW_PATTERN = [
   "#...#...",
 ];
 
-const SHIELD_PATTERN = [
+export const SHIELD_PATTERN = [
   "########",
   "########",
   "########",
