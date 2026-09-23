@@ -88,6 +88,9 @@ The three-arrow Octopus is the approved style and complexity reference. Its mant
 
 ## Eye guideline
 
+- Every side-profile creature must have exactly one isolated white eye pixel on the visible side of its head.
+- Do not leave a second isolated white pixel on the snout or elsewhere in the face where it could read as another eye.
+- Eye placement is a required manual inspection after cluster collapse; species-specific pixel corrections belong in `EYE_TOUCHUPS` inside `scripts/prepare_generated_sprite.py` so regenerating the sprite preserves them.
 - Tiny fish: at least one high-contrast eye cluster with a distinct surrounding face color
 - Typical fish: a dark pupil and optional highlight that remain distinct at native resolution
 - Large-eyed species: preserve a readable pupil, surrounding eye color, and highlight

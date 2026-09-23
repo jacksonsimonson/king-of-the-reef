@@ -7,6 +7,7 @@
 - Preserve each generated reference, then convert it through `scripts/prepare_generated_sprite.py` by collapsing each visible same-color source cluster into one logical pixel. Ordinary resizing and post-resize quantization are prohibited because they preserve noise or blur the art.
 - Use no interpolation or soft alpha. Player art faces right; the renderer flips rival art left.
 - Battle and gallery cards must use the same Phaser card-rendering function so their frames, arrows, scaling, and ownership colors remain identical.
+- Side-profile creature sprites use exactly one isolated white eye pixel on the visible side. Any required per-species correction is recorded in the conversion script so it survives regeneration.
 
 This log records important choices and their reasoning.
 

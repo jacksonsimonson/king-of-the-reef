@@ -15,6 +15,14 @@ DEFAULT_CLUSTER_SIZE = 20
 OPAQUE_THRESHOLD = 128
 OPAQUE_COLORS = 7
 
+# Small species-specific corrections are applied after mechanical cluster collapse.
+# Coordinates refer to the final 64x64 canvas. Every side-profile creature must
+# finish with exactly one isolated white eye pixel in its visible eye socket.
+EYE_TOUCHUPS = {
+    "anchovy-generated": {"eye": (57, 32), "remove": [(60, 33)]},
+    "goby-generated": {"eye": (55, 31), "remove": []},
+}
+
 
 def build_palette(source: Image.Image) -> list[tuple[int, int, int]]:
     preview_width = 256
@@ -95,6 +103,14 @@ def prepare(source_path: Path, output_path: Path, cluster_size: int) -> None:
         logical,
         ((CANVAS_SIZE - logical_width) // 2, (CANVAS_SIZE - logical_height) // 2),
     )
+
+    touchup = EYE_TOUCHUPS.get(source_path.stem)
+    if touchup:
+        darkest = (*min(palette, key=lambda color: sum(color)), 255)
+        for coordinate in touchup["remove"]:
+            canvas.putpixel(coordinate, darkest)
+        canvas.putpixel(touchup["eye"], (255, 255, 255, 255))
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(output_path, optimize=True)
 
