@@ -19,7 +19,7 @@ OPAQUE_COLORS = 7
 # Coordinates refer to the final 64x64 canvas. Every side-profile creature must
 # finish with exactly one isolated white eye pixel in its visible eye socket.
 EYE_TOUCHUPS = {
-    "anchovy-generated": {"eye": (57, 32), "remove": [(60, 33)]},
+    "anchovy-generated": {"eye": (57, 32), "remove": [(60, 33), (56, 34)]},
     "goby-generated": {"eye": (55, 31), "remove": []},
 }
 
