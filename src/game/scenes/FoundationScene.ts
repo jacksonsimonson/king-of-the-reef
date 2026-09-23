@@ -11,9 +11,9 @@ const COLORS = {
   rivalRed: 0xff3b3b,
 };
 const BOARD_SIZE = 5;
-const CELL = 82;
+const CELL = 96;
 const GAP = 6;
-const BOARD_X = 240;
+const BOARD_X = 198;
 const BOARD_Y = 92;
 const REEFS = new Set([2, 11, 18]);
 const DIRECTIONS: Record<Direction, { row: number; column: number; opposite: Direction; glyph: string }> = {
@@ -86,8 +86,8 @@ export class FoundationScene extends Phaser.Scene {
     add(this.add.text(36, 137, `${this.rivalHand.length} fish remain`, this.textStyle(16, "#f2fff7")));
     add(this.add.text(36, 188, "REEFS", this.textStyle(14, "#ff5ca8", true)));
     add(this.add.text(36, 215, "Push fish onto\n2 of 3 pearls\nto rule the reef.", this.textStyle(15, "#b8ffd0")).setLineSpacing(6));
-    add(this.add.text(36, 565, this.turn === "player" ? "YOUR SCHOOL" : "RIVAL TURN", this.textStyle(16, "#39ff14", true)));
-    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 150 + index * 150, 650));
+    add(this.add.text(36, 625, this.turn === "player" ? "YOUR SCHOOL" : "RIVAL TURN", this.textStyle(16, "#39ff14", true)));
+    this.playerHand.forEach((fish, index) => this.drawHandCard(fish, 130 + index * 160, 720));
     if (this.finished) this.drawResult(scores.player, scores.rival);
   }
 
@@ -99,12 +99,12 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private drawBoardFish(fish: FishCard, x: number, y: number): void {
-    this.drawFishCard(fish, x + CELL / 2, y + CELL / 2, 72, false);
+    this.drawFishCard(fish, x + CELL / 2, y + CELL / 2, 88, false);
   }
 
   private drawHandCard(fish: FishCard, x: number, y: number): void {
     const selected = this.selectedId === fish.id;
-    const card = this.drawFishCard(fish, x, y, 112, selected);
+    const card = this.drawFishCard(fish, x, y, 128, selected);
     if (this.turn === "player" && !this.finished) {
       card.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
         this.selectedId = selected ? null : fish.id;
@@ -122,14 +122,14 @@ export class FoundationScene extends Phaser.Scene {
   ): Phaser.GameObjects.Rectangle {
     const frameColor = fish.owner === "player" ? COLORS.playerBlue : COLORS.rivalRed;
     const border = size >= 100 ? (selected ? 6 : 4) : 3;
-    const insetSize = size >= 100 ? 78 : 52;
+    const insetSize = size >= 100 ? 104 : 72;
 
     const outer = this.add.rectangle(x, y, size, size, COLORS.water)
       .setStrokeStyle(border, frameColor);
     const inset = this.add.rectangle(x, y, insetSize, insetSize, COLORS.deep)
       .setStrokeStyle(2, 0x001725);
     const source = this.textures.get(fish.texture).getSourceImage() as HTMLImageElement;
-    const targetSize = size >= 100 ? 72 : 48;
+    const targetSize = size >= 100 ? 96 : 64;
     const integerScale = Math.max(
       1,
       Math.floor(targetSize / Math.max(source.width, source.height)),

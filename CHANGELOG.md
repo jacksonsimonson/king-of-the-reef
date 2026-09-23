@@ -31,3 +31,6 @@ All notable playable changes to King of the Reef will be recorded here.
 - Expanded card data and push resolution to support multiple directions per fish
 - Recolored all animal sprites with natural species-appropriate palettes while reserving bright project colors for UI and objectives
 - Added a creation-order card gallery with names and eight cards per desktop row
+- Upgraded the permanent sprite standard from 24×24 to 32×32 for clearer eyes, fins, markings, and complex silhouettes
+- Redrew all five starter creatures from their existing visual references on fixed 32×32 canvases
+- Enlarged board, hand, and gallery card portraits for exact 2× and 3× integer sprite scaling

@@ -5,7 +5,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "game",
   width: 900,
-  height: 730,
+  height: 800,
   backgroundColor: "#00233a",
   scene: [FoundationScene],
   scale: {
