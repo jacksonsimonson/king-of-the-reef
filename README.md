@@ -20,11 +20,22 @@ The game combines:
 
 The goal is to take inspiration from positional card games without reproducing Joustus exactly. Fish species, reef control, currents, environmental tiles, weight, and roguelike progression will give the game its own identity.
 
-## Play the recovered prototype
+## Run locally
 
-Open `dist/index.html` in a browser.
+Install dependencies and start the development server:
 
-The prototype is intentionally preserved as the project's starting point. It will be replaced incrementally by a TypeScript, Vite, and Phaser implementation.
+```powershell
+npm.cmd install
+npm.cmd run dev
+```
+
+The terminal will display the local URL. Stop the server with `Ctrl+C`.
+
+## Original prototype
+
+The recovered first prototype remains available at `public/legacy-prototype/index.html` and is copied into every production build.
+
+It is intentionally preserved as the project's starting point and behavioral reference while its systems are migrated into the TypeScript, Vite, and Phaser implementation.
 
 ## Documentation
 
@@ -34,12 +45,13 @@ The prototype is intentionally preserved as the project's starting point. It wil
 - [Design decisions](docs/DECISIONS.md)
 - [Changelog](CHANGELOG.md)
 
-## Planned technology
+## Technology
 
 - TypeScript
 - Vite
 - Phaser
 - GitHub Pages
+- GitHub Actions deployment
 - Pixel-art visual direction
 
 ## Visual direction
