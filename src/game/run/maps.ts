@@ -1,4 +1,4 @@
-export type Space = "start" | "battle" | "fishing" | "shop" | "event" | "hydration" | "boss";
+export type Space = "start" | "battle" | "fishing" | "shop" | "event" | "hydration" | "release" | "boss";
 export type RegionId = "shoreline" | "ocean" | "bermuda";
 export interface MapNode { id: string; column: number; lane: number; type: Space; next: string[] }
 export interface RegionMap { region: RegionId; nodes: MapNode[] }
@@ -8,14 +8,16 @@ export const SPACE_INFO: Record<Space, { name: string; color: string; descriptio
   battle: { name: "Battle", color: "#ff8c79", description: "Contest three reefs. Win 12 shells; a loss costs one resolve." },
   fishing: { name: "Fishing", color: "#73ddc6", description: "Choose one local catch to join your school." },
   shop: { name: "Shop", color: "#ffd582", description: "Spend 18 shells to recruit a creature, or sail on." },
-  event: { name: "Unknown waters", color: "#c6a1ff", description: "A local discovery offers a choice with lasting consequences." },
-  hydration: { name: "Hydration", color: "#8bceff", description: "Restore knocked-out creatures and recover one resolve." },
+  event: { name: "Unknown Waters", color: "#c6a1ff", description: "A local discovery offers a choice with lasting consequences." },
+  hydration: { name: "Hydration", color: "#8bceff", description: "Choose up to three killed cards to restore and recover one resolve." },
+  release: { name: "Release", color: "#a7efae", description: "Permanently release one card from your school. Keep at least five cards and one healthy creature." },
   boss: { name: "Colossal", color: "#ffcc85", description: "Win the Colossal battle to reach the next region. Ties require a rematch." },
 };
+export const SPACE_WEIGHTS = { battle: 38, fishing: 25, shop: 10, event: 12, hydration: 10, release: 5 };
 export const REGIONS = [
-  { id: "shoreline", name: "The Shoreline", subtitle: "From warm shallows to the coral crown", boss: "Reef Colossal", zones: ["SUNLIT SHALLOWS", "TIDEPOOL GARDENS", "CORAL KINGDOM"], weights: { battle: 38, fishing: 25, shop: 10, event: 17, hydration: 10 }, pool: ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"], accent: "#7fe5c0" },
-  { id: "ocean", name: "The Open Ocean", subtitle: "Follow the cold current into the abyss", boss: "Abyssal Colossal", zones: ["CONTINENTAL SHELF", "POLAR CURRENT", "MIDNIGHT TRENCH"], weights: { battle: 43, fishing: 20, shop: 10, event: 17, hydration: 10 }, pool: ["sardine", "swordfish", "barracuda", "ocean-sunfish", "octopus", "lure"], accent: "#8ccdf3" },
-  { id: "bermuda", name: "The Bermuda Triangle", subtitle: "Every current leads toward the impossible", boss: "Triangle Colossal", zones: ["THE WRECK FIELD", "STORM CONVERGENCE", "THE TRIANGLE'S HEART"], weights: { battle: 45, fishing: 15, shop: 8, event: 24, hydration: 8 }, pool: ["hypno-squid", "lure", "barracuda", "swordfish", "ocean-sunfish"], accent: "#c6a5ff" },
+  { id: "shoreline", name: "The Shoreline", subtitle: "From warm shallows to the coral crown", boss: "Reef Colossal", zones: ["SUNLIT SHALLOWS", "TIDEPOOL GARDENS", "CORAL KINGDOM"], weights: SPACE_WEIGHTS, pool: ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"], accent: "#7fe5c0" },
+  { id: "ocean", name: "The Open Ocean", subtitle: "Follow the cold current into the abyss", boss: "Abyssal Colossal", zones: ["CONTINENTAL SHELF", "POLAR CURRENT", "MIDNIGHT TRENCH"], weights: SPACE_WEIGHTS, pool: ["sardine", "swordfish", "barracuda", "ocean-sunfish", "octopus", "lure"], accent: "#8ccdf3" },
+  { id: "bermuda", name: "The Bermuda Triangle", subtitle: "Every current leads toward the impossible", boss: "Triangle Colossal", zones: ["THE WRECK FIELD", "STORM CONVERGENCE", "THE TRIANGLE'S HEART"], weights: SPACE_WEIGHTS, pool: ["hypno-squid", "lure", "barracuda", "swordfish", "ocean-sunfish"], accent: "#c6a5ff" },
 ] as const;
 
 export function random(seed: string): () => number {

@@ -13,6 +13,13 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
+- Show complete framed cards and edge icons in the school, catches, Hydration and Release choices
+- Add rare Release spaces, selective three-card Hydration, and persistent battle casualties from lethal edges and off-board pushes
+- Keep the original 25% Fishing rate in every region, with identical encounter weights across all worlds
+- Add a fishing rod map icon, title-case labels, more Bermuda lightning, waterspouts, whirlpools and rogue waves
+- Match battlefield scenery and colors to the current region, preserving native pixel sizing
+- Support depleted hands and prevent oversized canvases from clipping their left edge
+
 - Added Voyage: three seeded, left-to-right branching regions with shoreline/reef, deep-ocean/arctic and stormy Bermuda scenery
 - Added weighted encounter generation, guaranteed milestones, original pixel space icons and region previews
 - Connected fishing, shops, events, hydration, battles and Colossals to a saved school, shells, resolve and region progression

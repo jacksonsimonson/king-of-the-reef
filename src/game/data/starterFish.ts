@@ -14,7 +14,7 @@ export interface FishCard {
   texture: string;
   edges: CardEdge[];
   owner: Owner;
-  condition: "healthy" | "knocked-out";
+  condition: "healthy" | "killed";
 }
 
 export const STARTERS = [

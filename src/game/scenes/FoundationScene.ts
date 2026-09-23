@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import { createStarterDeck, STARTERS, type Direction, type FishCard } from "../data/starterFish";
 import { drawFishCard } from "../ui/drawFishCard";
+import { drawSeascape } from "../run/art";
+import type { RegionId } from "../run/maps";
+import { removedCardIds } from "../run/casualties";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
 const BOARD_SIZE = 5;
@@ -20,7 +23,8 @@ const DIRECTIONS: Record<Direction, { row: number; column: number; opposite: Dir
 interface HandSlot { card: FishCard; played: boolean }
 interface VoyageBattle {
   playerDeck: FishCard[]; rivalDeck: FishCard[]; rng: () => number;
-  onResult: (player: number, rival: number) => void;
+  region: RegionId; seed: string;
+  onResult: (player: number, rival: number, killedIds: string[]) => void;
   onComplete: () => void;
 }
 
@@ -37,6 +41,9 @@ export class FoundationScene extends Phaser.Scene {
   private placementPreview?: Phaser.GameObjects.Container;
   private previewIndex: number | null = null;
   private voyageBattle?: VoyageBattle;
+  private killedIds = new Set<string>();
+  private waterColor = COLORS.water;
+  private borderColor = COLORS.green;
 
   constructor() { super("foundation"); }
 
@@ -50,6 +57,14 @@ export class FoundationScene extends Phaser.Scene {
   create(): void {
     this.input.dragDistanceThreshold = 6;
     this.voyageBattle = this.registry.get("voyageBattle") as VoyageBattle | undefined;
+    if (this.voyageBattle) {
+      const canvas = document.createElement("canvas");
+      canvas.width = this.scale.width; canvas.height = this.scale.height;
+      drawSeascape(canvas, this.voyageBattle.region, this.voyageBattle.seed);
+      this.textures.addCanvas("battle-seascape", canvas);
+      const palette = { shoreline: [0x164d59, 0x73cbb1], ocean: [0x112f49, 0x80b9d2], bermuda: [0x302343, 0xa385c6] }[this.voyageBattle.region];
+      [this.waterColor, this.borderColor] = palette;
+    }
     this.resetMatch();
   }
 
@@ -64,7 +79,9 @@ export class FoundationScene extends Phaser.Scene {
     this.selectedId = null;
     this.turn = "player";
     this.finished = false;
+    this.killedIds.clear();
     this.render("Drag a fish to open water, or select it and choose a tile.");
+    if (!this.playerHand.length) this.advanceTurn("player");
   }
 
   private render(message: string): void {
@@ -74,6 +91,10 @@ export class FoundationScene extends Phaser.Scene {
     this.ui = this.add.container(0, 0);
     const add = (object: Phaser.GameObjects.GameObject) => this.ui?.add(object);
     const scores = this.getScores();
+    if (this.voyageBattle) {
+      add(this.add.image(0, 0, "battle-seascape").setOrigin(0));
+      add(this.add.rectangle(0, 0, this.scale.width, this.scale.height, COLORS.deep, 0.65).setOrigin(0));
+    }
 
     add(this.add.text(40, 26, "KING OF THE REEF", this.textStyle(27, "#39ff14", true)));
     add(this.add.text(40, 65, message, this.textStyle(16, "#b8ffd0")).setWordWrapWidth(1200));
@@ -105,8 +126,8 @@ export class FoundationScene extends Phaser.Scene {
       const x = board.x + column * (CELL + GAP);
       const y = board.y + row * (CELL + GAP);
       const reef = REEFS.has(index);
-      const cell = this.add.rectangle(x + CELL / 2, y + CELL / 2, CELL, CELL, COLORS.water)
-        .setStrokeStyle(3, reef ? COLORS.pink : COLORS.green, reef ? 1 : 0.72);
+      const cell = this.add.rectangle(x + CELL / 2, y + CELL / 2, CELL, CELL, this.waterColor)
+        .setStrokeStyle(3, reef ? COLORS.pink : this.borderColor, reef ? 1 : 0.72);
       add(cell);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
@@ -118,7 +139,7 @@ export class FoundationScene extends Phaser.Scene {
             if (fish) this.showPlacementPreview(index, fish);
           })
           .on("pointerout", () => {
-            cell.setFillStyle(COLORS.water);
+            cell.setFillStyle(this.waterColor);
             this.clearPlacementPreview();
           })
           .on("pointerdown", () => this.playPlayerCard(index));
@@ -283,10 +304,7 @@ export class FoundationScene extends Phaser.Scene {
     slot.played = true;
     this.selectedId = null;
     this.placeCard(index, slot.card);
-    if (this.checkEnd()) return;
-    this.turn = "rival";
-    this.render(`${slot.card.name} entered the current. The rival is choosing…`);
-    this.time.delayedCall(550, () => this.playRivalTurn());
+    this.advanceTurn("player");
   }
 
   private playRivalTurn(): void {
@@ -301,9 +319,16 @@ export class FoundationScene extends Phaser.Scene {
     if (!best) return this.finishMatch();
     best.slot.played = true;
     this.placeCard(best.index, best.slot.card);
+    this.advanceTurn("rival");
+  }
+
+  private advanceTurn(previous: "player" | "rival"): void {
     if (this.checkEnd()) return;
-    this.turn = "player";
-    this.render("Your turn — drag a fish to open water.");
+    const playerReady = this.playerHand.some((slot) => !slot.played);
+    const rivalReady = this.rivalHand.some((slot) => !slot.played);
+    this.turn = rivalReady && (previous === "player" || !playerReady) ? "rival" : "player";
+    this.render(this.turn === "rival" ? "The rival is choosing…" : "Your turn — drag a fish to open water.");
+    if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
   }
 
   private evaluateMove(index: number, card: FishCard): number {
@@ -322,7 +347,9 @@ export class FoundationScene extends Phaser.Scene {
 
   private placeCard(index: number, card: FishCard): void {
     this.board[index] = card;
+    const before = [...this.board];
     this.resolveEdges(this.board, index, card);
+    for (const id of removedCardIds(before, this.board)) this.killedIds.add(id);
   }
 
   private resolveEdges(board: Array<FishCard | null>, placedIndex: number, card: FishCard): void {
@@ -441,7 +468,7 @@ export class FoundationScene extends Phaser.Scene {
     if (this.finished) return;
     this.finished = true;
     const score = this.getScores();
-    this.voyageBattle?.onResult(score.player, score.rival);
+    this.voyageBattle?.onResult(score.player, score.rival, [...this.killedIds]);
     this.render(score.player > score.rival ? "You rule the reef!" : score.rival > score.player ? "The rival rules this tide." : "The tide ends in a draw.");
   }
 

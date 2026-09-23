@@ -59,9 +59,10 @@ function syncView(): void {
       config.callbacks = { preBoot: (game) => {
         game.registry.set("voyageBattle", {
           playerDeck: run.school, rivalDeck,
+          region: REGIONS[run.region].id, seed: run.seed,
           rng: random(`${run.seed}:${run.pending}:deal`),
-          onResult: (player: number, rival: number) => {
-            battleResult(run, player, rival); persistRun(run);
+          onResult: (player: number, rival: number, killedIds: string[]) => {
+            battleResult(run, player, rival, killedIds); persistRun(run);
           },
           onComplete: () => { window.location.hash = "#voyage"; },
         });

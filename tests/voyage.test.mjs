@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateMap, REGIONS } from '../src/game/run/maps.ts';
 import { createRun, enterNode, reachable, resolveVisit, offers, activeNode, battleResult, saveRun, loadRun, SAVE_KEY } from '../src/game/run/state.ts';
+import { removedCardIds } from '../src/game/run/casualties.ts';
 
 test('1,000 seeds per region: complete, noncrossing routes and guaranteed encounters', () => {
   for (let seed = 0; seed < 1000; seed++) for (let region = 0; region < 3; region++) {
@@ -26,6 +27,9 @@ test('seeds reproduce maps and different seeds produce different routes', () => 
   assert.deepEqual(createRun('REEF').maps, createRun('REEF').maps);
   assert.notDeepEqual(createRun('REEF').maps, createRun('ABYSS').maps);
   REGIONS.forEach(region => assert.equal(Object.values(region.weights).reduce((a, b) => a + b), 100));
+  REGIONS.forEach(region => assert.deepEqual(region.weights, REGIONS[0].weights));
+  assert.equal(REGIONS[0].weights.fishing, 25);
+  assert.equal(REGIONS[0].weights.release, 5);
 });
 test('weighted random spaces follow configured rates across 500 maps', () => {
   REGIONS.forEach((region, i) => {
@@ -73,13 +77,56 @@ test('shop transaction is atomic and insufficient shells cannot purchase', () =>
   assert.equal(resolveVisit(run, offers(run)[0]), true);
   assert.equal(run.school.length, before + 1); assert.equal(run.shells, 0);
 });
-test('hydration restores knocked-out creatures and caps resolve at three', () => {
+test('hydration restores only selected killed cards, with at most three per visit', () => {
   const run = createRun('rest');
   for (let i = 0; i < 10; i++) advance(run);
   enterNode(run, reachable(run)[0]); assert.equal(activeNode(run).type, 'hydration');
-  run.school[0].condition = 'knocked-out'; run.resolve = 2;
-  resolveVisit(run, 'rest');
-  assert.equal(run.resolve, 3); assert.ok(run.school.every(f => f.condition === 'healthy'));
+  run.school.slice(0, 4).forEach(f => f.condition = 'killed'); run.resolve = 2;
+  const ids = run.school.slice(0, 4).map(f => f.id);
+  assert.equal(resolveVisit(run, 'rest', ids), false);
+  assert.equal(resolveVisit(run, 'rest', [ids[0], ids[0]]), false);
+  assert.equal(resolveVisit(run, 'rest', [run.school[5].id]), false);
+  assert.equal(resolveVisit(run, 'rest', ['missing']), false);
+  assert.equal(run.resolve, 2);
+  assert.equal(resolveVisit(run, 'rest', ids.slice(0, 3)), true);
+  assert.equal(run.resolve, 3);
+  assert.ok(run.school.slice(0, 3).every(f => f.condition === 'healthy'));
+  assert.equal(run.school[3].condition, 'killed');
+  assert.equal(resolveVisit(run, 'rest', [ids[3]]), false);
+});
+
+test('release permanently removes one exact card and protects the minimum school', () => {
+  const run = createRun('release');
+  enterNode(run, reachable(run)[0]); activeNode(run).type = 'release';
+  const id = run.school[0].id;
+  assert.equal(resolveVisit(run, 'missing'), false);
+  assert.equal(resolveVisit(run, id), true);
+  assert.equal(run.school.length, 7); assert.ok(!run.school.some(f => f.id === id));
+  assert.equal(resolveVisit(run, run.school[0].id), false);
+  enterNode(run, reachable(run)[0]); activeNode(run).type = 'release';
+  run.school.slice(1).forEach(f => f.condition = 'killed');
+  assert.equal(resolveVisit(run, run.school[0].id), false, 'cannot release last healthy card');
+  run.school = run.school.slice(0, 5);
+  assert.equal(resolveVisit(run, run.school[1].id), false, 'keep at least five total cards');
+  assert.equal(resolveVisit(run, 'leave'), true);
+});
+
+test('battle deaths persist on wins and ties; losing does not kill unrelated reserves', () => {
+  for (const [player, rival] of [[2, 1], [1, 1], [0, 1]]) {
+    const run = createRun('casualties'); advance(run);
+    enterNode(run, reachable(run)[0]);
+    const id = run.school[0].id;
+    battleResult(run, player, rival, [id, 'rival-1']);
+    assert.equal(run.school[0].condition, 'killed');
+    assert.ok(run.school.slice(1).every(f => f.condition === 'healthy'));
+  }
+});
+
+test('casualty detection ignores repositioning and never mutates cards', () => {
+  const [a, b, c] = createRun('identities').school;
+  assert.deepEqual(removedCardIds([a, b, c], [c, a, b]), []);
+  assert.deepEqual(removedCardIds([a, b, c], [null, c, a]), [b.id]);
+  assert.equal(b.condition, 'healthy');
 });
 test('Colossal ties and losses do not bypass the Colossal; exhaustion ends a run', () => {
   const run = createRun('guardian');
@@ -98,6 +145,11 @@ test('save/load preserves pending offers and rejects corrupt storage', () => {
   assert.ok(saveRun(run)); assert.deepEqual(loadRun(), run); assert.deepEqual(offers(loadRun()), offers(run));
   store.set(SAVE_KEY, '{broken'); assert.equal(loadRun(), null);
   store.set(SAVE_KEY, JSON.stringify({ ...run, current: 'made-up' })); assert.equal(loadRun(), null);
+  activeNode(run).type = 'release'; run.school[0].condition = 'killed';
+  saveRun(run); assert.equal(activeNode(loadRun()).type, 'release');
+  assert.equal(loadRun().school[0].condition, 'killed');
+  run.school[0].condition = 'knocked-out'; saveRun(run);
+  assert.equal(loadRun().school[0].condition, 'killed', 'legacy recovery state migrates');
   globalThis.localStorage.setItem = () => { throw Error('full'); };
   assert.equal(saveRun(run), false);
 });

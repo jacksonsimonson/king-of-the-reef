@@ -1,5 +1,5 @@
 import { STARTERS, type FishCard } from "../data/starterFish.ts";
-import { generateMap, random, REGIONS, type MapNode, type RegionMap } from "./maps.ts";
+import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
 
 export interface Run {
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
@@ -46,7 +46,11 @@ function finishNode(run: Run, message: string): void {
   run.pending = null;
   run.log = message;
 }
-export function resolveVisit(run: Run, choice: string): boolean {
+export function canRelease(run: Run, id: string): boolean {
+  const fish = run.school.find((f) => f.id === id);
+  return Boolean(fish && run.school.length > 5 && (fish.condition === "killed" || run.school.filter((f) => f.condition === "healthy").length > 1));
+}
+export function resolveVisit(run: Run, choice: string, selected: string[] = []): boolean {
   if (!run.pending || run.status !== "active") return false;
   const node = activeNode(run);
   if (node.type === "battle" || node.type === "boss") return false;
@@ -58,9 +62,19 @@ export function resolveVisit(run: Run, choice: string): boolean {
       finishNode(run, `${run.school.at(-1)!.name} joined your school.`);
     } else finishNode(run, "You followed the current onward.");
   } else if (node.type === "hydration") {
-    run.school.forEach((fish) => { fish.condition = "healthy"; });
+    if (choice !== "rest" || selected.length > 3 || new Set(selected).size !== selected.length
+      || !selected.every((id) => run.school.some((fish) => fish.id === id && fish.condition === "killed"))) return false;
+    run.school.forEach((fish) => { if (selected.includes(fish.id)) fish.condition = "healthy"; });
     run.resolve = Math.min(3, run.resolve + 1);
-    finishNode(run, "The spring restored your school and one resolve.");
+    finishNode(run, `Hydrated ${selected.length} card${selected.length === 1 ? "" : "s"} and recovered one resolve.`);
+  } else if (node.type === "release") {
+    if (choice === "leave") finishNode(run, "You kept your school together.");
+    else {
+      if (!canRelease(run, choice)) return false;
+      const fish = run.school.find((f) => f.id === choice)!;
+      run.school = run.school.filter((f) => f.id !== choice);
+      finishNode(run, `${fish.name} was released back into the ocean.`);
+    }
   } else if (node.type === "event") {
     if (choice === "salvage") {
       run.shells += 14;
@@ -73,18 +87,14 @@ export function resolveVisit(run: Run, choice: string): boolean {
   } else return false;
   return true;
 }
-export function battleResult(run: Run, player: number, rival: number): void {
+export function battleResult(run: Run, player: number, rival: number, killedIds: string[] = []): void {
   if (!run.pending || run.status !== "active") return;
   const node = activeNode(run);
   if (node.type !== "battle" && node.type !== "boss") return;
+  for (const fish of run.school) if (killedIds.includes(fish.id)) fish.condition = "killed";
   if (player < rival) {
     run.resolve--;
-    const healthy = run.school.filter((fish) => fish.condition === "healthy");
-    // Keep a playable five-card school; recovery still matters for deck options.
-    if (healthy.length > 5) healthy.at(-1)!.condition = "knocked-out";
-    run.log = healthy.length > 5
-      ? "The rival won. Lost one resolve; a reserve creature rests until hydration."
-      : "The rival won. Lost one resolve.";
+    run.log = "The rival won. Lost one resolve. Killed cards need hydration.";
     if (run.resolve <= 0) { run.status = "lost"; run.pending = null; return; }
     if (node.type === "battle") finishNode(run, run.log);
     return;
@@ -109,11 +119,18 @@ export function loadRun(): Run | null {
   try {
     const run: Run = JSON.parse(localStorage.getItem(SAVE_KEY) ?? "null");
     if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
-    // Rebuild maps from the versioned seed instead of trusting saved topology.
+    // Rebuild topology, but preserve existing encounter types when rates change.
+    const savedMaps = run.maps;
     run.maps = REGIONS.map((_, i) => generateMap(run.seed, i));
+    run.maps.forEach((map, i) => map.nodes.forEach((node) => {
+      const saved = savedMaps?.[i]?.nodes?.find((n) => n.id === node.id);
+      if (saved && Object.hasOwn(SPACE_INFO, saved.type)) node.type = saved.type;
+    }));
     if (!run.maps[run.region].nodes.some((node) => node.id === run.current)) return null;
     if (run.pending && !run.maps[run.region].nodes.find((node) => node.id === run.current)?.next.includes(run.pending)) return null;
-    if (!run.school.every((fish) => STARTERS.some((s) => s.texture === fish.texture) && ["healthy", "knocked-out"].includes(fish.condition))) return null;
+    if (!run.school.every((fish) => STARTERS.some((s) => s.texture === fish.texture) && ["healthy", "killed", "knocked-out"].includes(fish.condition))) return null;
+    // Preserve schools from the earlier recovery model.
+    run.school.forEach((fish) => { if ((fish.condition as string) === "knocked-out") fish.condition = "killed"; });
     if (![run.shells, run.resolve, run.serial].every(Number.isFinite)) return null;
     return run;
   } catch { return null; }
