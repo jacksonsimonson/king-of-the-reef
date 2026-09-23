@@ -88,8 +88,9 @@ Run-based progression should emphasize discovering fish and building combination
 ## Art direction
 
 - Simple, readable pixel art
-- Slightly faded bright-yellow backgrounds
-- Sharp red highlights for major actions and information
+- Deep ocean-blue backgrounds
+- Lighter aquatic green for cards, board structure, and readable highlights
+- Shiny pink pearls for major objectives and special rewards
 - Strong card silhouettes
 - Aquatic environments differentiated through color, vegetation, hazards, and fish populations
 
