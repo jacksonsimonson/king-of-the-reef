@@ -24,7 +24,10 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 - Add three reef objectives
 - Prevent direct placement on reefs
 - Add legal-move previews
-- Establish a match-ending rule
+- Establish a ten-placement match-ending rule with five-card round hands
+- Show player and rival decks, hidden rival cards, and reserved powerup slots
+- Use a desktop-first full-viewport battle layout with side-based hands and decks
+- Support card dragging with translucent legal-placement previews
 - Improve computer move selection
 - Add readable movement and push feedback
 

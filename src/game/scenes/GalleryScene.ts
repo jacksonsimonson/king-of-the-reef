@@ -6,7 +6,6 @@ const CARD_SIZE = 144;
 const COLUMN_GAP = 24;
 const ROW_GAP = 56;
 const COLUMNS = 8;
-const START_X = 84;
 const START_Y = 164;
 
 export class GalleryScene extends Phaser.Scene {
@@ -25,11 +24,14 @@ export class GalleryScene extends Phaser.Scene {
     this.add.text(32, 62, "Cards appear in creation order.", this.textStyle(15, "#b8ffd0"));
 
     STARTERS.forEach((definition, index) => {
+      const visibleColumns = Math.min(COLUMNS, STARTERS.length);
+      const rowWidth = visibleColumns * CARD_SIZE + (visibleColumns - 1) * COLUMN_GAP;
+      const startX = Math.floor((this.scale.width - rowWidth) / 2) + CARD_SIZE / 2;
       const column = index % COLUMNS;
       const row = Math.floor(index / COLUMNS);
-      const x = START_X + column * (CARD_SIZE + COLUMN_GAP);
+      const x = startX + column * (CARD_SIZE + COLUMN_GAP);
       const y = START_Y + row * (CARD_SIZE + ROW_GAP);
-      const fish: FishCard = { ...definition, id: `gallery-${definition.id}`, owner: "player" };
+      const fish: FishCard = { ...definition, id: `gallery-${definition.id}`, owner: "player", condition: "healthy" };
       drawFishCard({ scene: this, container: cards, fish, x, y, size: CARD_SIZE });
       this.add.text(x, y + CARD_SIZE / 2 + 18, fish.name, this.textStyle(14, "#f2fff7", true))
         .setOrigin(0.5, 0);

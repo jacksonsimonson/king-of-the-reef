@@ -8,6 +8,7 @@ export interface FishCard {
   texture: string;
   directions: Direction[];
   owner: Owner;
+  condition: "healthy" | "knocked-out";
 }
 
 export const STARTERS = [
@@ -16,8 +17,13 @@ export const STARTERS = [
   { id: "sardine", name: "Sardine", species: "Open Water", texture: "sardine", directions: ["down"] },
   { id: "goby", name: "Goby", species: "Tidepool", texture: "goby", directions: ["left"] },
   { id: "octopus", name: "Octopus", species: "Reef", texture: "octopus", directions: ["left", "up", "right"] },
-] satisfies Omit<FishCard, "owner">[];
+] satisfies Omit<FishCard, "owner" | "condition">[];
 
-export function createStarterSchool(owner: Owner): FishCard[] {
-  return STARTERS.map((fish) => ({ ...fish, id: `${owner}-${fish.id}`, owner }));
+export function createStarterDeck(owner: Owner): FishCard[] {
+  return STARTERS.flatMap((fish) => [0, 1].map((copy) => ({
+    ...fish,
+    id: `${owner}-${fish.id}-${copy + 1}`,
+    owner,
+    condition: "healthy" as const,
+  })));
 }

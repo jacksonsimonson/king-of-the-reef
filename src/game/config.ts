@@ -6,15 +6,18 @@ export type GameView = "play" | "gallery";
 
 export function createGameConfig(view: GameView): Phaser.Types.Core.GameConfig {
   const gallery = view === "gallery";
+  const parent = document.querySelector(gallery ? "#gallery-game" : "#game");
+  const canvasWidth = Math.max(gallery ? 1360 : 2000, Math.floor(parent?.clientWidth ?? window.innerWidth - 64));
+  const playHeight = Math.max(820, window.innerHeight - 145);
   return {
   type: Phaser.AUTO,
   parent: gallery ? "gallery-game" : "game",
-  width: gallery ? 1360 : 900,
-  height: gallery ? 360 : 820,
+  width: canvasWidth,
+  height: gallery ? 360 : playHeight,
   backgroundColor: "#00233a",
   scene: gallery ? [GalleryScene] : [FoundationScene],
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.NONE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   render: {

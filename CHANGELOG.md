@@ -13,6 +13,18 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
+- Expanded Quick Match into a desktop-first, near-full-viewport battle layout
+- Moved the player hand and deck left and the rival hand and deck right
+- Added fixed hand slots with played-card silhouettes and faded used rival card backs
+- Added card dragging and translucent legal-placement previews
+- Kept creature art inside its card frame and rendered board portraits at half the hand-portrait scale
+- Removed fractional canvas, text, and sprite scaling; hand portraits now render at 128×128 and board portraits at 64×64
+- Arranged each five-card hand in a centered three-over-two formation
+- Kept player-card silhouettes beneath live cards so they appear immediately during dragging
+- Stabilized menu heights and removed Gallery canvas scaling during navigation
+- Added randomized five-card round hands drawn from ten-card healthy starter schools
+- Ended matches after both players place every card in their round hands
+- Added visible player and rival decks, hidden rival card backs, and reserved powerup slots
 - Added a dedicated main menu with Quick Match and Gallery options
 - Split the main menu, quick match, and gallery into separate hash-routed views
 - Standardized general menu and navigation UI around deep ocean blue and ultra-green
