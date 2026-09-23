@@ -129,12 +129,12 @@ export class FoundationScene extends Phaser.Scene {
     const inset = this.add.rectangle(x, y, insetSize, insetSize, COLORS.deep)
       .setStrokeStyle(2, 0x001725);
     const source = this.textures.get(fish.texture).getSourceImage() as HTMLImageElement;
-    const maxSpriteSize = insetSize - 6;
-    const spriteScale = Math.min(maxSpriteSize / source.width, maxSpriteSize / source.height);
-    const sprite = this.add.image(x, y, fish.texture).setDisplaySize(
-      Math.round(source.width * spriteScale),
-      Math.round(source.height * spriteScale),
+    const targetSize = size >= 100 ? 72 : 48;
+    const integerScale = Math.max(
+      1,
+      Math.floor(targetSize / Math.max(source.width, source.height)),
     );
+    const sprite = this.add.image(x, y, fish.texture).setScale(integerScale);
     if (fish.owner === "rival") sprite.setFlipX(true);
 
     const arrow = this.drawCardArrow(x, y, size, insetSize, fish.direction);

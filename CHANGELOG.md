@@ -24,4 +24,5 @@ All notable playable changes to King of the Reef will be recorded here.
 - Added four original 48×48 starter-fish sprites
 - Added playable card selection, placement, directional pushes, reef scoring, a basic rival, and rematches to the Phaser build
 - Redesigned fish cards as square, art-first tiles with darker inset portraits, uniformly sized edge arrows, and blue/red ownership borders
-- Made the card renderer automatically scale tightly cropped, low-resolution fish art to fit each portrait inset with nearest-neighbor rendering
+- Standardized fish sprites to a maximum 24-pixel source dimension and whole-number 3×/2× scaling for crisp hand and board portraits
+- Added a permanent pixel-art production guide for consistent, fast sprite creation
