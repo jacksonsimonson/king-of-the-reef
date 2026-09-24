@@ -1,6 +1,7 @@
 export type Direction = "up" | "right" | "down" | "left";
 export type Owner = "player" | "rival";
-export type EdgeEffect = "standard" | "double" | "weak" | "bigger-fish" | "swap" | "hook" | "wave";
+export type EdgeEffect = "standard" | "double" | "weak" | "bigger-fish" | "swap" | "hook" | "wave" | "shock" | "spines";
+export type Rarity = "Common" | "Uncommon" | "Rare" | "Extremely Rare";
 
 export interface CardEdge {
   direction: Direction;
@@ -15,9 +16,10 @@ export interface FishCard {
   edges: CardEdge[];
   owner: Owner;
   condition: "healthy" | "killed";
+  ability?: "revelation";
 }
 
-export const STARTERS = [
+export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [
   { id: "minnow", name: "Minnow", species: "Shallows", texture: "minnow", edges: standard("up") },
   { id: "anchovy", name: "Anchovy", species: "Coast", texture: "anchovy", edges: standard("right") },
   { id: "sardine", name: "Sardine", species: "Open Water", texture: "sardine", edges: standard("down") },
@@ -32,6 +34,19 @@ export const STARTERS = [
   { id: "hypno-squid", name: "Hypno Squid", species: "Bermuda Triangle", texture: "hypno-squid", edges: [edge("right", "swap"), edge("up", "weak"), edge("down", "weak")] },
   { id: "lure", name: "Lure", species: "Curio", texture: "lure", edges: [edge("down", "hook")] },
   { id: "ocean-sunfish", name: "Ocean Sunfish", species: "Open Ocean", texture: "ocean-sunfish", edges: [edge("down", "wave")] },
+  { id: "garden-eel", name: "Garden Eel", species: "Reef", texture: "garden-eel", edges: standard("up", "down") },
+  { id: "hermit-crab", name: "Hermit Crab", species: "Tidepool", texture: "hermit-crab", edges: standard("up", "left") },
+  { id: "flounder", name: "Flounder", species: "Shallows", texture: "flounder", edges: standard("down", "left") },
+  { id: "lionfish", name: "Lionfish", species: "Reef", texture: "lionfish", edges: standard("up", "right", "down") },
+  { id: "mantis-shrimp", name: "Mantis Shrimp", species: "Reef", texture: "mantis-shrimp", edges: standard("up", "down", "left") },
+  { id: "pufferfish", name: "Pufferfish", species: "Reef", texture: "pufferfish", edges: standard("up", "right", "down", "left") },
+  { id: "boxfish", name: "Boxfish", species: "Reef", texture: "boxfish", edges: ["up", "right", "down", "left"].map((d) => edge(d as Direction, "weak")) },
+  { id: "needlefish", name: "Needlefish", species: "Shallows", texture: "needlefish", edges: [edge("right", "double")] },
+  { id: "seahorse", name: "Seahorse", species: "Reef", texture: "seahorse", edges: [edge("up", "hook"), edge("down", "hook")] },
+  { id: "electric-eel", name: "Electric Eel", species: "Reef", texture: "electric-eel", edges: ["up", "right", "down", "left"].map((d) => edge(d as Direction, "shock")) },
+  { id: "sea-urchin", name: "Sea Urchin", species: "Reef", texture: "sea-urchin", edges: ["up", "right", "down", "left"].map((d) => edge(d as Direction, "spines")) },
+  { id: "invisible-ink-squid", name: "Invisible Ink Squid", species: "Reef", texture: "invisible-ink-squid", edges: [edge("up", "standard"), edge("down", "weak")], ability: "revelation" },
+  { id: "moray-eel", name: "Moray Eel", species: "Reef", texture: "moray-eel", edges: [edge("right", "bigger-fish")] },
 ] satisfies Omit<FishCard, "owner" | "condition">[];
 
 function edge(direction: Direction, effect: EdgeEffect): CardEdge {

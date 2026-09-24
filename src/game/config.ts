@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { FoundationScene } from "./scenes/FoundationScene";
-import { GalleryScene } from "./scenes/GalleryScene";
+import { GalleryScene, GALLERY_HEIGHT } from "./scenes/GalleryScene";
 
 export type GameView = "play" | "gallery";
 
@@ -13,7 +13,7 @@ export function createGameConfig(view: GameView): Phaser.Types.Core.GameConfig {
   type: Phaser.AUTO,
   parent: gallery ? "gallery-game" : "game",
   width: canvasWidth,
-  height: gallery ? 600 : playHeight,
+  height: gallery ? GALLERY_HEIGHT : playHeight,
   backgroundColor: "#00233a",
   scene: gallery ? [GalleryScene] : [FoundationScene],
   scale: {

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { CardEdge, Direction, EdgeEffect, FishCard } from "../data/starterFish";
+import { SHOCK_PATTERN, SPINES_PATTERN, revelationPixels } from "./cardVisuals";
 
 const COLORS = {
   deep: 0x00233a,
@@ -16,6 +17,8 @@ export const EFFECT_COLORS: Record<EdgeEffect, number> = {
   swap: 0xc987ff,
   hook: 0xffa34d,
   wave: 0x55bfff,
+  shock: 0xfff080,
+  spines: 0xe8a0d7,
 };
 
 const VECTORS: Record<Direction, { row: number; column: number }> = {
@@ -67,6 +70,7 @@ export interface DrawFishCardOptions {
   size: number;
   selected?: boolean;
   silhouette?: boolean;
+  shocked?: boolean;
 }
 
 export function drawFishCard({
@@ -78,6 +82,7 @@ export function drawFishCard({
   size,
   selected = false,
   silhouette = false,
+  shocked = false,
 }: DrawFishCardOptions): Phaser.GameObjects.Container {
   const large = size >= 100;
   const frameColor = fish.owner === "player" ? COLORS.playerBlue : COLORS.rivalRed;
@@ -99,11 +104,26 @@ export function drawFishCard({
     sprite.setTintFill(fish.owner === "player" ? 0x0a568a : 0x8a2020).setAlpha(0.42);
   }
 
-  const edgeBadges = fish.edges.map((edge) =>
-    drawEdgeBadge(scene, size, edge),
-  );
+  const edgeBadges = fish.edges.map((edge) => {
+    const badge = drawEdgeBadge(scene, size, edge);
+    if (shocked) {
+      // Opaque gray cover and cross keep inactive edges unambiguous at both sizes.
+      const width = large ? 20 : 14;
+      const cross = scene.add.graphics().fillStyle(0x143341).fillRect(-width / 2 + 2, -width / 2 + 2, width - 4, width - 4);
+      cross.fillStyle(0x819399);
+      for (let i = -3; i < 4; i++) { cross.fillRect(i, i, 1, 1); cross.fillRect(i, -i, 1, 1); }
+      badge.add(cross);
+    }
+    return badge;
+  });
 
-  card.add([outer, inset, sprite, ...edgeBadges]);
+  card.add([outer, inset]);
+  if (fish.ability === "revelation" && !silhouette) {
+    const pattern = scene.add.graphics().fillStyle(0x151d38).fillRect(-32 * integerScale, -32 * integerScale, 64 * integerScale, 64 * integerScale);
+    for (const p of revelationPixels()) pattern.fillStyle(p.color).fillRect((p.x - 32) * integerScale, (p.y - 32) * integerScale, integerScale, integerScale);
+    card.add(pattern);
+  }
+  card.add([sprite, ...edgeBadges]);
   parent.add(card);
   card.setDepth(2);
   return card;
@@ -152,6 +172,8 @@ function drawEdgeIcon(scene: Phaser.Scene, effect: EdgeEffect, badgeSize: number
   if (effect === "standard") return drawPixelPattern(scene, STANDARD_ARROW_PATTERN, color, badgeSize);
   if (effect === "double") return drawPixelPattern(scene, DOUBLE_ARROW_PATTERN, color, badgeSize);
   if (effect === "weak") return drawPixelPattern(scene, SHIELD_PATTERN, color, badgeSize);
+  if (effect === "shock") return drawPixelPattern(scene, SHOCK_PATTERN, color, badgeSize);
+  if (effect === "spines") return drawPixelPattern(scene, SPINES_PATTERN, color, badgeSize);
 
   const icon = scene.add.graphics();
   const extent = badgeSize >= 28 ? 8 : badgeSize >= 20 ? 6 : 4;

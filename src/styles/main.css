@@ -119,3 +119,4 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
   .voyage-resources { margin-left: 0; }
   .menu-screen h1 { font-size: 48px; line-height: 56px; }
 }
+.card-ability-background { position: absolute; width: 128px; height: 128px; left: 4px; top: 4px; pointer-events: none; }
