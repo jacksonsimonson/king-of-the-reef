@@ -2,10 +2,10 @@ import Phaser from "phaser";
 import { FoundationScene } from "./scenes/FoundationScene";
 import { GalleryScene, GALLERY_HEIGHT } from "./scenes/GalleryScene";
 
-export type GameView = "play" | "gallery";
+export type GameView = "play" | "gallery" | "gallery-roster";
 
 export function createGameConfig(view: GameView): Phaser.Types.Core.GameConfig {
-  const gallery = view === "gallery";
+  const gallery = view === "gallery" || view === "gallery-roster";
   const parent = document.querySelector(gallery ? "#gallery-game" : "#game");
   const canvasWidth = Math.max(gallery ? 1360 : 2000, Math.floor(parent?.clientWidth ?? window.innerWidth - 64));
   const playHeight = Math.max(820, window.innerHeight - 145);

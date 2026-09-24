@@ -46,6 +46,8 @@ Guaranteed columns override those weights: first encounter is Fishing, second is
 
 Map progress, school, shells, resolve, seed and pending encounter auto-save in local browser storage. The result is saved when combat ends, before leaving the result screen. Returning to the menu and reopening Voyage resumes it. Reloading an unfinished battle restarts that encounter with the same seeded hand; individual board turns are not yet saved. Unavailable storage leaves the current session playable and displays a warning. Starting another voyage asks before replacing the saved one.
 
+Starting a Voyage also snapshots the Gallery's enabled Battle Roster. That snapshot controls its starting school, future catches, shop creatures and rival schools through the entire run. Later roster changes affect Quick Match immediately and the next new Voyage, never the active one. Existing owned cards are never removed by roster settings.
+
 Future region tabs permit inspection without unlocking travel or rewards there. The school inventory, catches and recovery choices show framed cards with directional edge badges at native pixel sizes. Killed cards have dimmed creature art and an explicit status; their edge icons stay readable.
 
 ## Validation

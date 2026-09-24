@@ -49,6 +49,8 @@ A 5×5 board creates space for maneuvering, specialized fish, and environmental 
 
 Powerups are now **Tide Charms**: consumable items used on the player's turn before placing a fish. Using a charm does not spend the fish placement; multiple charms may be used if their targets are valid. Shop stock, prices and the first four charms are described in [SHOPS.md](SHOPS.md).
 
+The Gallery includes a separate **Battle Roster** tab. Each fish can be enabled or disabled once per shared browser profile. Changes affect both Quick Match decks immediately. A Voyage snapshots the enabled roster when the run begins, so changes never rewrite an active or saved run; they apply when the next Voyage starts. Older saves retain the original complete roster. The UI keeps at least five fish available for battle and at least three distinct catches in each region.
+
 ## Fish cards
 
 Every fish should have:

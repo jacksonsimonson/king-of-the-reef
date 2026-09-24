@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { createStarterDeck, STARTERS, type FishCard } from "../data/starterFish";
+import { STARTERS, type FishCard } from "../data/starterFish";
+import { createEnabledDeck } from "../data/roster";
 import { drawFishCard } from "../ui/drawFishCard";
 import { drawSeascape } from "../run/art";
 import type { RegionId } from "../run/maps";
@@ -71,8 +72,8 @@ export class FoundationScene extends Phaser.Scene {
 
   private resetMatch(): void {
     this.board = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
-    const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createStarterDeck("player"));
-    const rivalRound = this.dealRound(this.voyageBattle?.rivalDeck ?? createStarterDeck("rival"));
+    const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createEnabledDeck("player"));
+    const rivalRound = this.dealRound(this.voyageBattle?.rivalDeck ?? createEnabledDeck("rival"));
     this.playerHand = playerRound.hand.map((card) => ({ card, played: false }));
     this.rivalHand = rivalRound.hand.map((card) => ({ card, played: false }));
     this.playerDeck = playerRound.deck;

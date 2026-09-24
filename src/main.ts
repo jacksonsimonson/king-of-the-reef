@@ -28,8 +28,10 @@ function syncView(): void {
     ? "voyage"
     : window.location.hash === "#voyage-battle"
       ? "voyage-battle"
-      : window.location.hash === "#gallery"
-    ? "gallery"
+      : window.location.hash === "#gallery-roster"
+        ? "gallery-roster"
+        : window.location.hash === "#gallery"
+          ? "gallery"
     : window.location.hash === "#quick-match"
       ? "play"
       : "menu";
@@ -37,7 +39,7 @@ function syncView(): void {
   if (nextView === "voyage-battle" && (!run || run.status !== "active" || !run.pending || !["battle", "boss"].includes(activeNode(run).type))) {
     window.location.replace("#voyage"); nextView = "voyage";
   }
-  const showGallery = nextView === "gallery";
+  const showGallery = nextView === "gallery" || nextView === "gallery-roster";
   const showPlay = nextView === "play" || nextView === "voyage-battle";
   if (menuView) menuView.hidden = nextView !== "menu";
   if (nextView === "menu") drawMenu();
@@ -57,9 +59,10 @@ function syncView(): void {
     const back = playView?.querySelector<HTMLAnchorElement>(".nav-link");
     if (heading) heading.textContent = battle ? `${REGIONS[run.region].name} · ${activeNode(run).type === "boss" ? REGIONS[run.region].boss : "Battle"}` : "Quick Match";
     if (back) { back.href = battle ? "#voyage" : "#menu"; back.textContent = battle ? "Voyage Map" : "Main Menu"; }
-    const config = createGameConfig(showGallery ? "gallery" : "play");
+    const config = createGameConfig(showGallery ? nextView as "gallery" | "gallery-roster" : "play");
     if (battle) {
-      const pool = REGIONS[run.region].pool;
+      const enabled = new Set(run.roster);
+      const pool = REGIONS[run.region].pool.filter((texture) => enabled.has(texture));
       const rng = random(`${run.seed}:${run.pending}:rival`);
       const rivalDeck: FishCard[] = Array.from({ length: 10 }, (_, i) => {
         const texture = activeNode(run).type === "boss" && i < 5
