@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { STARTERS, type EdgeEffect, type FishCard } from "../data/starterFish";
 import { drawEffectBadge, drawFishCard } from "../ui/drawFishCard";
+import { pixelTextStyle, pixelPanel } from "../ui/pixelTheme";
 
 const CARD_SIZE = 144;
 const COLUMN_GAP = 24;
@@ -28,6 +29,7 @@ export class GalleryScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.add.existing(pixelPanel(this, this.scale.width / 2, 48, this.scale.width - 32, 80));
     const cards = this.add.container(0, 0);
     this.add.text(32, 26, "FISH GALLERY", this.textStyle(26, "#39ff14", true));
     this.add.text(32, 62, "Cards appear in creation order.", this.textStyle(15, "#b8ffd0"));
@@ -58,7 +60,7 @@ export class GalleryScene extends Phaser.Scene {
     });
   }
 
-  private textStyle(size: number, color: string, bold = false): Phaser.Types.GameObjects.Text.TextStyle {
-    return { color, fontFamily: "monospace", fontSize: `${size}px`, fontStyle: bold ? "bold" : "normal" };
+  private textStyle(size: number, color: string, _bold = false): Phaser.Types.GameObjects.Text.TextStyle {
+    return pixelTextStyle(size, color === "#39ff14" ? "#eed49b" : color);
   }
 }

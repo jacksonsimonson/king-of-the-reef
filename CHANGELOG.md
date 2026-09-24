@@ -13,6 +13,10 @@ All notable playable changes to King of the Reef will be recorded here.
 
 ## Unreleased
 
+- Replaced the remaining browser-like interface with a cohesive native-pixel UI kit across the menu, Voyage, Gallery, and battles
+- Added the original Reef Pixel typeface, reusable stepped panel frames, regional frame palettes, resource symbols, a pixel cursor, and pixel scrollbars
+- Added a shoreline title scene and pixel-rendered battle headers, pearls, card backs, and result dialog
+
 - Show complete framed cards and edge icons in the school, catches, Hydration and Release choices
 - Add rare Release spaces, selective three-card Hydration, and persistent battle casualties from lethal edges and off-board pushes
 - Keep the original 25% Fishing rate in every region, with identical encounter weights across all worlds

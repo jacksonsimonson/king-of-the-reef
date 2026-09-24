@@ -109,6 +109,8 @@ Run-based progression should emphasize discovering fish and building combination
 - The game canvas is never fractionally resized. Canvas pixels, text, and UI geometry render 1:1; creature sprites use whole-number scales only.
 - Battle information surrounds a centered board: the player school is on the left and the rival school is on the right.
 - Five-card hands use a centered three-over-two arrangement. Dragging a card shows the card in motion and previews a translucent board-scale copy over legal placement spaces.
+- Menus and controls use the original Reef Pixel typeface and reusable stepped frames drawn on an integer grid. HTML controls retain their semantics while presenting as game-native pixel UI.
+- Shoreline, Open Ocean, and Bermuda screens recolor the same pixel frame system to match their environments.
 
 ## Current prototype
 

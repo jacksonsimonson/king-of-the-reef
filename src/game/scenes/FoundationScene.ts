@@ -4,6 +4,7 @@ import { drawFishCard } from "../ui/drawFishCard";
 import { drawSeascape } from "../run/art";
 import type { RegionId } from "../run/maps";
 import { removedCardIds } from "../run/casualties";
+import { pixelTextStyle, pixelPanel, pixelPearl } from "../ui/pixelTheme";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
 const BOARD_SIZE = 5;
@@ -96,9 +97,10 @@ export class FoundationScene extends Phaser.Scene {
       add(this.add.rectangle(0, 0, this.scale.width, this.scale.height, COLORS.deep, 0.65).setOrigin(0));
     }
 
-    add(this.add.text(40, 26, "KING OF THE REEF", this.textStyle(27, "#39ff14", true)));
+    add(pixelPanel(this, this.scale.width / 2, 48, this.scale.width - 32, 80));
+    add(this.add.text(40, 22, "KING OF THE REEF", this.textStyle(24, "#eed49b")));
     add(this.add.text(40, 65, message, this.textStyle(16, "#b8ffd0")).setWordWrapWidth(1200));
-    add(this.add.text(this.scale.width - 325, 28, `YOU ${scores.player}  ·  ${scores.rival} RIVAL`, this.textStyle(20, "#ff5ca8", true)));
+    add(this.add.text(this.scale.width - 40, 26, `YOU ${scores.player}  ·  ${scores.rival} RIVAL`, this.textStyle(16, "#ffb8d8")).setOrigin(1, 0));
 
     const board = this.boardOrigin();
     this.drawSidePanel(38, board.y, "YOUR DECK", this.playerDeck.length, "player");
@@ -211,10 +213,9 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private drawPearl(x: number, y: number): void {
-    const pearl = this.add.circle(x, y - 3, 22, COLORS.pink).setStrokeStyle(3, 0xffb8d8);
-    const shine = this.add.circle(x - 7, y - 11, 5, 0xffffff, 0.9);
+    const pearl = pixelPearl(this, x, y - 4);
     const label = this.add.text(x, y + 28, "REEF", this.textStyle(11, "#ffb8d8", true)).setOrigin(0.5);
-    this.ui?.add([pearl, shine, label]);
+    this.ui?.add([pearl, label]);
   }
 
   private drawBoardFish(fish: FishCard, x: number, y: number): void {
@@ -273,9 +274,14 @@ export class FoundationScene extends Phaser.Scene {
     const card = this.add.container(x, y);
     const back = this.add.rectangle(0, 0, size, size, COLORS.deep).setStrokeStyle(4, color);
     const inset = this.add.rectangle(0, 0, size - 14, size - 14, COLORS.water).setStrokeStyle(2, color, 0.8);
-    const diamond = this.add.rectangle(0, 0, size * 0.4, size * 0.4, color, 0.22).setStrokeStyle(2, color).setAngle(45);
-    const pearl = this.add.circle(0, 0, Math.max(5, size * 0.08), COLORS.pink).setStrokeStyle(2, 0xffb8d8);
-    card.add([back, inset, diamond, pearl]).setAlpha(alpha);
+    const ornament = this.add.graphics().fillStyle(color, 0.6);
+    for (let step = 0; step < 8; step++) {
+      const offset = step * 4;
+      ornament.fillRect(-32 + offset, -offset, 4, 4).fillRect(offset, -32 + offset, 4, 4);
+      ornament.fillRect(-32 + offset, offset, 4, 4).fillRect(offset, 32 - offset, 4, 4);
+    }
+    const pearl = pixelPearl(this, 0, 0, 2);
+    card.add([back, inset, ornament, pearl]).setAlpha(alpha);
     this.ui?.add(card);
     if (count !== undefined) this.ui?.add(this.add.text(x, y + size / 2 + 15, `${count} IN DECK`, this.textStyle(12, "#b8ffd0", true)).setOrigin(0.5, 0));
     return card;
@@ -475,21 +481,24 @@ export class FoundationScene extends Phaser.Scene {
   private drawResult(player: number, rival: number): void {
     const centerX = this.scale.width / 2;
     const centerY = this.scale.height / 2;
-    const panel = this.add.rectangle(centerX, centerY, 480, 196, COLORS.deep, 0.97).setStrokeStyle(5, COLORS.pink);
+    const panel = pixelPanel(this, centerX, centerY, 560, 208);
     const title = player > rival ? "YOU RULE THE REEF" : rival > player ? "RIVAL VICTORY" : "TIED TIDE";
     const heading = this.add.text(centerX, centerY - 43, title, this.textStyle(29, "#39ff14", true)).setOrigin(0.5);
     const score = this.add.text(centerX, centerY + 3, `${player} PEARLS  ·  ${rival} PEARLS`, this.textStyle(19, "#ff5ca8", true)).setOrigin(0.5);
-    const button = this.add.rectangle(centerX, centerY + 58, 196, 46, COLORS.green).setInteractive({ useHandCursor: true });
-    const label = this.add.text(centerX, centerY + 58, this.voyageBattle ? "RETURN TO MAP" : "PLAY AGAIN", this.textStyle(16, "#00233a", true)).setOrigin(0.5);
+    const buttonFrame = pixelPanel(this, centerX, centerY + 58, 216, 48, 0x28545a);
+    const button = this.add.rectangle(centerX, centerY + 58, 200, 32, 0x28545a).setInteractive({ useHandCursor: true });
+    button.on("pointerover", () => button.setFillStyle(0x3b6b65));
+    button.on("pointerout", () => button.setFillStyle(0x28545a));
+    const label = this.add.text(centerX, centerY + 58, this.voyageBattle ? "RETURN TO MAP" : "PLAY AGAIN", this.textStyle(16, "#eed49b")).setOrigin(0.5);
     button.once("pointerdown", () => {
       button.disableInteractive();
       if (this.voyageBattle) this.voyageBattle.onComplete();
       else this.resetMatch();
     });
-    this.ui?.add([panel, heading, score, button, label]);
+    this.ui?.add([panel, heading, score, buttonFrame, button, label]);
   }
 
-  private textStyle(size: number, color: string, bold = false): Phaser.Types.GameObjects.Text.TextStyle {
-    return { color, fontFamily: "monospace", fontSize: `${size}px`, fontStyle: bold ? "bold" : "normal" };
+  private textStyle(size: number, color: string, _bold = false): Phaser.Types.GameObjects.Text.TextStyle {
+    return pixelTextStyle(size, color === "#39ff14" ? "#eed49b" : color);
   }
 }
