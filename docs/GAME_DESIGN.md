@@ -51,6 +51,8 @@ Powerups are now **Tide Charms**: consumable items used on the player's turn bef
 
 The Gallery includes a separate **Battle Roster** tab. Each fish can be enabled or disabled once per shared browser profile. Changes affect both Quick Match decks immediately. A Voyage snapshots the enabled roster when the run begins, so changes never rewrite an active or saved run; they apply when the next Voyage starts. Older saves retain the original complete roster. The UI keeps at least five fish available for battle and at least three distinct catches in each region.
 
+Reef now contains eight advanced Rare creatures, with the original Rare and Moray draw weights preserved. Coral Grouper introduces **Rally**: after pushing an enemy, inspect the next reserve card and keep it or send it to the bottom before the replacement draw. Its whole-card ability background uses flags; Revelation uses eyes. Full card definitions, balance roles and acquisition weights are in [REEF_CARDS.md](REEF_CARDS.md).
+
 ## Fish cards
 
 Every fish should have:

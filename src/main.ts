@@ -2,11 +2,9 @@ import Phaser from "phaser";
 import "./styles/main.css";
 import { createGameConfig, type GameView } from "./game/config";
 import { VoyageView, currentRun, persistRun } from "./game/run/view";
-import { activeNode, battleResult, consumeCharm } from "./game/run/state";
+import { activeNode, battleResult, consumeCharm, rivalDeckFor } from "./game/run/state";
 import type { CharmId } from "./game/data/tideCharms";
 import { random, REGIONS } from "./game/run/maps";
-import { STARTERS, type FishCard } from "./game/data/starterFish";
-import { drawReefCard } from "./game/data/reefPool";
 import { drawSeascape } from "./game/run/art";
 
 const playView = document.querySelector<HTMLElement>("#play");
@@ -61,15 +59,7 @@ function syncView(): void {
     if (back) { back.href = battle ? "#voyage" : "#menu"; back.textContent = battle ? "Voyage Map" : "Main Menu"; }
     const config = createGameConfig(showGallery ? nextView as "gallery" | "gallery-roster" : "play");
     if (battle) {
-      const enabled = new Set(run.roster);
-      const pool = REGIONS[run.region].pool.filter((texture) => enabled.has(texture));
-      const rng = random(`${run.seed}:${run.pending}:rival`);
-      const rivalDeck: FishCard[] = Array.from({ length: 10 }, (_, i) => {
-        const texture = activeNode(run).type === "boss" && i < 5
-          ? ["octopus", "swordfish", "hypno-squid"][run.region]
-          : run.region === 0 ? drawReefCard(rng) : pool[Math.floor(rng() * pool.length)];
-        return { ...STARTERS.find((fish) => fish.texture === texture)!, id: `rival-${i}`, owner: "rival", condition: "healthy" };
-      });
+      const rivalDeck = rivalDeckFor(run);
       config.callbacks = { preBoot: (game) => {
         game.registry.set("voyageBattle", {
           playerDeck: run.school, rivalDeck,

@@ -48,6 +48,8 @@ Map progress, school, shells, resolve, seed and pending encounter auto-save in l
 
 Starting a Voyage also snapshots the Gallery's enabled Battle Roster. That snapshot controls its starting school, future catches, shop creatures and rival schools through the entire run. Later roster changes affect Quick Match immediately and the next new Voyage, never the active one. Existing owned cards are never removed by roster settings.
 
+The Reef draw-table version is saved with that snapshot. Existing Voyages retain their original creature weights and pending offers when the catalog expands. New Voyages get the advanced Rare batch. If fewer than eight Shoreline species are enabled, the starting school repeats enabled species to reach eight cards, each with a unique identity.
+
 Future region tabs permit inspection without unlocking travel or rewards there. The school inventory, catches and recovery choices show framed cards with directional edge badges at native pixel sizes. Killed cards have dimmed creature art and an explicit status; their edge icons stay readable.
 
 ## Validation

@@ -17,6 +17,8 @@ export const FISH_MOVEMENT: Record<string, Movement> = {
   flounder: "lurker", lionfish: "drifter", "mantis-shrimp": "darter", pufferfish: "drifter",
   boxfish: "gradual", needlefish: "runner", seahorse: "drifter", "electric-eel": "runner",
   "sea-urchin": "lurker", "invisible-ink-squid": "darter", "moray-eel": "runner",
+  parrotfish: "gradual", "pistol-shrimp": "darter", frogfish: "lurker", stonefish: "lurker",
+  "titan-triggerfish": "runner", "crown-of-thorns": "lurker", "decorator-crab": "lurker", "coral-grouper": "darter",
 };
 export function movementFor(texture: string): Movement {
   const movement = FISH_MOVEMENT[texture];

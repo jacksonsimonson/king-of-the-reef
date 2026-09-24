@@ -3,6 +3,10 @@ import { reefRarity } from "../data/reefPool.ts";
 
 export const SHOCK_PATTERN = ["....##..", "...##...", "..##....", ".######.", "....##..", "...##...", "..##....", ".##....."];
 export const SPINES_PATTERN = ["#..##..#", ".#.##.#.", "..####..", "########", "########", "..####..", ".#.##.#.", "#..##..#"];
+export const ABILITY_HELP = {
+  revelation: "Revelation: on play, reveal 1 opposing hand card until it is played; replacement cards are hidden.",
+  rally: "Rally: after pushing an enemy, peek at your next reserve card. Keep it or send it to the bottom before drawing your replacement. Once per placement.",
+};
 export const EFFECT_HELP: Record<EdgeEffect, string> = {
   standard: "Standard: push 1; blocked by opposing defenses",
   double: "Double: push 1; beats Standard",
@@ -19,8 +23,27 @@ export function cardDescription(card: FishCard): string {
   const effects = [...new Set(card.edges.map((edge) => edge.effect))];
   return [card.name + (rarity ? " (" + rarity + ")" : ""),
     ...effects.map((effect) => card.edges.filter((edge) => edge.effect === effect).map((edge) => edge.direction[0].toUpperCase() + edge.direction.slice(1)).join("/") + " — " + EFFECT_HELP[effect]),
-    ...(card.ability ? ["Revelation: on play, choose 1 unrevealed opposing hand card. It stays revealed this battle."] : []),
+    ...(card.ability ? [ABILITY_HELP[card.ability]] : []),
   ].join(". ");
+}
+
+/** Flag motifs use whole native pixels, kept muted behind the creature. */
+export function rallyPixels(): { x: number; y: number; color: number }[] {
+  const pixels: { x: number; y: number; color: number }[] = [];
+  const flag = ["########.", "#########", "#######..", "#........", "#........", "#........", "#........"];
+  for (let row = 0; row < 4; row++) for (let col = 0; col < 4; col++) {
+    flag.forEach((line, y) => [...line].forEach((cell, x) => {
+      if (cell === "#") pixels.push({ x: 3 + col * 16 + x, y: 3 + row * 16 + y, color: x === 0 ? 0x566555 : (row + col) % 2 ? 0x3d6660 : 0x77603b });
+    }));
+  }
+  return pixels;
+}
+
+export function abilityPixels(ability: NonNullable<FishCard["ability"]>): { x: number; y: number; color: number }[] {
+  return ability === "rally" ? rallyPixels() : revelationPixels();
+}
+export function abilityBackgroundColor(ability: NonNullable<FishCard["ability"]>): number {
+  return ability === "rally" ? 0x1a302e : 0x151d38;
 }
 
 /** Integer coordinates on a 64px card interior, shared by DOM and Phaser. */

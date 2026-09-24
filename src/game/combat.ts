@@ -27,9 +27,10 @@ export function edgeBlocks(target: FishCard, incoming: Direction, effect: EdgeEf
 }
 
 /** Returns a new board/status set. Cards and the input state are never mutated. */
-export function resolvePlacement(state: BattleState, placedIndex: number, card: FishCard, size = 5): { board: Array<FishCard | null>; shocked: Set<string>; killedIds: string[] } {
+export function resolvePlacement(state: BattleState, placedIndex: number, card: FishCard, size = 5): { board: Array<FishCard | null>; shocked: Set<string>; killedIds: string[]; pushedEnemyIds: string[] } {
   const board = [...state.board];
   const shocked = new Set(state.shocked);
+  const pushedEnemies = new Set<string>();
   if (board[placedIndex]) throw new Error("Placement requires an empty tile");
   board[placedIndex] = card;
   const before = [...board];
@@ -82,6 +83,7 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     }
     const destination = neighbor(adjacent, edge.direction);
     if (destination !== null && board[destination]) continue;
+    if (target.owner !== card.owner && (edge.effect === "standard" || edge.effect === "double")) pushedEnemies.add(target.id);
     board[adjacent] = null;
     if (edge.effect !== "bigger-fish" && destination !== null) board[destination] = target;
     // Retaliation follows a successful direct enemy push, even when it kills the Urchin.
@@ -90,5 +92,5 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
       board[source] = null;
     }
   }
-  return { board, shocked, killedIds: removedCardIds(before, board) };
+  return { board, shocked, killedIds: removedCardIds(before, board), pushedEnemyIds: [...pushedEnemies] };
 }

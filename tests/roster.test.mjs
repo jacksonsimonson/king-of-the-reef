@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { STARTERS } from '../src/game/data/starterFish.ts';
+import { STARTERS, ORIGINAL_FISH_TEXTURES } from '../src/game/data/starterFish.ts';
 import { enabledTextures, saveEnabledTextures, toggleFish, createEnabledDeck, ROSTER_KEY } from '../src/game/data/roster.ts';
 import { REGIONS } from '../src/game/run/maps.ts';
 import { createRun, offers } from '../src/game/run/state.ts';
@@ -58,5 +58,5 @@ test('older saves migrate to the original full voyage roster', async () => {
   delete run.roster;
   values.set('king-of-the-reef-voyage-v1', JSON.stringify(run));
   const { loadRun } = await import('../src/game/run/state.ts');
-  assert.deepEqual(loadRun().roster, STARTERS.map(f => f.texture));
+  assert.deepEqual(loadRun().roster, ORIGINAL_FISH_TEXTURES);
 });

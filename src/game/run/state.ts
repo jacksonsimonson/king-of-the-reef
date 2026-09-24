@@ -1,4 +1,4 @@
-import { STARTERS, type FishCard } from "../data/starterFish.ts";
+import { STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
@@ -11,6 +11,7 @@ export interface Run {
   visited: string[]; pending: string | null; school: FishCard[]; shells: number;
   resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
   roster: string[];
+  reefPoolVersion: 1 | 2;
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
   charms: CharmId[];
   shop?: { nodeId: string; purchased: string[] };
@@ -24,11 +25,12 @@ export function recruit(run: Run, texture: string): void {
 export function createRun(seed: string): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i));
   const roster = enabledTextures();
-  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   const enabled = new Set(roster);
   const preferred = ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"];
   const starting = [...preferred.filter((texture) => enabled.has(texture)), ...REGIONS[0].pool.filter((texture) => enabled.has(texture) && !preferred.includes(texture))].slice(0, 8);
-  for (const texture of starting) recruit(run, texture);
+  // A small enabled regional roster still starts an eight-card school with unique card IDs.
+  for (let i = 0; i < 8 && starting.length; i++) recruit(run, starting[i % starting.length]);
   return run;
 }
 export function activeNode(run: Run): MapNode {
@@ -49,7 +51,7 @@ export function offers(run: Run): string[] {
   const rng = random(`${run.seed}:${run.pending}:offers`);
   if (run.region === 0) {
     const result: string[] = [];
-    while (result.length < 3) result.push(drawReefCard(rng, [...result, ...REGIONS[0].pool.filter((texture) => !enabled.has(texture))]));
+    while (result.length < 3) result.push(drawReefCard(rng, [...result, ...REGIONS[0].pool.filter((texture) => !enabled.has(texture))], run.reefPoolVersion));
     return result;
   }
   for (let i = pool.length - 1; i > 0; i--) {
@@ -57,6 +59,19 @@ export function offers(run: Run): string[] {
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
   return pool.slice(0, 3);
+}
+
+export function rivalDeckFor(run: Run): FishCard[] {
+  const enabled = new Set(run.roster);
+  const pool = REGIONS[run.region].pool.filter((texture) => enabled.has(texture));
+  const excluded = REGIONS[0].pool.filter((texture) => !enabled.has(texture));
+  const rng = random(`${run.seed}:${run.pending}:rival`);
+  const leader = ["octopus", "swordfish", "hypno-squid"][run.region];
+  return Array.from({ length: 10 }, (_, i) => {
+    const texture = activeNode(run).type === "boss" && i < 5 && enabled.has(leader)
+      ? leader : run.region === 0 ? drawReefCard(rng, excluded, run.reefPoolVersion) : pool[Math.floor(rng() * pool.length)];
+    return { ...STARTERS.find((fish) => fish.texture === texture)!, id: `rival-${i}`, owner: "rival", condition: "healthy" };
+  });
 }
 function finishNode(run: Run, message: string): void {
   if (!run.pending) return;
@@ -194,7 +209,9 @@ export function loadRun(): Run | null {
     run.charms ??= []; // Older voyages have no Tide Charms yet.
     if (!Array.isArray(run.charms) || !run.charms.every(isCharm)) return null;
     // Older voyages predate roster selection and retain the original full pool.
-    run.roster ??= STARTERS.map((fish) => fish.texture);
+    run.roster ??= [...ORIGINAL_FISH_TEXTURES];
+    run.reefPoolVersion ??= 1;
+    if (![1, 2].includes(run.reefPoolVersion)) return null;
     if (!Array.isArray(run.roster) || run.roster.length < 5 || !run.roster.every((texture) => STARTERS.some((fish) => fish.texture === texture))) return null;
     if (run.shop && (run.shop.nodeId !== run.pending || activeNode(run).type !== "shop"
       || !Array.isArray(run.shop.purchased) || new Set(run.shop.purchased).size !== run.shop.purchased.length
