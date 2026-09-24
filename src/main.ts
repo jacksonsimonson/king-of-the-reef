@@ -5,6 +5,7 @@ import { VoyageView, currentRun, persistRun } from "./game/run/view";
 import { activeNode, battleResult } from "./game/run/state";
 import { random, REGIONS } from "./game/run/maps";
 import { STARTERS, type FishCard } from "./game/data/starterFish";
+import { drawReefCard } from "./game/data/reefPool";
 import { drawSeascape } from "./game/run/art";
 
 const playView = document.querySelector<HTMLElement>("#play");
@@ -62,7 +63,7 @@ function syncView(): void {
       const rivalDeck: FishCard[] = Array.from({ length: 10 }, (_, i) => {
         const texture = activeNode(run).type === "boss" && i < 5
           ? ["octopus", "swordfish", "hypno-squid"][run.region]
-          : pool[Math.floor(rng() * pool.length)];
+          : run.region === 0 ? drawReefCard(rng) : pool[Math.floor(rng() * pool.length)];
         return { ...STARTERS.find((fish) => fish.texture === texture)!, id: `rival-${i}`, owner: "rival", condition: "healthy" };
       });
       config.callbacks = { preBoot: (game) => {

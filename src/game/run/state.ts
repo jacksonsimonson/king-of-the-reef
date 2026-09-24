@@ -1,4 +1,5 @@
 import { STARTERS, type FishCard } from "../data/starterFish.ts";
+import { drawReefCard } from "../data/reefPool.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
 
 export interface Run {
@@ -33,6 +34,11 @@ export function enterNode(run: Run, id: string): boolean {
 export function offers(run: Run): string[] {
   const pool: string[] = [...REGIONS[run.region].pool];
   const rng = random(`${run.seed}:${run.pending}:offers`);
+  if (run.region === 0) {
+    const result: string[] = [];
+    while (result.length < 3) result.push(drawReefCard(rng, result));
+    return result;
+  }
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];

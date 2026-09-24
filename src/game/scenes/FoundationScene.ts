@@ -1,9 +1,10 @@
 import Phaser from "phaser";
-import { createStarterDeck, STARTERS, type Direction, type FishCard } from "../data/starterFish";
+import { createStarterDeck, STARTERS, type FishCard } from "../data/starterFish";
 import { drawFishCard } from "../ui/drawFishCard";
 import { drawSeascape } from "../run/art";
 import type { RegionId } from "../run/maps";
-import { removedCardIds } from "../run/casualties";
+import { resolvePlacement, revealCard, revealTargets, type HandSlot } from "../combat";
+import { cardDescription } from "../ui/cardVisuals";
 import { pixelTextStyle, pixelPanel, pixelPearl } from "../ui/pixelTheme";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
@@ -14,14 +15,6 @@ const HAND_SIZE = 5;
 const HAND_CARD_SIZE = 144;
 const BOARD_CARD_SIZE = 88;
 const REEFS = new Set([2, 11, 18]);
-const DIRECTIONS: Record<Direction, { row: number; column: number; opposite: Direction }> = {
-  up: { row: -1, column: 0, opposite: "down" },
-  right: { row: 0, column: 1, opposite: "left" },
-  down: { row: 1, column: 0, opposite: "up" },
-  left: { row: 0, column: -1, opposite: "right" },
-};
-
-interface HandSlot { card: FishCard; played: boolean }
 interface VoyageBattle {
   playerDeck: FishCard[]; rivalDeck: FishCard[]; rng: () => number;
   region: RegionId; seed: string;
@@ -43,6 +36,8 @@ export class FoundationScene extends Phaser.Scene {
   private previewIndex: number | null = null;
   private voyageBattle?: VoyageBattle;
   private killedIds = new Set<string>();
+  private shocked = new Set<string>();
+  private pendingReveal = false;
   private waterColor = COLORS.water;
   private borderColor = COLORS.green;
 
@@ -81,6 +76,8 @@ export class FoundationScene extends Phaser.Scene {
     this.turn = "player";
     this.finished = false;
     this.killedIds.clear();
+    this.shocked.clear();
+    this.pendingReveal = false;
     this.render("Drag a fish to open water, or select it and choose a tile.");
     if (!this.playerHand.length) this.advanceTurn("player");
   }
@@ -119,7 +116,18 @@ export class FoundationScene extends Phaser.Scene {
     add(this.add.text(rivalHandCenter - 92, board.y - 35, "RIVAL HAND", this.textStyle(15, "#ff8b8b", true)));
     this.rivalHand.forEach((slot, index) => {
       const position = this.handPosition(index, rivalHandCenter, board.y);
-      this.drawCardBack(position.x, position.y, HAND_CARD_SIZE, "rival", undefined, slot.played ? 0.22 : 1);
+      const card = slot.revealed && !slot.played
+        ? this.drawFishCard(slot.card, position.x, position.y, HAND_CARD_SIZE, false)
+        : this.drawCardBack(position.x, position.y, HAND_CARD_SIZE, "rival", undefined, slot.played ? 0.22 : 1);
+      if (this.pendingReveal && !slot.played && !slot.revealed) {
+        card.setSize(HAND_CARD_SIZE, HAND_CARD_SIZE).setInteractive({ useHandCursor: true });
+        card.on("pointerdown", () => {
+          if (!this.pendingReveal || !revealCard(this.rivalHand, slot.card.id)) return;
+          this.pendingReveal = false;
+          this.advanceTurn("player");
+        });
+        add(this.add.text(position.x, position.y + 90, "REVEAL", this.textStyle(16, "#81e8ed")).setOrigin(0.5));
+      }
     });
 
     for (let index = 0; index < this.board.length; index += 1) {
@@ -149,6 +157,12 @@ export class FoundationScene extends Phaser.Scene {
     }
 
     if (this.finished) this.drawResult(scores.player, scores.rival);
+    else {
+      const detail = this.add.text(40, this.scale.height - 68, "Hover a card to read its edges and ability.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 80);
+      add(detail);
+      this.events.removeAllListeners("card-hover");
+      this.events.on("card-hover", (fish: FishCard) => detail.setText(cardDescription(fish) + (this.shocked.has(fish.id) ? " SHOCKED: all edges disabled for this battle." : "")));
+    }
   }
 
   private boardSpan(): number {
@@ -179,7 +193,8 @@ export class FoundationScene extends Phaser.Scene {
     this.drawFishCard(slot.card, x, y, HAND_CARD_SIZE, false, true);
     if (slot.played) return;
     const card = this.drawFishCard(slot.card, x, y, HAND_CARD_SIZE, selected);
-    if (this.turn !== "player" || this.finished) return;
+    if (slot.revealed) this.ui?.add(this.add.text(x, y + 90, "REVEALED", this.textStyle(16, "#81e8ed")).setOrigin(0.5));
+    if (this.turn !== "player" || this.finished || this.pendingReveal) return;
 
     card.setInteractive({ useHandCursor: true });
     this.input.setDraggable(card);
@@ -224,7 +239,9 @@ export class FoundationScene extends Phaser.Scene {
 
   private drawFishCard(fish: FishCard, x: number, y: number, size: number, selected: boolean, silhouette = false): Phaser.GameObjects.Container {
     if (!this.ui) throw new Error("Card UI container is unavailable");
-    return drawFishCard({ scene: this, container: this.ui, fish, x, y, size, selected, silhouette });
+    const card = drawFishCard({ scene: this, container: this.ui, fish, x, y, size, selected, silhouette, shocked: this.shocked.has(fish.id) });
+    if (!silhouette) card.setInteractive().on("pointerover", () => this.events.emit("card-hover", fish));
+    return card;
   }
 
   private showPlacementPreview(index: number, fish: FishCard): void {
@@ -301,15 +318,20 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private isLegalPlayerPlacement(index: number): boolean {
-    return Boolean(this.selectedId && this.turn === "player" && !this.finished && !this.board[index] && !REEFS.has(index));
+    return Boolean(this.selectedId && this.turn === "player" && !this.finished && !this.pendingReveal && !this.board[index] && !REEFS.has(index));
   }
 
   private playPlayerCard(index: number): void {
     const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId);
-    if (!slot || this.board[index] || REEFS.has(index) || this.turn !== "player") return;
+    if (!slot || this.board[index] || REEFS.has(index) || this.turn !== "player" || this.finished || this.pendingReveal) return;
     slot.played = true;
     this.selectedId = null;
     this.placeCard(index, slot.card);
+    if (slot.card.ability === "revelation" && revealTargets(this.rivalHand).length) {
+      this.pendingReveal = true;
+      this.render("Revelation — choose an unrevealed card in the rival hand.");
+      return;
+    }
     this.advanceTurn("player");
   }
 
@@ -319,12 +341,16 @@ export class FoundationScene extends Phaser.Scene {
     if (!open.length || !available.length) return this.finishMatch();
     let best: { slot: HandSlot; index: number; score: number } | undefined;
     for (const slot of available) for (const index of open) {
-      const score = this.evaluateMove(index, slot.card) + Math.random() * 1.5;
+      const score = this.evaluateMove(index, slot.card) + (this.voyageBattle?.rng() ?? Math.random()) * 1.5;
       if (!best || score > best.score) best = { slot, index, score };
     }
     if (!best) return this.finishMatch();
     best.slot.played = true;
     this.placeCard(best.index, best.slot.card);
+    if (best.slot.card.ability === "revelation") {
+      const targets = revealTargets(this.playerHand);
+      if (targets.length) revealCard(this.playerHand, targets[Math.floor((this.voyageBattle?.rng() ?? Math.random()) * targets.length)].card.id);
+    }
     this.advanceTurn("rival");
   }
 
@@ -338,120 +364,29 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private evaluateMove(index: number, card: FishCard): number {
-    const simulation = [...this.board];
+    let simulation = this.board;
     const beforeScores = this.getScores(simulation);
     const opposingOwner = card.owner === "player" ? "rival" : "player";
     const opposingBefore = simulation.filter((fish) => fish?.owner === opposingOwner).length;
-    simulation[index] = card;
-    this.resolveEdges(simulation, index, card);
+    const ownBefore = simulation.filter((fish) => fish?.owner === card.owner).length + 1;
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked }, index, card);
+    simulation = result.board;
     const afterScores = this.getScores(simulation);
     const opposingAfter = simulation.filter((fish) => fish?.owner === opposingOwner).length;
     const ownScoreChange = afterScores[card.owner] - beforeScores[card.owner];
     const opposingScoreChange = afterScores[opposingOwner] - beforeScores[opposingOwner];
-    return ownScoreChange * 9 - opposingScoreChange * 7 + (opposingBefore - opposingAfter) * 6;
+    const ownAfter = simulation.filter((fish) => fish?.owner === card.owner).length;
+    const shockValue = simulation.reduce((value, fish) => value + (fish && result.shocked.has(fish.id) && !this.shocked.has(fish.id)
+      ? (fish.owner === card.owner ? -1 : 1) * fish.edges.length : 0), 0);
+    return ownScoreChange * 9 - opposingScoreChange * 7 + (opposingBefore - opposingAfter) * 6 - (ownBefore - ownAfter) * 6 + shockValue;
   }
 
   private placeCard(index: number, card: FishCard): void {
-    this.board[index] = card;
-    const before = [...this.board];
-    this.resolveEdges(this.board, index, card);
-    for (const id of removedCardIds(before, this.board)) this.killedIds.add(id);
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked }, index, card);
+    this.board = result.board;
+    this.shocked = result.shocked;
+    for (const id of result.killedIds) this.killedIds.add(id);
   }
-
-  private resolveEdges(board: Array<FishCard | null>, placedIndex: number, card: FishCard): void {
-    let sourceIndex = placedIndex;
-    for (const edge of card.edges) {
-      if (edge.effect === "weak") continue;
-      if (edge.effect === "wave") {
-        this.resolveWave(board, sourceIndex, edge.direction);
-        continue;
-      }
-      if (edge.effect === "hook") {
-        this.resolveHook(board, sourceIndex, edge.direction);
-        continue;
-      }
-
-      const targetIndex = this.neighbor(sourceIndex, edge.direction);
-      if (targetIndex === null) continue;
-      const target = board[targetIndex];
-      if (!target || this.edgeBlocks(target, edge.direction, edge.effect)) continue;
-
-      if (edge.effect === "swap") {
-        board[sourceIndex] = target;
-        board[targetIndex] = card;
-        sourceIndex = targetIndex;
-      } else {
-        this.tryPush(board, targetIndex, edge.direction, edge.effect === "bigger-fish");
-      }
-    }
-  }
-
-  private resolveHook(board: Array<FishCard | null>, sourceIndex: number, direction: Direction): void {
-    const gapIndex = this.neighbor(sourceIndex, direction);
-    if (gapIndex === null || board[gapIndex]) return;
-    const targetIndex = this.neighbor(gapIndex, direction);
-    if (targetIndex === null) return;
-    const target = board[targetIndex];
-    if (!target || this.edgeBlocks(target, direction, "hook")) return;
-    board[gapIndex] = target;
-    board[targetIndex] = null;
-  }
-
-  private resolveWave(board: Array<FishCard | null>, sourceIndex: number, direction: Direction): void {
-    const forward = DIRECTIONS[direction];
-    const perpendicular = { row: forward.column, column: -forward.row };
-    for (const spread of [-1, 0, 1]) {
-      const rowStep = forward.row + perpendicular.row * spread;
-      const columnStep = forward.column + perpendicular.column * spread;
-      const ray: number[] = [];
-      for (let distance = 1; distance < BOARD_SIZE; distance += 1) {
-        const rayIndex = this.offsetNeighbor(sourceIndex, rowStep * distance, columnStep * distance);
-        if (rayIndex === null) break;
-        ray.push(rayIndex);
-      }
-      for (let rayIndex = ray.length - 1; rayIndex >= 0; rayIndex -= 1) {
-        const targetIndex = ray[rayIndex];
-        const target = board[targetIndex];
-        if (!target || this.edgeBlocks(target, direction, "wave")) continue;
-        const destination = this.offsetNeighbor(targetIndex, rowStep, columnStep);
-        if (destination === null) board[targetIndex] = null;
-        else if (!board[destination]) {
-          board[destination] = target;
-          board[targetIndex] = null;
-        }
-      }
-    }
-  }
-
-  private tryPush(board: Array<FishCard | null>, targetIndex: number, direction: Direction, remove: boolean): boolean {
-    const target = board[targetIndex];
-    if (!target) return false;
-    const destination = this.neighbor(targetIndex, direction);
-    if (destination !== null && board[destination]) return false;
-    board[targetIndex] = null;
-    if (!remove && destination !== null) board[destination] = target;
-    return true;
-  }
-
-  private edgeBlocks(target: FishCard, incomingDirection: Direction, effect: FishCard["edges"][number]["effect"]): boolean {
-    const defendingDirection = DIRECTIONS[incomingDirection].opposite;
-    const defender = target.edges.find((edge) => edge.direction === defendingDirection);
-    if (!defender) return false;
-    if (effect === "double" || effect === "hook") return defender.effect !== "standard";
-    return true;
-  }
-
-  private offsetNeighbor(index: number, rowOffset: number, columnOffset: number): number | null {
-    const row = Math.floor(index / BOARD_SIZE) + rowOffset;
-    const column = (index % BOARD_SIZE) + columnOffset;
-    return row < 0 || row >= BOARD_SIZE || column < 0 || column >= BOARD_SIZE ? null : row * BOARD_SIZE + column;
-  }
-
-  private neighbor(index: number, direction: Direction): number | null {
-    const vector = DIRECTIONS[direction];
-    return this.offsetNeighbor(index, vector.row, vector.column);
-  }
-
   private getScores(board: Array<FishCard | null> = this.board): { player: number; rival: number } {
     let player = 0;
     let rival = 0;
