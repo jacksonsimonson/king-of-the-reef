@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateMap, REGIONS } from '../src/game/run/maps.ts';
-import { createRun, enterNode, reachable, resolveVisit, offers, activeNode, battleResult, saveRun, loadRun, SAVE_KEY } from '../src/game/run/state.ts';
+import { createRun, enterNode, reachable, resolveVisit, offers, activeNode, battleResult, saveRun, loadRun, SAVE_KEY, beginFishing, finishFishing } from '../src/game/run/state.ts';
 import { removedCardIds } from '../src/game/run/casualties.ts';
 
 test('1,000 seeds per region: complete, noncrossing routes and guaranteed encounters', () => {
@@ -49,7 +49,9 @@ test('illegal movement, double entry and duplicate rewards are rejected', () => 
   assert.equal(enterNode(run, id), false);
   assert.deepEqual(reachable(run), []);
   assert.equal(resolveVisit(run, 'not-a-fish'), false);
-  assert.equal(resolveVisit(run, offers(run)[0]), true);
+  assert.equal(resolveVisit(run, offers(run)[0]), false, 'fishing requires winning the minigame');
+  assert.equal(beginFishing(run, offers(run)[0]), true);
+  assert.equal(finishFishing(run, { ...run.fishing.snapshot, progress: 1, status: 'caught' }), true);
   assert.equal(run.school.length, 9);
   assert.equal(resolveVisit(run, 'leave'), false);
   assert.equal(enterNode(run, id), false);
