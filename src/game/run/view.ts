@@ -59,7 +59,15 @@ export class VoyageView {
     const region = REGIONS[this.preview];
     const regionHeading = element("div", "voyage-region-heading");
     regionHeading.append(element("h3", "", region.name), element("p", "", region.subtitle));
-    if (run) regionHeading.append(element("span", "voyage-resources", `${"◆".repeat(Math.max(0, run.resolve))}${"◇".repeat(3 - Math.max(0, run.resolve))} RESOLVE   /   ${run.shells} SHELLS   /   ${run.school.filter((f) => f.condition === "healthy").length}/${run.school.length} READY`));
+    if (run) {
+      const resources = element("div", "voyage-resources");
+      for (const [icon, label] of [["resolve", `${run.resolve}/3 Resolve`], ["shell", `${run.shells} Shells`], ["school", `${run.school.filter((f) => f.condition === "healthy").length}/${run.school.length} Ready`]]) {
+        const resource = element("span", "resource");
+        const symbol = element("span", `pixel-icon icon-${icon}`); symbol.setAttribute("aria-hidden", "true");
+        resource.append(symbol, element("span", "", label)); resources.append(resource);
+      }
+      regionHeading.append(resources);
+    }
     this.root.append(regionHeading);
     const displayRun = run ?? createRun("WELCOME");
     const map = displayRun.maps[this.preview];

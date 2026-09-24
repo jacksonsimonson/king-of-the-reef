@@ -5,6 +5,7 @@ import { VoyageView, currentRun, persistRun } from "./game/run/view";
 import { activeNode, battleResult } from "./game/run/state";
 import { random, REGIONS } from "./game/run/maps";
 import { STARTERS, type FishCard } from "./game/data/starterFish";
+import { drawSeascape } from "./game/run/art";
 
 const playView = document.querySelector<HTMLElement>("#play");
 const galleryView = document.querySelector<HTMLElement>("#gallery");
@@ -13,6 +14,12 @@ let activeGame: Phaser.Game | undefined;
 let voyage: VoyageView | undefined;
 let activeView: GameView | "menu" | "voyage" | "voyage-battle" | undefined;
 const voyageRoot = document.querySelector<HTMLElement>("#voyage")!;
+
+function drawMenu(): void {
+  const canvas = document.querySelector<HTMLCanvasElement>("#menu-scenery")!;
+  canvas.width = menuView!.clientWidth; canvas.height = menuView!.clientHeight;
+  drawSeascape(canvas, "shoreline", "REEF-TITLE");
+}
 
 function syncView(): void {
   let nextView: GameView | "menu" | "voyage" | "voyage-battle" = window.location.hash === "#voyage"
@@ -31,6 +38,7 @@ function syncView(): void {
   const showGallery = nextView === "gallery";
   const showPlay = nextView === "play" || nextView === "voyage-battle";
   if (menuView) menuView.hidden = nextView !== "menu";
+  if (nextView === "menu") drawMenu();
   if (playView) playView.hidden = !showPlay;
   if (galleryView) galleryView.hidden = !showGallery;
   voyageRoot.hidden = nextView !== "voyage";
@@ -42,6 +50,7 @@ function syncView(): void {
   else if (nextView !== "menu") {
     document.querySelector(showGallery ? "#gallery-game" : "#game")?.replaceChildren();
     const battle = nextView === "voyage-battle" && run;
+    if (playView) playView.dataset.region = battle ? REGIONS[run.region].id : "shoreline";
     const heading = playView?.querySelector(".view-title");
     const back = playView?.querySelector<HTMLAnchorElement>(".nav-link");
     if (heading) heading.textContent = battle ? `${REGIONS[run.region].name} · ${activeNode(run).type === "boss" ? REGIONS[run.region].boss : "Battle"}` : "Quick Match";
@@ -73,5 +82,11 @@ function syncView(): void {
   activeView = nextView;
 }
 
-window.addEventListener("hashchange", syncView);
-syncView();
+// Canvas text must wait for the local typeface rather than caching a fallback.
+async function boot(): Promise<void> {
+  await document.fonts.load('16px "Reef Pixel"');
+  window.addEventListener("hashchange", syncView);
+  window.addEventListener("resize", () => { if (activeView === "menu") drawMenu(); });
+  syncView();
+}
+void boot();
