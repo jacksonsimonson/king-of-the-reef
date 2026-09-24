@@ -120,3 +120,16 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
   .menu-screen h1 { font-size: 48px; line-height: 56px; }
 }
 .card-ability-background { position: absolute; width: 128px; height: 128px; left: 4px; top: 4px; pointer-events: none; }
+.fishing-dialog { width: 1064px; max-width: none; padding: 24px; overflow: auto; }
+.fishing-dialog h3 { margin: 0 0 24px; }
+.fishing-layout { display: flex; gap: 24px; align-items: center; }
+.fishing-info { width: 280px; flex: 0 0 280px; line-height: 24px; }
+.fishing-info h4 { font-size: 24px; line-height: 32px; margin: 16px 0; color: var(--gold); font-weight: 400; }
+.fishing-info p { margin: 8px 0; }
+.fishing-pattern { color: #73ddae; }
+.fishing-stage { width: 672px; flex: 0 0 672px; }
+.fishing-stage p { line-height: 24px; margin-top: 16px; }
+.fishing-canvas { display: block; width: 672px; height: 320px; max-width: none; image-rendering: pixelated; }
+.fishing-canvas:focus-visible { outline: 4px solid #73ddae; outline-offset: 4px; }
+.fishing-status { min-height: 24px; color: #eed49b; line-height: 24px; }
+.fishing-dialog progress { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

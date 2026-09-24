@@ -1,11 +1,13 @@
 import { STARTERS, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
+import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
 
 export interface Run {
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
   visited: string[]; pending: string | null; school: FishCard[]; shells: number;
   resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
+  fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export function recruit(run: Run, texture: string): void {
@@ -56,11 +58,32 @@ export function canRelease(run: Run, id: string): boolean {
   const fish = run.school.find((f) => f.id === id);
   return Boolean(fish && run.school.length > 5 && (fish.condition === "killed" || run.school.filter((f) => f.condition === "healthy").length > 1));
 }
+export function beginFishing(run: Run, texture: string): boolean {
+  if (run.status !== "active" || !run.pending || run.fishing || activeNode(run).type !== "fishing" || !offers(run).includes(texture)) return false;
+  const seed = Math.floor(random(run.seed + ":" + run.pending + ":fishing")() * 4294967296);
+  run.fishing = { nodeId: run.pending, texture, snapshot: new FishingModel(movementFor(texture), REGIONS[run.region].id, seed).snapshot() };
+  return true;
+}
+export function finishFishing(run: Run, snapshot: FishingSnapshot): boolean {
+  const attempt = run.fishing;
+  if (!attempt || run.status !== "active" || run.pending !== attempt.nodeId || activeNode(run).type !== "fishing"
+    || !validSnapshot(snapshot) || snapshot.status === "playing" || snapshot.movement !== movementFor(attempt.texture)
+    || snapshot.region !== REGIONS[run.region].id
+    || (snapshot.status === "caught" ? snapshot.progress < 1 : snapshot.progress > 0 && snapshot.elapsed < 60)) return false;
+  const name = STARTERS.find((fish) => fish.texture === attempt.texture)!.name;
+  if (snapshot.status === "caught") recruit(run, attempt.texture);
+  delete run.fishing;
+  finishNode(run, snapshot.status === "caught" ? name + " Caught! Joined Your School." : name + " Escaped. This Fishing Stop Is Used Up.");
+  return true;
+}
 export function resolveVisit(run: Run, choice: string, selected: string[] = []): boolean {
   if (!run.pending || run.status !== "active") return false;
   const node = activeNode(run);
   if (node.type === "battle" || node.type === "boss") return false;
-  if (node.type === "fishing" || node.type === "shop") {
+  if (node.type === "fishing") {
+    if (choice !== "leave" || run.fishing) return false;
+    finishNode(run, "You Skipped This Fishing Stop.");
+  } else if (node.type === "shop") {
     if (choice !== "leave") {
       if (!offers(run).includes(choice) || (node.type === "shop" && run.shells < 18)) return false;
       if (node.type === "shop") run.shells -= 18;
@@ -138,6 +161,9 @@ export function loadRun(): Run | null {
     // Preserve schools from the earlier recovery model.
     run.school.forEach((fish) => { if ((fish.condition as string) === "knocked-out") fish.condition = "killed"; });
     if (![run.shells, run.resolve, run.serial].every(Number.isFinite)) return null;
+    if (run.fishing && (run.fishing.nodeId !== run.pending || activeNode(run).type !== "fishing"
+      || !offers(run).includes(run.fishing.texture) || !validSnapshot(run.fishing.snapshot)
+      || run.fishing.snapshot.movement !== movementFor(run.fishing.texture) || run.fishing.snapshot.region !== REGIONS[run.region].id)) return null;
     return run;
   } catch { return null; }
 }

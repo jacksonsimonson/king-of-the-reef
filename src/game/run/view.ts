@@ -1,8 +1,10 @@
 import { STARTERS } from "../data/starterFish.ts";
+import { FishingSession } from "../fishing/view.ts";
+import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { COLUMNS, REGIONS, SPACE_INFO, type Space } from "./maps.ts";
-import { activeNode, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
+import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
 
 let memory: Run | null = null;
 export function currentRun(): Run | null { return memory ??= loadRun(); }
@@ -21,17 +23,22 @@ export class VoyageView {
   private selected: string | null = null;
   private observer?: ResizeObserver;
   private storageOk = true;
+  private fishing?: FishingSession;
   constructor(root: HTMLElement) {
     this.root = root; this.run = currentRun(); this.preview = this.run?.region ?? 0;
     this.render();
   }
-  destroy(): void { this.observer?.disconnect(); this.root.replaceChildren(); }
+  destroy(): void { this.fishing?.destroy(); this.fishing = undefined; this.observer?.disconnect(); this.root.replaceChildren(); }
   private save(): void { if (this.run) this.storageOk = persistRun(this.run); }
   private start(seed?: string): void {
     const id = seed?.trim().slice(0, 64) || crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase();
     this.run = createRun(id); this.preview = 0; this.selected = null; this.save(); this.render();
   }
   private render(): void {
+    this.fishing?.destroy(); this.fishing = undefined;
+    if (this.run?.fishing && this.run.fishing.snapshot.status !== "playing") {
+      finishFishing(this.run, this.run.fishing.snapshot); this.save();
+    }
     this.observer?.disconnect(); this.root.replaceChildren();
     const run = this.run;
     this.root.dataset.region = REGIONS[this.preview].id;
@@ -139,6 +146,7 @@ export class VoyageView {
       });
       school.append(cards); this.root.append(school);
     }
+    if (run?.fishing) this.openFishing(true);
   }
   private renderDetail(): void {
     const panel = this.root.querySelector<HTMLElement>("#voyage-detail")!;
@@ -167,12 +175,17 @@ export class VoyageView {
     } else if (node.type === "fishing" || node.type === "shop") {
       for (const texture of offers(run)) {
         const fish = STARTERS.find((f) => f.texture === texture)!;
-        const pick = button("", () => this.resolve(texture), "catch-choice");
-        pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", node.type === "shop" ? "18 Shells" : "Add to School"));
+        const pick = button("", () => {
+          if (node.type === "fishing") {
+            if (beginFishing(run, texture)) { this.save(); this.openFishing(false); }
+          } else this.resolve(texture);
+        }, "catch-choice");
+        pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", node.type === "shop" ? "18 Shells" : "Try · " + MOVEMENTS[movementFor(texture)].name));
         pick.disabled = node.type === "shop" && run.shells < 18;
         actions.append(pick);
       }
-      actions.append(button("Sail on", () => this.resolve("leave")));
+      if (node.type === "fishing") panel.append(element("p", "", "Try One Catch Or Skip. Use Left / Right To Follow The Fish. If It Escapes, This Stop Is Used Up."));
+      actions.append(button(node.type === "fishing" ? "Skip" : "Sail on", () => this.resolve("leave")));
     } else if (node.type === "hydration" || node.type === "release") {
       const hydration = node.type === "hydration";
       const choices = hydration ? run.school.filter((f) => f.condition === "killed") : run.school;
@@ -218,6 +231,15 @@ export class VoyageView {
   }
   private resolve(choice: string): void {
     if (this.run && resolveVisit(this.run, choice)) { this.selected = null; this.save(); this.render(); }
+  }
+  private openFishing(resumed: boolean): void {
+    const run = this.run, attempt = run?.fishing;
+    if (!run || !attempt || this.fishing) return;
+    const fish = STARTERS.find((f) => f.texture === attempt.texture)!;
+    this.fishing = new FishingSession({ ...fish, owner: "player", condition: "healthy" }, attempt.snapshot, run.seed, resumed,
+      (snapshot) => { if (run.fishing?.nodeId === attempt.nodeId) { run.fishing.snapshot = snapshot; this.save(); } },
+      (snapshot) => { finishFishing(run, snapshot); this.save(); },
+      () => { this.fishing = undefined; this.selected = null; this.render(); });
   }
   private newRunDialog(): void {
     const dialog = element("dialog", "voyage-dialog");
