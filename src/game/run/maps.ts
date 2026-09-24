@@ -9,7 +9,7 @@ export const SPACE_INFO: Record<Space, { name: string; color: string; descriptio
   start: { name: "Departure", color: "#e9d5a0", description: "Choose a current and begin your voyage." },
   battle: { name: "Battle", color: "#ff8c79", description: "Contest three reefs. Win 12 shells; a loss costs one resolve." },
   fishing: { name: "Fishing", color: "#73ddc6", description: "Try one local catch or skip. Use Left / Right to follow the fish. An escape uses up this stop." },
-  shop: { name: "Shop", color: "#ffd582", description: "Spend 18 shells to recruit a creature, or sail on." },
+  shop: { name: "Shop", color: "#ffd582", description: "Three offers: creatures and Tide Charms, ordered from cheapest to dearest. Spend saved shells, or sail on." },
   event: { name: "Unknown Waters", color: "#c6a1ff", description: "A local discovery offers a choice with lasting consequences." },
   hydration: { name: "Hydration", color: "#8bceff", description: "Choose up to three killed cards to restore and recover one resolve." },
   release: { name: "Release", color: "#a7efae", description: "Permanently release one card from your school. Keep at least five cards and one healthy creature." },

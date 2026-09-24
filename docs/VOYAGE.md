@@ -34,12 +34,12 @@ Guaranteed columns override those weights: first encounter is Fishing, second is
 ## Encounters and persistent school
 
 - Begin with eight healthy shoreline creatures, 18 shells and three resolve.
-- **Fishing:** choose one of three seeded regional catches. This is an immediate catch-selection foundation; the planned timing minigame is not implemented yet.
-- **Shop:** recruit one regional creature for 18 shells, or leave. A purchase is applied once.
+- **Fishing:** try one of three seeded regional catches or skip. Use Left / Right in the fishing minigame; escape ends the stop without a retry. See [FISHING.md](FISHING.md).
+- **Shop:** three seeded offers mixing regional creatures and Tide Charms, left to right in ascending price. Every new shop has fresh stock; buying leaves a sold-out slot without rerolling or restocking. Buy multiple offers if affordable, then Sail On. See [SHOPS.md](SHOPS.md).
 - **Event:** choose a creature rescue or salvage 14 shells for one resolve, with a floor of one resolve. Regional descriptions change with the surroundings. More event variants can be added later.
 - **Hydration:** select up to three killed cards to restore, then confirm. Also recover one resolve, capped at three. Healthy schools can still recover resolve without selecting cards.
 - **Release:** select and confirm one card to permanently remove, or leave. The school must retain at least five total cards and one healthy creature. Killed cards can also be released.
-- **Battle:** draws up to five healthy creatures from the actual school. Smaller healthy schools play smaller hands; the rival finishes its remaining placements. A win grants 12 shells, a tie grants four, and a loss costs one resolve. A loss alone no longer kills an unrelated reserve creature.
+- **Battle:** draws up to five healthy creatures from the actual school, then refills played slots from the shuffled reserve. Each side still has a five-placement budget; an exhausted smaller school stops earlier. Use Tide Charms before placing your fish. A win grants 12 shells, a tie grants four, and a loss costs one resolve. A loss alone no longer kills an unrelated reserve creature.
 - **Killed cards:** cards removed by Bite or pushed off the board (including Wave) are killed. Actual player casualties are saved at match completion regardless of victory, tie or defeat; AI simulations never cause deaths. Killed cards remain in the school but cannot be drawn until Hydration restores them. Older knocked-out cards migrate to this status.
 - **Colossal:** win to advance to the next region and gain 25 shells. A tie offers a rematch without penalty. A loss costs resolve and requires another attempt. Defeating the third Colossal completes the voyage.
 - Zero resolve ends the run. Quick Match is independent of the voyage.

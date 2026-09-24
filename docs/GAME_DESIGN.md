@@ -32,7 +32,8 @@ King of the Reef is a browser-based tactical card roguelike in which fish compet
 - Primary action: play one fish card
 - Primary interaction: directional pushing
 - Round hand: five random healthy fish drawn from each side's current school
-- Match end: after both players place every card in their round hand
+- Replacement draws: refill a played slot with the next card in the shuffled reserve; leave its silhouette if the reserve is empty
+- Match end: five fish placements per side, or earlier exhaustion; refills give more choices without increasing the placement budget
 - Victory: control more reefs than the rival when the match ends
 - Reef rule: fish should reach reefs through movement rather than being placed directly on them
 
@@ -44,7 +45,9 @@ The prototype now supports Standard, Double, Shield, Bigger Fish, Swap, Hook, an
 
 ### Match pacing
 
-A 5×5 board creates space for maneuvering, specialized fish, and environmental effects. Each side draws five healthy fish per encounter, creating ten placements before reef control is scored. The undealt school remains visible as a deck so later powerups can shuffle or reveal cards.
+A 5×5 board creates space for maneuvering, specialized fish, and environmental effects. Each side starts with up to five healthy fish and may place up to five fish per encounter. Played slots draw the next reserve card immediately, for both sides. A smaller school can exhaust its cards earlier; the other side finishes its remaining placements. The placement budget stays at five while this first replacement-draw pass is tested. Unplayed cards are not killed when the battle ends. A full board also ends the match safely.
+
+Powerups are now **Tide Charms**: consumable items used on the player's turn before placing a fish. Using a charm does not spend the fish placement; multiple charms may be used if their targets are valid. Shop stock, prices and the first four charms are described in [SHOPS.md](SHOPS.md).
 
 ## Fish cards
 

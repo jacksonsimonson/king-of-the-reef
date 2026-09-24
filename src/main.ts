@@ -2,7 +2,8 @@ import Phaser from "phaser";
 import "./styles/main.css";
 import { createGameConfig, type GameView } from "./game/config";
 import { VoyageView, currentRun, persistRun } from "./game/run/view";
-import { activeNode, battleResult } from "./game/run/state";
+import { activeNode, battleResult, consumeCharm } from "./game/run/state";
+import type { CharmId } from "./game/data/tideCharms";
 import { random, REGIONS } from "./game/run/maps";
 import { STARTERS, type FishCard } from "./game/data/starterFish";
 import { drawReefCard } from "./game/data/reefPool";
@@ -69,6 +70,11 @@ function syncView(): void {
       config.callbacks = { preBoot: (game) => {
         game.registry.set("voyageBattle", {
           playerDeck: run.school, rivalDeck,
+          charms: run.charms,
+          onUseCharm: (id: CharmId) => {
+            if (!consumeCharm(run, id)) return false;
+            persistRun(run); return true;
+          },
           region: REGIONS[run.region].id, seed: run.seed,
           rng: random(`${run.seed}:${run.pending}:deal`),
           onResult: (player: number, rival: number, killedIds: string[]) => {

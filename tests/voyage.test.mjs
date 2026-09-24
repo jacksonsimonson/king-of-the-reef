@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { generateMap, REGIONS } from '../src/game/run/maps.ts';
 import { createRun, enterNode, reachable, resolveVisit, offers, activeNode, battleResult, saveRun, loadRun, SAVE_KEY, beginFishing, finishFishing } from '../src/game/run/state.ts';
 import { removedCardIds } from '../src/game/run/casualties.ts';
+import { shopOffers, buyOffer } from '../src/game/run/state.ts';
 
 test('1,000 seeds per region: complete, noncrossing routes and guaranteed encounters', () => {
   for (let seed = 0; seed < 1000; seed++) for (let region = 0; region < 3; region++) {
@@ -72,12 +73,15 @@ test('shop transaction is atomic and insufficient shells cannot purchase', () =>
   const run = createRun('shop');
   for (let i = 0; i < 5; i++) advance(run);
   enterNode(run, reachable(run)[0]); assert.equal(activeNode(run).type, 'shop');
-  run.shells = 17;
-  assert.equal(resolveVisit(run, offers(run)[0]), false);
-  assert.equal(run.shells, 17);
-  run.shells = 18; const before = run.school.length;
-  assert.equal(resolveVisit(run, offers(run)[0]), true);
+  const offer = shopOffers(run).find(offer => offer.kind === 'fish');
+  run.shells = offer.price - 1;
+  assert.equal(buyOffer(run, offer.id), false);
+  assert.equal(run.shells, offer.price - 1);
+  run.shells = offer.price; const before = run.school.length;
+  assert.equal(buyOffer(run, offer.id), true);
   assert.equal(run.school.length, before + 1); assert.equal(run.shells, 0);
+  assert.ok(run.pending, 'purchase keeps shop open');
+  assert.equal(buyOffer(run, offer.id), false);
 });
 test('hydration restores only selected killed cards, with at most three per visit', () => {
   const run = createRun('rest');
