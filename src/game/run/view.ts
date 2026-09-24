@@ -2,6 +2,8 @@ import { STARTERS } from "../data/starterFish.ts";
 import { FishingSession } from "../fishing/view.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
+import { CHARMS, CHARM_IDS, charmCanvas } from "../data/tideCharms.ts";
+import { shopOffers } from "./state.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { COLUMNS, REGIONS, SPACE_INFO, type Space } from "./maps.ts";
 import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
@@ -138,6 +140,18 @@ export class VoyageView {
     const detail = element("section", "voyage-detail"); detail.id = "voyage-detail"; detail.setAttribute("aria-live", "polite"); this.root.append(detail);
     this.renderDetail();
     if (run) {
+      const bag = element("details", "voyage-school");
+      bag.append(element("summary", "", `Tide Charms · ${run.charms.length}`));
+      const contents = element("div", "charm-inventory");
+      for (const id of CHARM_IDS) {
+        const count = run.charms.filter((charm) => charm === id).length;
+        if (!count) continue;
+        const entry = element("div", "charm-entry");
+        entry.append(charmCanvas(id), element("strong", "", `${CHARMS[id].name} ×${count}`), element("p", "", CHARMS[id].description));
+        contents.append(entry);
+      }
+      if (!run.charms.length) contents.append(element("p", "", "Find Tide Charms In Shops. Use Them On Your Turn Before Playing A Fish."));
+      bag.append(contents); this.root.append(bag);
       const school = element("details", "voyage-school"); school.append(element("summary", "", `Your School · ${run.school.length} Cards`));
       const cards = element("div", "school-cards");
       run.school.forEach((fish) => {
@@ -172,20 +186,38 @@ export class VoyageView {
     if (node.type === "battle" || node.type === "boss") {
       panel.append(element("p", "", run.log));
       actions.append(button(node.type === "boss" ? "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
-    } else if (node.type === "fishing" || node.type === "shop") {
+    } else if (node.type === "shop") {
+      panel.append(element("p", "", `${run.shells} Shells · Each Offer Can Be Bought Once. Tide Charms Are Single-Use Battle Items.`));
+      const stock = element("div", "shop-stock");
+      for (const offer of shopOffers(run)) {
+        const sold = run.shop?.purchased.includes(offer.id) ?? false;
+        const pick = button("", () => this.resolve(offer.id), "catch-choice shop-offer");
+        pick.dataset.offerId = offer.id;
+        if (offer.kind === "fish") {
+          const fish = STARTERS.find((entry) => entry.texture === offer.texture)!;
+          pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("span", "offer-description", "Healthy Creature · Joins Your School"));
+        } else {
+          const art = element("span", "school-card-art charm-card"); art.append(charmCanvas(offer.charm, 8));
+          art.style.borderColor = CHARMS[offer.charm].color;
+          pick.append(art, element("strong", "", CHARMS[offer.charm].name), element("span", "offer-description", CHARMS[offer.charm].description));
+        }
+        pick.append(element("small", "", `${offer.price} Shells`), element("span", "offer-status", sold ? "Sold Out" : run.shells < offer.price ? `Need ${offer.price - run.shells} More` : "Buy"));
+        pick.disabled = sold || run.shells < offer.price;
+        stock.append(pick);
+      }
+      panel.append(stock);
+      actions.append(button("Sail On", () => this.resolve("leave")));
+    } else if (node.type === "fishing") {
       for (const texture of offers(run)) {
         const fish = STARTERS.find((f) => f.texture === texture)!;
         const pick = button("", () => {
-          if (node.type === "fishing") {
-            if (beginFishing(run, texture)) { this.save(); this.openFishing(false); }
-          } else this.resolve(texture);
+          if (beginFishing(run, texture)) { this.save(); this.openFishing(false); }
         }, "catch-choice");
-        pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", node.type === "shop" ? "18 Shells" : "Try · " + MOVEMENTS[movementFor(texture)].name));
-        pick.disabled = node.type === "shop" && run.shells < 18;
+        pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", "Try · " + MOVEMENTS[movementFor(texture)].name));
         actions.append(pick);
       }
-      if (node.type === "fishing") panel.append(element("p", "", "Try One Catch Or Skip. Use Left / Right To Follow The Fish. If It Escapes, This Stop Is Used Up."));
-      actions.append(button(node.type === "fishing" ? "Skip" : "Sail on", () => this.resolve("leave")));
+      panel.append(element("p", "", "Try One Catch Or Skip. Use Left / Right To Follow The Fish. If It Escapes, This Stop Is Used Up."));
+      actions.append(button("Skip", () => this.resolve("leave")));
     } else if (node.type === "hydration" || node.type === "release") {
       const hydration = node.type === "hydration";
       const choices = hydration ? run.school.filter((f) => f.condition === "killed") : run.school;

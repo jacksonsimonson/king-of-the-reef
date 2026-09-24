@@ -2,12 +2,16 @@ import { STARTERS, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
+import { isCharm, type CharmId } from "../data/tideCharms.ts";
+import { generateShop, type ShopOffer } from "./shop.ts";
 
 export interface Run {
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
   visited: string[]; pending: string | null; school: FishCard[]; shells: number;
   resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
+  charms: CharmId[];
+  shop?: { nodeId: string; purchased: string[] };
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export function recruit(run: Run, texture: string): void {
@@ -17,7 +21,7 @@ export function recruit(run: Run, texture: string): void {
 }
 export function createRun(seed: string): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i));
-  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   for (const texture of ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"]) recruit(run, texture);
   return run;
 }
@@ -52,11 +56,34 @@ function finishNode(run: Run, message: string): void {
   run.current = run.pending;
   run.visited.push(run.pending);
   run.pending = null;
+  delete run.shop;
   run.log = message;
 }
 export function canRelease(run: Run, id: string): boolean {
   const fish = run.school.find((f) => f.id === id);
   return Boolean(fish && run.school.length > 5 && (fish.condition === "killed" || run.school.filter((f) => f.condition === "healthy").length > 1));
+}
+export function shopOffers(run: Run): ShopOffer[] {
+  if (!run.pending || activeNode(run).type !== "shop") return [];
+  return generateShop(run.seed, run.pending, run.region, offers(run));
+}
+export function buyOffer(run: Run, id: string): boolean {
+  if (run.status !== "active") return false;
+  const offer = shopOffers(run).find((entry) => entry.id === id);
+  if (!offer || run.shop?.purchased.includes(id) || run.shells < offer.price) return false;
+  run.shop ??= { nodeId: run.pending!, purchased: [] };
+  run.shells -= offer.price;
+  run.shop.purchased.push(id);
+  if (offer.kind === "fish") recruit(run, offer.texture);
+  else run.charms.push(offer.charm);
+  return true;
+}
+export function consumeCharm(run: Run, id: CharmId): boolean {
+  if (run.status !== "active" || !run.pending || !["battle", "boss"].includes(activeNode(run).type)) return false;
+  const index = run.charms.indexOf(id);
+  if (index < 0) return false;
+  run.charms.splice(index, 1);
+  return true;
 }
 export function beginFishing(run: Run, texture: string): boolean {
   if (run.status !== "active" || !run.pending || run.fishing || activeNode(run).type !== "fishing" || !offers(run).includes(texture)) return false;
@@ -84,12 +111,8 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
     if (choice !== "leave" || run.fishing) return false;
     finishNode(run, "You Skipped This Fishing Stop.");
   } else if (node.type === "shop") {
-    if (choice !== "leave") {
-      if (!offers(run).includes(choice) || (node.type === "shop" && run.shells < 18)) return false;
-      if (node.type === "shop") run.shells -= 18;
-      recruit(run, choice);
-      finishNode(run, `${run.school.at(-1)!.name} joined your school.`);
-    } else finishNode(run, "You followed the current onward.");
+    if (choice !== "leave") return buyOffer(run, choice);
+    finishNode(run, "You followed the current onward.");
   } else if (node.type === "hydration") {
     if (choice !== "rest" || selected.length > 3 || new Set(selected).size !== selected.length
       || !selected.every((id) => run.school.some((fish) => fish.id === id && fish.condition === "killed"))) return false;
@@ -161,6 +184,11 @@ export function loadRun(): Run | null {
     // Preserve schools from the earlier recovery model.
     run.school.forEach((fish) => { if ((fish.condition as string) === "knocked-out") fish.condition = "killed"; });
     if (![run.shells, run.resolve, run.serial].every(Number.isFinite)) return null;
+    run.charms ??= []; // Older voyages have no Tide Charms yet.
+    if (!Array.isArray(run.charms) || !run.charms.every(isCharm)) return null;
+    if (run.shop && (run.shop.nodeId !== run.pending || activeNode(run).type !== "shop"
+      || !Array.isArray(run.shop.purchased) || new Set(run.shop.purchased).size !== run.shop.purchased.length
+      || !run.shop.purchased.every((id) => shopOffers(run).some((offer) => offer.id === id)))) return null;
     if (run.fishing && (run.fishing.nodeId !== run.pending || activeNode(run).type !== "fishing"
       || !offers(run).includes(run.fishing.texture) || !validSnapshot(run.fishing.snapshot)
       || run.fishing.snapshot.movement !== movementFor(run.fishing.texture) || run.fishing.snapshot.region !== REGIONS[run.region].id)) return null;

@@ -6,6 +6,7 @@ import type { RegionId } from "../run/maps";
 import { resolvePlacement, revealCard, revealTargets, type HandSlot } from "../combat";
 import { cardDescription } from "../ui/cardVisuals";
 import { pixelTextStyle, pixelPanel, pixelPearl } from "../ui/pixelTheme";
+import { CHARMS, CHARM_IDS, charmCanvas, charmCard, refillSlot, shuffleHand, canPlayFish, PLAYS_PER_BATTLE, type CharmId } from "../data/tideCharms";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
 const BOARD_SIZE = 5;
@@ -18,6 +19,8 @@ const REEFS = new Set([2, 11, 18]);
 interface VoyageBattle {
   playerDeck: FishCard[]; rivalDeck: FishCard[]; rng: () => number;
   region: RegionId; seed: string;
+  charms: CharmId[];
+  onUseCharm: (id: CharmId) => boolean;
   onResult: (player: number, rival: number, killedIds: string[]) => void;
   onComplete: () => void;
 }
@@ -37,7 +40,9 @@ export class FoundationScene extends Phaser.Scene {
   private voyageBattle?: VoyageBattle;
   private killedIds = new Set<string>();
   private shocked = new Set<string>();
-  private pendingReveal = false;
+  private pendingReveal: "card" | "charm" | null = null;
+  private charms: CharmId[] = [];
+  private plays = { player: 0, rival: 0 };
   private waterColor = COLORS.water;
   private borderColor = COLORS.green;
 
@@ -77,7 +82,9 @@ export class FoundationScene extends Phaser.Scene {
     this.finished = false;
     this.killedIds.clear();
     this.shocked.clear();
-    this.pendingReveal = false;
+    this.pendingReveal = null;
+    this.charms = this.voyageBattle?.charms ?? [...CHARM_IDS];
+    this.plays = { player: 0, rival: 0 };
     this.render("Drag a fish to open water, or select it and choose a tile.");
     if (!this.playerHand.length) this.advanceTurn("player");
   }
@@ -98,12 +105,14 @@ export class FoundationScene extends Phaser.Scene {
     add(this.add.text(40, 22, "KING OF THE REEF", this.textStyle(24, "#eed49b")));
     add(this.add.text(40, 65, message, this.textStyle(16, "#b8ffd0")).setWordWrapWidth(1200));
     add(this.add.text(this.scale.width - 40, 26, `YOU ${scores.player}  ·  ${scores.rival} RIVAL`, this.textStyle(16, "#ffb8d8")).setOrigin(1, 0));
+    add(this.add.text(this.scale.width - 40, 58, `FISH PLAYED ${this.plays.player}/${PLAYS_PER_BATTLE}  ·  ${this.plays.rival}/${PLAYS_PER_BATTLE}`, this.textStyle(16, "#b8d7dc")).setOrigin(1, 0));
 
     const board = this.boardOrigin();
     this.drawSidePanel(38, board.y, "YOUR DECK", this.playerDeck.length, "player");
-    this.drawPowerups(38, board.y + 230, "YOUR POWERUPS");
+    this.drawCharms(38, board.y + 230);
     this.drawSidePanel(this.scale.width - 194, board.y, "RIVAL DECK", this.rivalDeck.length, "rival");
-    this.drawPowerups(this.scale.width - 194, board.y + 230, "RIVAL POWERUPS");
+    add(this.add.text(this.scale.width - 194, board.y + 230, "TIDE CHARMS", this.textStyle(16, "#ff8b8b")));
+    add(this.add.text(this.scale.width - 194, board.y + 262, "NONE", this.textStyle(8, "#8aa8b5")));
 
     const playerHandCenter = board.x - 280;
     const rivalHandCenter = board.x + this.boardSpan() + 280;
@@ -123,8 +132,12 @@ export class FoundationScene extends Phaser.Scene {
         card.setSize(HAND_CARD_SIZE, HAND_CARD_SIZE).setInteractive({ useHandCursor: true });
         card.on("pointerdown", () => {
           if (!this.pendingReveal || !revealCard(this.rivalHand, slot.card.id)) return;
-          this.pendingReveal = false;
-          this.advanceTurn("player");
+          const source = this.pendingReveal;
+          this.pendingReveal = null;
+          if (source === "charm") {
+            if (!this.spendCharm("spyglass-pearl")) { slot.revealed = false; this.render("No Spyglass Pearl available."); return; }
+            this.render("Rival card revealed. Play your fish when ready.");
+          } else this.advanceTurn("player");
         });
         add(this.add.text(position.x, position.y + 90, "REVEAL", this.textStyle(16, "#81e8ed")).setOrigin(0.5));
       }
@@ -155,6 +168,11 @@ export class FoundationScene extends Phaser.Scene {
           .on("pointerdown", () => this.playPlayerCard(index));
       }
     }
+    if (this.pendingReveal === "charm") {
+      const cancel = this.add.text(38, board.y + 460, "CANCEL REVEAL", this.textStyle(8, "#eed49b")).setInteractive({ useHandCursor: true });
+      cancel.on("pointerdown", () => { this.pendingReveal = null; this.render("Reveal canceled. Charm kept."); });
+      add(cancel);
+    }
 
     if (this.finished) this.drawResult(scores.player, scores.rival);
     else {
@@ -162,6 +180,8 @@ export class FoundationScene extends Phaser.Scene {
       add(detail);
       this.events.removeAllListeners("card-hover");
       this.events.on("card-hover", (fish: FishCard) => detail.setText(cardDescription(fish) + (this.shocked.has(fish.id) ? " SHOCKED: all edges disabled for this battle." : "")));
+      this.events.removeAllListeners("charm-hover");
+      this.events.on("charm-hover", (id: CharmId) => detail.setText(`${CHARMS[id].name}: ${CHARMS[id].description}`));
     }
   }
 
@@ -304,13 +324,57 @@ export class FoundationScene extends Phaser.Scene {
     return card;
   }
 
-  private drawPowerups(x: number, y: number, label: string): void {
-    this.ui?.add(this.add.text(x, y, label, this.textStyle(13, "#ff5ca8", true)));
-    for (let index = 0; index < 3; index += 1) {
-      const slot = this.add.rectangle(x + 30 + index * 44, y + 52, 36, 48, COLORS.deep, 0.75).setStrokeStyle(2, COLORS.pink, 0.65);
-      this.ui?.add(slot);
+  private drawCharms(x: number, y: number): void {
+    this.ui?.add(this.add.text(x, y, "TIDE CHARMS", this.textStyle(16, "#eed49b")));
+    this.ui?.add(this.add.text(x, y + 24, "USE BEFORE YOUR FISH", this.textStyle(8, "#8aa8b5")));
+    CHARM_IDS.forEach((id, index) => {
+      const count = this.charms.filter((entry) => entry === id).length;
+      const active = this.canUseCharm(id);
+      const key = `charm-${id}`;
+      if (!this.textures.exists(key)) this.textures.addCanvas(key, charmCanvas(id, 2));
+      const row = this.add.container(x, y + 58 + index * 48);
+      const frame = this.add.rectangle(76, 0, 152, 40, active ? 0x28545a : 0x102d3c).setStrokeStyle(2, active ? 0x81e8ed : 0x446270);
+      const icon = this.add.image(18, 0, key);
+      const label = this.add.text(38, -12, `${CHARMS[id].name.replace(" ", "\n")} ×${count}`, this.textStyle(8, count ? "#eed49b" : "#8aa8b5"));
+      row.add([frame, icon, label]); this.ui?.add(row);
+      frame.setInteractive({ useHandCursor: active });
+      frame.on("pointerover", () => this.events.emit("charm-hover", id));
+      frame.on("pointerdown", () => this.useCharm(id));
+    });
+  }
+
+  private canUseCharm(id: CharmId): boolean {
+    if (this.finished || this.turn !== "player" || this.pendingReveal || !canPlayFish(this.playerHand, this.plays.player) || !this.charms.includes(id)) return false;
+    if (id === "spyglass-pearl") return revealTargets(this.rivalHand).length > 0;
+    if (id === "current-conch") return this.playerDeck.length > 0;
+    const selected = this.getSelectedPlayerCard();
+    if (!selected) return false;
+    return id !== "coral-mail" || selected.edges.length < 4;
+  }
+
+  private spendCharm(id: CharmId): boolean {
+    if (this.voyageBattle) return this.voyageBattle.onUseCharm(id);
+    const index = this.charms.indexOf(id);
+    if (index < 0) return false;
+    this.charms.splice(index, 1); return true;
+  }
+
+  private useCharm(id: CharmId): void {
+    if (!this.canUseCharm(id)) return;
+    if (id === "spyglass-pearl") {
+      this.pendingReveal = "charm";
+      this.render("Spyglass Pearl — choose a hidden rival card. Your fish play is still available.");
+      return;
     }
-    this.ui?.add(this.add.text(x, y + 86, "EMPTY", this.textStyle(11, "#8aa8b5", true)));
+    if (!this.spendCharm(id)) return;
+    if (id === "current-conch") {
+      shuffleHand(this.playerHand, this.playerDeck, () => this.voyageBattle?.rng() ?? Math.random());
+      this.selectedId = null;
+    } else {
+      const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId)!;
+      slot.card = charmCard(slot.card, id);
+    }
+    this.render(`${CHARMS[id].name} used. Play your fish when ready.`);
   }
 
   private getSelectedPlayerCard(): FishCard | undefined {
@@ -326,9 +390,12 @@ export class FoundationScene extends Phaser.Scene {
     if (!slot || this.board[index] || REEFS.has(index) || this.turn !== "player" || this.finished || this.pendingReveal) return;
     slot.played = true;
     this.selectedId = null;
-    this.placeCard(index, slot.card);
-    if (slot.card.ability === "revelation" && revealTargets(this.rivalHand).length) {
-      this.pendingReveal = true;
+    const playedCard = slot.card;
+    this.placeCard(index, playedCard);
+    this.plays.player++;
+    refillSlot(slot, this.playerDeck);
+    if (playedCard.ability === "revelation" && revealTargets(this.rivalHand).length) {
+      this.pendingReveal = "card";
       this.render("Revelation — choose an unrevealed card in the rival hand.");
       return;
     }
@@ -346,8 +413,11 @@ export class FoundationScene extends Phaser.Scene {
     }
     if (!best) return this.finishMatch();
     best.slot.played = true;
-    this.placeCard(best.index, best.slot.card);
-    if (best.slot.card.ability === "revelation") {
+    const playedCard = best.slot.card;
+    this.placeCard(best.index, playedCard);
+    this.plays.rival++;
+    refillSlot(best.slot, this.rivalDeck);
+    if (playedCard.ability === "revelation") {
       const targets = revealTargets(this.playerHand);
       if (targets.length) revealCard(this.playerHand, targets[Math.floor((this.voyageBattle?.rng() ?? Math.random()) * targets.length)].card.id);
     }
@@ -356,8 +426,8 @@ export class FoundationScene extends Phaser.Scene {
 
   private advanceTurn(previous: "player" | "rival"): void {
     if (this.checkEnd()) return;
-    const playerReady = this.playerHand.some((slot) => !slot.played);
-    const rivalReady = this.rivalHand.some((slot) => !slot.played);
+    const playerReady = canPlayFish(this.playerHand, this.plays.player);
+    const rivalReady = canPlayFish(this.rivalHand, this.plays.rival);
     this.turn = rivalReady && (previous === "player" || !playerReady) ? "rival" : "player";
     this.render(this.turn === "rival" ? "The rival is choosing…" : "Your turn — drag a fish to open water.");
     if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
@@ -398,7 +468,8 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private checkEnd(): boolean {
-    if (this.playerHand.every((slot) => slot.played) && this.rivalHand.every((slot) => slot.played)) {
+    if ((!canPlayFish(this.playerHand, this.plays.player) && !canPlayFish(this.rivalHand, this.plays.rival))
+      || !this.board.some((fish, index) => !fish && !REEFS.has(index))) {
       this.finishMatch();
       return true;
     }
