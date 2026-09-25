@@ -4,7 +4,7 @@ This is an art-first expansion. New creatures appear as framed cards in the Gall
 
 The approved 50-creature backlog was checked against `starterFish.ts`. Hermit Crab, Lionfish, Mantis Shrimp, and Pufferfish already exist and are excluded. The remaining 46 species have unique IDs and asset paths. Distinct relatives such as Hawksbill/Green Sea Turtle and Clown/Titan Triggerfish remain separate species.
 
-Art uses transparent 64×64 sprites with binary alpha and nearest-neighbor 128×128 display. Eye-bearing creatures retain clear white highlights at both sizes. Creatures without a visible face have no invented cartoon eyes. Fine anatomical light sensors or arm-tip eyespots are not rendered as a central pair of eyes.
+Art uses transparent 64×64 sprites with binary alpha and nearest-neighbor 128×128 display. Creatures without a visible face have no invented cartoon eyes. Fine anatomical light sensors or arm-tip eyespots are not rendered as a central pair of eyes.
 
 The cleanup pass reduces scattered speckling into larger connected color areas, while retaining identifying shell patterns, spots, fins, and tentacles. Edited sources and prompts are preserved in `art/source-references/reef-cleanup/`. The same no-cartoon-face rule also applies to the existing Sea Star, Sea Urchin, and Crown-of-Thorns artwork.
 
@@ -16,4 +16,4 @@ Card definitions: `src/game/data/reefArtCards.ts`.
 
 Preparation and visual review: `scripts/prepare_reef_foundations.py`.
 
-Both turtle cards use user-supplied 64×64 sprites in `art/source-references/user-supplied/`. The Green Sea Turtle is horizontally mirrored to face right; the Hawksbill already faces right. Both are palette-normalized without scaling and retain explicit white eye highlights.
+Both turtle cards use user-supplied 64×64 sprites in `art/source-references/user-supplied/`. The Green Sea Turtle is horizontally mirrored to face right; the Hawksbill already faces right. No eye, palette, or drawing changes are added to either supplied sprite.

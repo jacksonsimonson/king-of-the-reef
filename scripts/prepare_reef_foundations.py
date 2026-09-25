@@ -44,8 +44,6 @@ EYES = {
     'spotted-eagle-ray': [(39,35)],
     'yellow-tang': [(19,31)],
     'blacktip-reef-shark': [(41,34)],
-    'green-sea-turtle': [(46,24)],
-    'hawksbill-sea-turtle': [(51,26)],
     'nurse-shark': [(44,43)],
     'stingray': [(35,35)],
 }
@@ -68,10 +66,8 @@ for source in review_sources:
         if direct[1]:
             original = ImageOps.mirror(original)
         alpha = original.getchannel('A').point(lambda value: 255 if value >= 128 else 0)
-        rgb = original.convert('RGB').quantize(
-            colors=7, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE,
-        ).convert('RGB')
-        Image.merge('RGBA', (*rgb.split(), alpha)).save(target, optimize=True)
+        original.putalpha(alpha)
+        original.save(target, optimize=True)
         continue
     with Image.open(source) as original:
         bounds = original.convert('RGBA').getchannel('A').point(lambda a: 255 if a >= 128 else 0).getbbox()
@@ -95,7 +91,8 @@ for index, source in enumerate(review_sources):
                     sprite.putpixel(point, darkest)
         sprite.putpixel(eye, (255,255,255,255))
         sprite.putpixel((eye[0],eye[1]+1), (255,255,255,255))
-    sprite.save(target)
+    if EYES.get(target.stem):
+        sprite.save(target)
     x, y = (index % 4)*300, (index // 4)*240
     sheet.paste(sprite.resize((192,192), Image.Resampling.NEAREST), (x,y), sprite.resize((192,192), Image.Resampling.NEAREST))
     sheet.paste(sprite, (x+200,y+64), sprite)
@@ -121,14 +118,15 @@ if '--check' in sys.argv:
     for card in cards:
         assert not card['edges'] and 'ability' not in card
         sprite = Image.open(ROOT / 'public/assets/fish' / f"{card['texture']}.png").convert('RGBA')
-        assert card['id'] in EYES or card['id'] in NO_FACE, f"Missing eye review: {card['id']}"
+        assert card['id'] in EYES or card['id'] in NO_FACE or card['id'] in USER_SOURCES, f"Missing eye review: {card['id']}"
         for eye in EYES.get(card['id'], []):
             assert sprite.getpixel(eye) == (255,255,255,255)
             assert sprite.getpixel((eye[0],eye[1]+1)) == (255,255,255,255)
         whites = sum(p == (255,255,255,255) for p in sprite.get_flattened_data())
         large = sprite.resize((128,128), Image.Resampling.NEAREST)
         assert sum(p == (255,255,255,255) for p in large.get_flattened_data()) == whites*4
-        assert len(sprite.getcolors(4096)) <= 9
+        if card['id'] not in USER_SOURCES:
+            assert len(sprite.getcolors(4096)) <= 9
     assert not NO_FACE.intersection(EYES), 'Do not inject facial eyes into these creatures'
     assert all(source.exists() for source in legacy), 'Missing existing-creature cleanup source'
     for source in legacy:
