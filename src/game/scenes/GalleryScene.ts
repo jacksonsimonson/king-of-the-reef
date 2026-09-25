@@ -6,13 +6,18 @@ import { cardDescription, EFFECT_HELP } from "../ui/cardVisuals";
 import { reefRarity } from "../data/reefPool";
 import { enabledTextures, toggleFish } from "../data/roster";
 import { REGIONS } from "../run/maps";
+import { REEF_ART_CARDS } from "../data/reefArtCards";
+
+const GALLERY_CARDS = [...STARTERS, ...REEF_ART_CARDS];
+const ART_TEXTURES = new Set(REEF_ART_CARDS.map((card) => card.texture));
 
 const CARD_SIZE = 144;
 const COLUMN_GAP = 24;
 const ROW_GAP = 128;
 const COLUMNS = 8;
 const START_Y = 164;
-export const GALLERY_HEIGHT = START_Y + Math.ceil(STARTERS.length / COLUMNS) * (CARD_SIZE + ROW_GAP) + 180;
+export const GALLERY_HEIGHT = START_Y + Math.ceil(GALLERY_CARDS.length / COLUMNS) * (CARD_SIZE + ROW_GAP) + 180;
+export const ROSTER_HEIGHT = START_Y + Math.ceil(STARTERS.length / COLUMNS) * (CARD_SIZE + ROW_GAP) + 180;
 const EFFECTS: Array<{ effect: EdgeEffect; label: string }> = [
   { effect: "standard", label: "STANDARD" },
   { effect: "double", label: "DOUBLE" },
@@ -30,28 +35,29 @@ export class GalleryScene extends Phaser.Scene {
 
   preload(): void {
     const base = import.meta.env.BASE_URL;
-    for (const fish of STARTERS) {
+    for (const fish of GALLERY_CARDS) {
       this.load.image(fish.texture, `${base}assets/fish/${fish.texture}.png`);
     }
   }
 
   create(): void {
     const rosterMode = window.location.hash === "#gallery-roster";
+    const definitions = rosterMode ? STARTERS : GALLERY_CARDS;
     this.add.existing(pixelPanel(this, this.scale.width / 2, 48, this.scale.width - 32, 80));
     const cards = this.add.container(0, 0);
     const enabled = new Set(enabledTextures());
     this.add.text(32, 26, rosterMode ? "BATTLE ROSTER" : "FISH GALLERY", this.textStyle(26, "#39ff14", true));
     this.add.text(32, 62, rosterMode
       ? `${enabled.size}/${STARTERS.length} enabled · Click to toggle for Quick Match and your next Voyage.`
-      : `${STARTERS.length} creatures · Hover cards or edge icons for their rules.`, this.textStyle(15, "#b8ffd0"));
-    const detail = this.add.text(32, GALLERY_HEIGHT - 92, rosterMode
+      : `${GALLERY_CARDS.length} creatures · ${REEF_ART_CARDS.length} new art previews awaiting abilities.`, this.textStyle(15, "#b8ffd0"));
+    const detail = this.add.text(32, (rosterMode ? ROSTER_HEIGHT : GALLERY_HEIGHT) - 92, rosterMode
       ? "Active Voyages keep their starting roster. New fish are enabled by default."
       : "Card backgrounds: Eyes = Revelation. Flags = Rally.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 64);
 
-    STARTERS.forEach((definition, index) => {
+    definitions.forEach((definition, index) => {
       const row = Math.floor(index / COLUMNS);
       const rowStart = row * COLUMNS;
-      const rowCards = Math.min(COLUMNS, STARTERS.length - rowStart);
+      const rowCards = Math.min(COLUMNS, definitions.length - rowStart);
       const rowWidth = rowCards * CARD_SIZE + (rowCards - 1) * COLUMN_GAP;
       const startX = Math.floor((this.scale.width - rowWidth) / 2) + CARD_SIZE / 2;
       const column = index % COLUMNS;
@@ -61,7 +67,7 @@ export class GalleryScene extends Phaser.Scene {
       const card = drawFishCard({ scene: this, container: cards, fish, x, y, size: CARD_SIZE });
       card.setInteractive().on("pointerover", () => detail.setText(rosterMode
         ? `${fish.name}: ${enabled.has(fish.texture) ? "Enabled" : "Disabled"}. ${cardDescription(fish)}`
-        : cardDescription(fish)));
+        : ART_TEXTURES.has(fish.texture) ? `${fish.name}: Art Preview. Arrows, abilities, and rarity will be designed later.` : cardDescription(fish)));
       if (rosterMode) card.on("pointerdown", () => {
         const result = toggleFish(fish.texture, REGIONS.map((region) => region.pool));
         if (!result.changed) { detail.setText(result.reason ?? "Roster unchanged."); return; }
@@ -70,7 +76,7 @@ export class GalleryScene extends Phaser.Scene {
       if (rosterMode && !enabled.has(fish.texture)) card.setAlpha(0.3);
       this.add.text(x, y + CARD_SIZE / 2 + 18, fish.name, this.textStyle(14, "#f2fff7", true))
         .setWordWrapWidth(160).setAlign("center").setOrigin(0.5, 0);
-      this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : reefRarity(fish.texture) ?? "Other Waters",
+      this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : ART_TEXTURES.has(fish.texture) ? "Art Preview" : reefRarity(fish.texture) ?? "Other Waters",
         this.textStyle(8, rosterMode ? (enabled.has(fish.texture) ? "#b8ffd0" : "#ff8b8b") : "#b8d7dc")).setOrigin(0.5, 0);
     });
 
