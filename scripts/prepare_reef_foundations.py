@@ -4,10 +4,14 @@ import math
 import json
 import re
 import sys
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 from prepare_generated_sprite import prepare
 
 ROOT = Path(__file__).resolve().parents[1]
+USER_SOURCES = {
+    'green-sea-turtle': (ROOT / 'art/source-references/user-supplied/green-sea-turtle-left-facing.png', True),
+    'hawksbill-sea-turtle': (ROOT / 'art/source-references/user-supplied/hawksbill-sea-turtle-right-facing.png', False),
+}
 NO_FACE = {
     'brain-coral', 'christmas-tree-worm', 'giant-clam', 'goose-neck-barnacle',
     'moon-jellyfish', 'barrel-sponge', 'chiton', 'feather-star', 'sea-anemone',
@@ -40,8 +44,8 @@ EYES = {
     'spotted-eagle-ray': [(39,35)],
     'yellow-tang': [(19,31)],
     'blacktip-reef-shark': [(41,34)],
-    'green-sea-turtle': [(51,27)],
-    'hawksbill-sea-turtle': [(50,18)],
+    'green-sea-turtle': [(46,24)],
+    'hawksbill-sea-turtle': [(51,26)],
     'nurse-shark': [(44,43)],
     'stingray': [(35,35)],
 }
@@ -49,11 +53,25 @@ sources = sorted((ROOT / 'art/source-references/reef-foundations').glob('*-gener
 legacy = [ROOT / 'art/source-references/reef-cleanup' / f'{name}-generated.png' for name in ('sea-star','crown-of-thorns','sea-urchin')]
 review_sources = sources + [source for source in legacy if source.exists()]
 for source in review_sources:
-    revised = ROOT / 'art/source-references/reef-cleanup' / source.name
-    if revised.exists():
-        source = revised
     target = ROOT / 'public/assets/fish' / source.name.replace('-generated', '')
+    direct = USER_SOURCES.get(target.stem)
+    direct_source = direct[0] if direct else None
+    revised = ROOT / 'art/source-references/reef-cleanup' / source.name
+    if direct_source:
+        source = direct_source
+    elif revised.exists():
+        source = revised
     if '--rebuild' not in sys.argv and target.exists() and target.stat().st_mtime >= source.stat().st_mtime:
+        continue
+    if direct_source:
+        original = Image.open(source).convert('RGBA')
+        if direct[1]:
+            original = ImageOps.mirror(original)
+        alpha = original.getchannel('A').point(lambda value: 255 if value >= 128 else 0)
+        rgb = original.convert('RGB').quantize(
+            colors=7, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE,
+        ).convert('RGB')
+        Image.merge('RGBA', (*rgb.split(), alpha)).save(target, optimize=True)
         continue
     with Image.open(source) as original:
         bounds = original.convert('RGBA').getchannel('A').point(lambda a: 255 if a >= 128 else 0).getbbox()

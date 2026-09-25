@@ -15,3 +15,5 @@ Source images and generation prompts: `art/source-references/reef-foundations/`.
 Card definitions: `src/game/data/reefArtCards.ts`.
 
 Preparation and visual review: `scripts/prepare_reef_foundations.py`.
+
+Both turtle cards use user-supplied 64×64 sprites in `art/source-references/user-supplied/`. The Green Sea Turtle is horizontally mirrored to face right; the Hawksbill already faces right. Both are palette-normalized without scaling and retain explicit white eye highlights.
