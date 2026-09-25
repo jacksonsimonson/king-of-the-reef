@@ -21,3 +21,5 @@ Both turtle cards use user-supplied 64×64 sprites in `art/source-references/use
 The Stingray also uses its supplied 64×64 sprite unchanged.
 
 Twelve additional cards use user-supplied sprites as their direct source. The Remora is the sole exception to unchanged orientation: its source is horizontally mirrored to face right. The preparation script adds no eye, palette, or drawing changes to supplied artwork.
+
+All directional source art faces right. Cowrie Snail, Crown Conch, Epaulette Shark, Porcupinefish, and Queen Angelfish are horizontally mirrored by the preparation script because their generated sources faced left. Direction-neutral and front-facing creatures are left in their natural orientation.

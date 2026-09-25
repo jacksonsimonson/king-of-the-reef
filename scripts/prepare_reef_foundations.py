@@ -25,6 +25,10 @@ USER_SOURCES = {
     'trumpetfish': (ROOT / 'art/source-references/user-supplied/trumpetfish.png', False),
     'yellow-tang': (ROOT / 'art/source-references/user-supplied/yellow-tang.png', False),
 }
+MIRROR_GENERATED = {
+    'cowrie-snail', 'crown-conch', 'epaulette-shark', 'porcupinefish',
+    'queen-angelfish',
+}
 NO_FACE = {
     'brain-coral', 'christmas-tree-worm', 'giant-clam', 'goose-neck-barnacle',
     'moon-jellyfish', 'barrel-sponge', 'chiton', 'feather-star', 'sea-anemone',
@@ -33,17 +37,17 @@ NO_FACE = {
     'sea-star', 'crown-of-thorns', 'sea-urchin',
 }
 EYES = {
-    'epaulette-shark': [(16,39)],
+    'epaulette-shark': [(47,39)],
     'coral-banded-shrimp': [(22,34),(25,32)],
-    'crown-conch': [(22,46)],
+    'crown-conch': [(41,46)],
     'spiny-lobster': [(39,33),(41,34)],
     'conch-snail': [(47,38),(51,40)],
-    'cowrie-snail': [(12,38)],
-    'porcupinefish': [(21,29)],
+    'cowrie-snail': [(51,38)],
+    'porcupinefish': [(42,29)],
     'horseshoe-crab': [(24,20),(38,20)],
     'blue-tang': [(49,31)],
     'clownfish': [(47,32)],
-    'queen-angelfish': [(11,31)],
+    'queen-angelfish': [(52,31)],
     'blacktip-reef-shark': [(41,34)],
     'nurse-shark': [(44,43)],
 }
@@ -73,6 +77,9 @@ for source in review_sources:
         bounds = original.convert('RGBA').getchannel('A').point(lambda a: 255 if a >= 128 else 0).getbbox()
         cluster = max(22, math.ceil(max(bounds[2]-bounds[0], bounds[3]-bounds[1]) / 56))
     prepare(source, target, cluster)
+    if target.stem in MIRROR_GENERATED:
+        mirrored = ImageOps.mirror(Image.open(target).convert('RGBA'))
+        mirrored.save(target, optimize=True)
 
 sheet = Image.new('RGB', (1200, max(1, math.ceil(len(review_sources)/4)) * 240), '#00233a')
 draw = ImageDraw.Draw(sheet)
@@ -128,6 +135,7 @@ if '--check' in sys.argv:
         if card['id'] not in USER_SOURCES:
             assert len(sprite.getcolors(4096)) <= 9
     assert not NO_FACE.intersection(EYES), 'Do not inject facial eyes into these creatures'
+    assert MIRROR_GENERATED <= set(ids), 'Mirrored creature missing from Reef art catalog'
     assert all(source.exists() for source in legacy), 'Missing existing-creature cleanup source'
     for source in legacy:
         sprite = Image.open(ROOT / 'public/assets/fish' / source.name.replace('-generated','')).convert('RGBA')
