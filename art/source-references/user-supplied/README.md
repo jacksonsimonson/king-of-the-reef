@@ -4,4 +4,6 @@
 
 `hawksbill-sea-turtle-right-facing.png` is the original 64×64 Hawksbill sprite supplied by the user. It already faces right and is used without eye, palette, or drawing changes.
 
+`stingray.png` is the original 64×64 Stingray sprite supplied by the user and is used without eye, palette, orientation, or drawing changes.
+
 `scripts/prepare_reef_foundations.py --rebuild --check` applies the orientation and prepares the game asset.

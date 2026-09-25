@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 USER_SOURCES = {
     'green-sea-turtle': (ROOT / 'art/source-references/user-supplied/green-sea-turtle-left-facing.png', True),
     'hawksbill-sea-turtle': (ROOT / 'art/source-references/user-supplied/hawksbill-sea-turtle-right-facing.png', False),
+    'stingray': (ROOT / 'art/source-references/user-supplied/stingray.png', False),
 }
 NO_FACE = {
     'brain-coral', 'christmas-tree-worm', 'giant-clam', 'goose-neck-barnacle',
@@ -45,7 +46,6 @@ EYES = {
     'yellow-tang': [(19,31)],
     'blacktip-reef-shark': [(41,34)],
     'nurse-shark': [(44,43)],
-    'stingray': [(35,35)],
 }
 sources = sorted((ROOT / 'art/source-references/reef-foundations').glob('*-generated.png'))
 legacy = [ROOT / 'art/source-references/reef-cleanup' / f'{name}-generated.png' for name in ('sea-star','crown-of-thorns','sea-urchin')]
