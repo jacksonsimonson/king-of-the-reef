@@ -9,9 +9,21 @@ from prepare_generated_sprite import prepare
 
 ROOT = Path(__file__).resolve().parents[1]
 USER_SOURCES = {
+    'arrow-crab': (ROOT / 'art/source-references/user-supplied/arrow-crab.png', False),
+    'bottlenose-dolphin': (ROOT / 'art/source-references/user-supplied/bottlenose-dolphin.png', False),
+    'butterflyfish': (ROOT / 'art/source-references/user-supplied/butterflyfish.png', False),
+    'cleaner-wrasse': (ROOT / 'art/source-references/user-supplied/cleaner-wrasse.png', False),
+    'clown-triggerfish': (ROOT / 'art/source-references/user-supplied/clown-triggerfish.png', False),
+    'flying-gurnard': (ROOT / 'art/source-references/user-supplied/flying-gurnard.png', False),
     'green-sea-turtle': (ROOT / 'art/source-references/user-supplied/green-sea-turtle-left-facing.png', True),
     'hawksbill-sea-turtle': (ROOT / 'art/source-references/user-supplied/hawksbill-sea-turtle-right-facing.png', False),
+    'moorish-idol': (ROOT / 'art/source-references/user-supplied/moorish-idol.png', False),
+    'pom-pom-crab': (ROOT / 'art/source-references/user-supplied/pom-pom-crab.png', False),
+    'remora': (ROOT / 'art/source-references/user-supplied/remora-left-facing.png', True),
+    'spotted-eagle-ray': (ROOT / 'art/source-references/user-supplied/spotted-eagle-ray.png', False),
     'stingray': (ROOT / 'art/source-references/user-supplied/stingray.png', False),
+    'trumpetfish': (ROOT / 'art/source-references/user-supplied/trumpetfish.png', False),
+    'yellow-tang': (ROOT / 'art/source-references/user-supplied/yellow-tang.png', False),
 }
 NO_FACE = {
     'brain-coral', 'christmas-tree-worm', 'giant-clam', 'goose-neck-barnacle',
@@ -21,29 +33,17 @@ NO_FACE = {
     'sea-star', 'crown-of-thorns', 'sea-urchin',
 }
 EYES = {
-    'pom-pom-crab': [(25,21),(37,21)],
-    'trumpetfish': [(44,31)],
     'epaulette-shark': [(16,39)],
-    'remora': [(9,34)],
-    'arrow-crab': [(29,29),(33,29)],
     'coral-banded-shrimp': [(22,34),(25,32)],
-    'flying-gurnard': [(43,32)],
     'crown-conch': [(22,46)],
     'spiny-lobster': [(39,33),(41,34)],
     'conch-snail': [(47,38),(51,40)],
     'cowrie-snail': [(12,38)],
     'porcupinefish': [(21,29)],
-    'cleaner-wrasse': [(51,31)],
-    'clown-triggerfish': [(48,30)],
     'horseshoe-crab': [(24,20),(38,20)],
-    'moorish-idol': [(18,36)],
     'blue-tang': [(49,31)],
-    'bottlenose-dolphin': [(44,23)],
-    'butterflyfish': [(43,34)],
     'clownfish': [(47,32)],
     'queen-angelfish': [(11,31)],
-    'spotted-eagle-ray': [(39,35)],
-    'yellow-tang': [(19,31)],
     'blacktip-reef-shark': [(41,34)],
     'nurse-shark': [(44,43)],
 }

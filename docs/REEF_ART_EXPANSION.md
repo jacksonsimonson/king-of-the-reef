@@ -19,3 +19,5 @@ Preparation and visual review: `scripts/prepare_reef_foundations.py`.
 Both turtle cards use user-supplied 64×64 sprites in `art/source-references/user-supplied/`. The Green Sea Turtle is horizontally mirrored to face right; the Hawksbill already faces right. No eye, palette, or drawing changes are added to either supplied sprite.
 
 The Stingray also uses its supplied 64×64 sprite unchanged.
+
+Twelve additional cards use user-supplied sprites as their direct source. The Remora is the sole exception to unchanged orientation: its source is horizontally mirrored to face right. The preparation script adds no eye, palette, or drawing changes to supplied artwork.
