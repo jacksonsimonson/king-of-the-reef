@@ -39,5 +39,11 @@ test("the supplied entries have approved art", () => {
     "bowhead-whale", "walrus", "ringed-seal", "polar-bear", "emperor-penguin", "atlantic-puffin",
     "king-crab", "antarctic-krill-swarm", "sea-angel", "colossal-squid", "leopard-seal",
     "lanternfish", "giant-oarfish", "viperfish", "barreleye", "anglerfish", "gulper-eel",
+    "goblin-shark", "vampire-squid", "giant-isopod", "dumbo-octopus",
   ]);
+});
+
+test("Arctic Cod is the only planned creature still awaiting art", () => {
+  const ready = new Set([...source.matchAll(/card\("([^"]+)"[^\n]+"ready"\)/g)].map((match) => match[1]));
+  assert.deepEqual(rows.filter((card) => !ready.has(card.texture)).map((card) => card.name), ["Arctic Cod"]);
 });

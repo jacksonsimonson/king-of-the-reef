@@ -76,10 +76,10 @@ export const OPEN_OCEAN_CARDS: readonly PlannedOpenOceanCard[] = [
   card("barreleye", "Barreleye", "midnight-trench", "fish", "Rare", "ready"),
   card("anglerfish", "Anglerfish", "midnight-trench", "fish", "Uncommon", "ready"),
   card("gulper-eel", "Gulper Eel", "midnight-trench", "fish", "Rare", "ready"),
-  card("goblin-shark", "Goblin Shark", "midnight-trench", "sharks-rays", "Extremely Rare"),
-  card("vampire-squid", "Vampire Squid", "midnight-trench", "cephalopods", "Rare"),
-  card("giant-isopod", "Giant Isopod", "midnight-trench", "crustaceans", "Uncommon"),
-  card("dumbo-octopus", "Dumbo Octopus", "midnight-trench", "cephalopods", "Rare"),
+  card("goblin-shark", "Goblin Shark", "midnight-trench", "sharks-rays", "Extremely Rare", "ready"),
+  card("vampire-squid", "Vampire Squid", "midnight-trench", "cephalopods", "Rare", "ready"),
+  card("giant-isopod", "Giant Isopod", "midnight-trench", "crustaceans", "Uncommon", "ready"),
+  card("dumbo-octopus", "Dumbo Octopus", "midnight-trench", "cephalopods", "Rare", "ready"),
 ] as const;
 
 export const OPEN_OCEAN_PLANNED_POOL = OPEN_OCEAN_CARDS.map((entry) => entry.texture);
