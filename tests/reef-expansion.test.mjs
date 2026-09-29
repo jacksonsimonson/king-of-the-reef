@@ -12,8 +12,8 @@ const directions = ['up', 'right', 'down', 'left'];
 const layout = card => directions.map(d => card.edges.find(e => e.direction === d)?.effect ?? 'blank').join('/');
 function storage() { const values = new Map(); globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; }
 
-test('all 81 cards have unique directional layouts, independent of full-card abilities', () => {
-  assert.equal(STARTERS.length, 81);
+test('all 124 cards have unique directional layouts, independent of full-card abilities', () => {
+  assert.equal(STARTERS.length, 124);
   const seen = new Map();
   for (const card of STARTERS) {
     assert.equal(new Set(card.edges.map(e => e.direction)).size, card.edges.length, card.name);

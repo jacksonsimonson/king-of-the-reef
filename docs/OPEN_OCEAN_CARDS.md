@@ -1,29 +1,65 @@
-# Open Ocean Card Foundation
+# Open Ocean Balance Plan
 
-The Open Ocean expansion begins with a deliberately varied roster of iconic animals rather than several near-identical species. The single tuna is Yellowfin Tuna. Sailfish and Blue Marlin are both retained as provisional billfish while the complete art roster is reviewed. The existing Ocean Sunfish remains part of this region and is not duplicated.
+43 supplied creatures become playable; Arctic Cod is removed. Existing Ocean Sunfish, Swordfish and Barracuda retain their shipped definitions and join the regional pool. No new full-card abilities.
 
-`src/game/data/openOceanCards.ts` is the canonical art intake manifest. Every planned creature already has a stable ID, future PNG filename, map zone, gallery type, and provisional rarity. New artwork should be a transparent, right-facing 64×64 PNG placed at `public/assets/fish/<texture>.png`, following `PIXEL_ART_GUIDE.md`.
+## Power budget
 
-These cards are **not playable yet**. They remain separate from `STARTERS` and the Open Ocean encounter pool until their artwork and edge layouts are approved. This prevents missing textures, unfinished cards, and save-file changes while art arrives. The manifest's rarity values are organizational starting points for the later balance pass.
+Common: one signature and at most one support edge. Uncommon: usually two special edges. Rare: two or three synergistic edges. Extremely Rare: three special edges. Every new card has a blank side. Bermuda retains room for four-sided offense and stronger combinations. Layouts remain unique across the entire catalog.
 
-The supplied art batches currently cover 43 of the 44 planned creatures across all three Open Ocean zones. Arctic Cod is the only entry still awaiting art. These sprites appear in the Creature Gallery as art previews but remain absent from the Battle Roster and all gameplay until the combat-design pass. The Whale Shark, Paper Nautilus, Emperor Penguin, and Atlantic Puffin sources faced left and are horizontally mirrored for the game; every other sprite is shipped exactly as supplied.
+Acquisition: 45% Common, 35% Uncommon, 18% Rare, 2% Extremely Rare. Within a tier, cards from the current map zone have double weight. Other zones remain available, so roster toggles cannot strand a route. Existing Voyages retain their old pool, definitions, prices and offers.
 
-## Planned distribution
+## Resolution
 
-| Zone | Purpose | New cards |
-| --- | --- | ---: |
-| Continental Shelf | Bright pelagic water and recognizable surface animals | 19 |
-| Polar Current | Cold-water creatures, ice wildlife, and polar icons | 15 |
-| Midnight Trench | Bioluminescent and pressure-adapted deep-sea creatures | 10 |
+Ram scans consecutive occupied tiles to the first gap, then attempts one Standard-strength push per creature, farthest-first. Defended targets stay put and may obstruct following pushes. Wave retains its three-ray behavior. Follow Current is Double-strength with a follow step after a successful push, including off-board pushes. Bounce attempts a Standard push and retreats even if blocked or no target exists, provided the retreat tile is empty and on-board. Dive jumps exactly one adjacent friendly or enemy creature into an empty on-board tile beyond it, ignoring every defense. Movement edges defend with Standard strength except Follow Current (Double strength).
 
-The planned manifest contains 44 new cards. Ocean Sunfish is already implemented, giving this provisional Open Ocean pass 45 represented creatures before final cuts.
+Edges resolve once in Up, Right, Down, Left order, from the card's current position. Moving does not restart effects. Spines retaliates against direct Ram, Bounce and Follow Current pushes; the attacker must survive to move itself. Dive causes no retaliation. Shock disables the new edges normally.
 
-## Art intake
+## Assignments
 
-1. Save the untouched source image under `art/source-references/user-supplied/open-ocean/` using the texture ID.
-2. Prepare a transparent 64×64 right-facing sprite without interpolation or fractional scaling.
-3. Add the finished sprite to `public/assets/fish/` under the exact manifest filename.
-4. Approve its edge layout and fishing movement.
-5. Promote the card into the playable roster and the appropriate Open Ocean acquisition pool.
+A = Standard, D = Double, S = Shield, B = Bigger Fish, W = Wave, R = Ram, F = Follow Current, O = Bounce, I = Dive, H = Hook, P = Spines.
 
-Existing saved Voyages must retain their original pool. Activation will therefore require an Open Ocean pool version, following the Reef pool-version pattern.
+| Creature | Rarity | Up | Right | Down | Left | Fishing |
+|---|---|---|---|---|---|---|
+| Yellowfin Tuna | Common | - | F | - | A | runner |
+| Mahi-Mahi | Uncommon | D | O | - | - | darter |
+| Wahoo | Uncommon | - | F | D | - | runner |
+| Flying Fish | Common | I | D | - | - | darter |
+| Sailfish | Rare | D | R | - | - | runner |
+| Blue Marlin | Rare | - | R | D | - | runner |
+| Great White Shark | Extremely Rare | B | B | - | D | runner |
+| Thresher Shark | Rare | - | D | - | W | runner |
+| Whale Shark | Rare | S | W | S | - | drifter |
+| Giant Oceanic Manta Ray | Rare | W | - | W | A | drifter |
+| Leatherback Sea Turtle | Uncommon | - | W | S | - | gradual |
+| Common Dolphin | Uncommon | I | F | - | - | darter |
+| Humpback Whale | Extremely Rare | W | R | W | - | drifter |
+| Orca | Extremely Rare | R | B | F | - | runner |
+| Portuguese Man-of-War | Uncommon | - | W | P | - | drifter |
+| Pelagic Octopus | Uncommon | I | - | H | O | darter |
+| Paper Nautilus | Rare | I | O | - | S | drifter |
+| Sea Snake | Rare | I | B | - | - | runner |
+| Albatross | Rare | O | F | - | I | runner |
+| Greenland Shark | Extremely Rare | S | B | - | W | lurker |
+| Narwhal | Rare | - | R | - | D | runner |
+| Beluga Whale | Uncommon | W | I | - | - | gradual |
+| Bowhead Whale | Extremely Rare | S | W | R | - | drifter |
+| Walrus | Rare | D | R | S | - | lurker |
+| Ringed Seal | Common | - | I | O | - | darter |
+| Polar Bear | Extremely Rare | B | D | - | S | lurker |
+| Emperor Penguin | Uncommon | - | F | I | - | runner |
+| Atlantic Puffin | Common | - | D | I | - | darter |
+| King Crab | Uncommon | R | - | D | S | lurker |
+| Antarctic Krill Swarm | Common | - | W | - | A | darter |
+| Sea Angel | Uncommon | O | - | I | - | drifter |
+| Colossal Squid | Extremely Rare | H | B | W | - | lurker |
+| Leopard Seal | Rare | - | B | I | - | runner |
+| Lanternfish | Common | - | O | - | A | gradual |
+| Giant Oarfish | Rare | W | - | O | W | drifter |
+| Viperfish | Uncommon | - | B | O | - | lurker |
+| Barreleye | Rare | I | O | - | D | gradual |
+| Anglerfish | Uncommon | - | H | B | - | lurker |
+| Gulper Eel | Rare | H | B | - | O | lurker |
+| Goblin Shark | Extremely Rare | - | B | R | O | lurker |
+| Vampire Squid | Rare | I | - | O | S | darter |
+| Giant Isopod | Uncommon | S | - | O | S | lurker |
+| Dumbo Octopus | Rare | I | - | W | O | drifter |

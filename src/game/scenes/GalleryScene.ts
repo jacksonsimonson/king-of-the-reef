@@ -7,12 +7,9 @@ import { reefRarity } from "../data/reefPool";
 import { enabledTextures, toggleFish } from "../data/roster";
 import { REGIONS } from "../run/maps";
 import { catalogSections } from "../data/galleryCatalog";
-import { OPEN_OCEAN_CARDS, plannedOpenOceanCard } from "../data/openOceanCards";
+import { oceanRarity } from "../data/oceanPool";
 
-const OPEN_OCEAN_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = OPEN_OCEAN_CARDS
-  .filter((fish) => fish.art === "ready")
-  .map((fish) => ({ id: fish.id, name: fish.name, species: "Open Ocean", texture: fish.texture, edges: [] }));
-const GALLERY_CARDS = [...STARTERS, ...OPEN_OCEAN_ART_CARDS];
+const GALLERY_CARDS = STARTERS;
 
 const CARD_SIZE = 144;
 const COLUMN_GAP = 24;
@@ -21,7 +18,7 @@ const COLUMNS = 8;
 const CARD_STEP = CARD_SIZE + ROW_GAP;
 const START_Y = 136;
 const SECTION_HEADING_HEIGHT = 72;
-const FOOTER_HEIGHT = 180;
+const FOOTER_HEIGHT = 310;
 function galleryHeight(cards: readonly Omit<FishCard, "owner" | "condition">[]): number {
   return START_Y + catalogSections(cards).reduce((height, section) => height + SECTION_HEADING_HEIGHT + Math.ceil(section.cards.length / COLUMNS) * CARD_STEP, 0) + FOOTER_HEIGHT;
 }
@@ -37,6 +34,10 @@ const EFFECTS: Array<{ effect: EdgeEffect; label: string }> = [
   { effect: "wave", label: "WAVE" },
   { effect: "shock", label: "SHOCK" },
   { effect: "spines", label: "SPINES" },
+  { effect: "ram", label: "RAM" },
+  { effect: "follow-current", label: "FOLLOW CURRENT" },
+  { effect: "bounce", label: "BOUNCE" },
+  { effect: "dive", label: "DIVE" },
 ];
 
 export class GalleryScene extends Phaser.Scene {
@@ -81,9 +82,7 @@ export class GalleryScene extends Phaser.Scene {
         const card = drawFishCard({ scene: this, container: cards, fish, x, y, size: CARD_SIZE });
         card.setInteractive().on("pointerover", () => detail.setText(rosterMode
           ? `${fish.name}: ${enabled.has(fish.texture) ? "Enabled" : "Disabled"}. ${cardDescription(fish)}`
-          : plannedOpenOceanCard(fish.texture)?.art === "ready"
-            ? `${fish.name}: Art ready · Edge abilities pending.`
-            : cardDescription(fish)));
+          : cardDescription(fish)));
         if (rosterMode) card.on("pointerdown", () => {
           const result = toggleFish(fish.texture, REGIONS.map((region) => region.pool));
           if (!result.changed) { detail.setText(result.reason ?? "Roster unchanged."); return; }
@@ -92,22 +91,23 @@ export class GalleryScene extends Phaser.Scene {
         if (rosterMode && !enabled.has(fish.texture)) card.setAlpha(0.3);
         this.add.text(x, y + CARD_SIZE / 2 + 18, fish.name, this.textStyle(14, "#f2fff7", true))
           .setWordWrapWidth(160).setAlign("center").setOrigin(0.5, 0);
-        this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : reefRarity(fish.texture) ?? plannedOpenOceanCard(fish.texture)?.rarity ?? "Other Waters",
+        this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : reefRarity(fish.texture) ?? oceanRarity(fish.texture) ?? "Other Waters",
           this.textStyle(8, rosterMode ? (enabled.has(fish.texture) ? "#b8ffd0" : "#ff8b8b") : "#b8d7dc")).setOrigin(0.5, 0);
       });
       sectionY += Math.ceil(section.cards.length / COLUMNS) * CARD_STEP;
     }
 
     if (rosterMode) return;
-    const legendY = GALLERY_HEIGHT - 170;
+    const legendY = GALLERY_HEIGHT - 260;
     const itemWidth = 140;
-    const legendWidth = EFFECTS.length * itemWidth;
+    const legendColumns = Math.max(1, Math.floor((this.scale.width - 64) / itemWidth));
+    const legendWidth = Math.min(EFFECTS.length, legendColumns) * itemWidth;
     const legendStart = Math.floor((this.scale.width - legendWidth) / 2) + itemWidth / 2;
     this.add.text(this.scale.width / 2, legendY - 40, "EDGE EFFECTS", this.textStyle(17, "#39ff14", true)).setOrigin(0.5);
     EFFECTS.forEach(({ effect, label }, index) => {
-      drawEffectBadge(this, effect, 30).setPosition(legendStart + index * itemWidth, legendY)
+      drawEffectBadge(this, effect, 30).setPosition(legendStart + (index % legendColumns) * itemWidth, legendY + Math.floor(index / legendColumns) * 70)
         .setSize(40, 40).setInteractive().on("pointerover", () => detail.setText(EFFECT_HELP[effect]));
-      this.add.text(legendStart + index * itemWidth, legendY + 24, label, this.textStyle(11, "#f2fff7", true)).setOrigin(0.5, 0);
+      this.add.text(legendStart + (index % legendColumns) * itemWidth, legendY + Math.floor(index / legendColumns) * 70 + 24, label, this.textStyle(11, "#f2fff7", true)).setOrigin(0.5, 0);
     });
   }
 

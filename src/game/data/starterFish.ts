@@ -1,9 +1,12 @@
 import { REEF_ART_CARDS } from "./reefArtCards.ts";
 import { REEF_DESIGNS } from "./reefDesigns.ts";
 
+import { OPEN_OCEAN_CARDS } from "./openOceanCards.ts";
+import { OCEAN_DESIGNS } from "./oceanDesigns.ts";
+
 export type Direction = "up" | "right" | "down" | "left";
 export type Owner = "player" | "rival";
-export type EdgeEffect = "standard" | "double" | "weak" | "bigger-fish" | "swap" | "hook" | "wave" | "shock" | "spines";
+export type EdgeEffect = "standard" | "double" | "weak" | "bigger-fish" | "swap" | "hook" | "wave" | "shock" | "spines" | "ram" | "follow-current" | "bounce" | "dive";
 export type Rarity = "Common" | "Uncommon" | "Rare" | "Extremely Rare";
 
 export interface CardEdge {
@@ -60,9 +63,17 @@ export const LEGACY_STARTERS: Omit<FishCard, "owner" | "condition">[] = [
   { id: "coral-grouper", name: "Coral Grouper", species: "Reef", texture: "coral-grouper", edges: standard("up", "right", "down"), ability: "rally" },
 ] satisfies Omit<FishCard, "owner" | "condition">[];
 
-export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [...LEGACY_STARTERS, ...REEF_ART_CARDS].map((fish) => ({
+export const PRE_OCEAN_STARTERS: Omit<FishCard, "owner" | "condition">[] = [...LEGACY_STARTERS, ...REEF_ART_CARDS].map((fish) => ({
   ...fish, edges: REEF_DESIGNS[fish.texture]?.edges ?? fish.edges,
 }));
+
+export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [
+  ...PRE_OCEAN_STARTERS,
+  ...OPEN_OCEAN_CARDS.map(fish => ({
+    id: fish.id, name: fish.name, texture: fish.texture, species: "Open Ocean",
+    edges: OCEAN_DESIGNS[fish.texture].edges,
+  })),
+];
 
 // Catalog that shipped before roster snapshots; keep its order stable for legacy saves.
 export const ORIGINAL_FISH_TEXTURES = STARTERS.slice(0, 27).map((fish) => fish.texture);
