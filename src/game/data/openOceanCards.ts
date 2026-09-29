@@ -70,12 +70,12 @@ export const OPEN_OCEAN_CARDS: readonly PlannedOpenOceanCard[] = [
   card("leopard-seal", "Leopard Seal", "polar-current", "reptiles-mammals", "Rare", "ready"),
 
   // Midnight Trench: bioluminescence, pressure specialists and abyssal forms.
-  card("lanternfish", "Lanternfish", "midnight-trench", "fish", "Common"),
-  card("giant-oarfish", "Giant Oarfish", "midnight-trench", "fish", "Rare"),
-  card("viperfish", "Viperfish", "midnight-trench", "fish", "Uncommon"),
-  card("barreleye", "Barreleye", "midnight-trench", "fish", "Rare"),
-  card("anglerfish", "Anglerfish", "midnight-trench", "fish", "Uncommon"),
-  card("gulper-eel", "Gulper Eel", "midnight-trench", "fish", "Rare"),
+  card("lanternfish", "Lanternfish", "midnight-trench", "fish", "Common", "ready"),
+  card("giant-oarfish", "Giant Oarfish", "midnight-trench", "fish", "Rare", "ready"),
+  card("viperfish", "Viperfish", "midnight-trench", "fish", "Uncommon", "ready"),
+  card("barreleye", "Barreleye", "midnight-trench", "fish", "Rare", "ready"),
+  card("anglerfish", "Anglerfish", "midnight-trench", "fish", "Uncommon", "ready"),
+  card("gulper-eel", "Gulper Eel", "midnight-trench", "fish", "Rare", "ready"),
   card("goblin-shark", "Goblin Shark", "midnight-trench", "sharks-rays", "Extremely Rare"),
   card("vampire-squid", "Vampire Squid", "midnight-trench", "cephalopods", "Rare"),
   card("giant-isopod", "Giant Isopod", "midnight-trench", "crustaceans", "Uncommon"),
