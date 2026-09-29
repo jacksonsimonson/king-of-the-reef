@@ -48,11 +48,13 @@ export function cardElement(fish: FishCard): HTMLElement {
     ctx.fillStyle = color;
     const rotation = edge.effect === "standard" || edge.effect === "double"
       ? { right: 0, down: 1, left: 2, up: 3 }[edge.direction] : 0;
-    patterns[edge.effect].forEach((row, y) => [...row].forEach((pixel, x) => {
+    const pattern = patterns[edge.effect];
+    const patternHeight = pattern.length;
+    pattern.forEach((row, y) => [...row].forEach((pixel, x) => {
       if (pixel !== "#") return;
       let px = x, py = y;
       for (let i = 0; i < rotation; i++) [px, py] = [7 - py, px];
-      ctx.fillRect(6 + px, 6 + py, 1, 1);
+      ctx.fillRect(Math.floor((20 - row.length) / 2) + px, Math.floor((20 - patternHeight) / 2) + py, 1, 1);
     }));
     card.append(badge);
   }
