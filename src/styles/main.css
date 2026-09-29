@@ -48,6 +48,9 @@ p { line-height: 24px; }
 .menu-button:hover::before { left: 20px; }
 #game, #gallery-game { width: 100%; overflow: auto; max-width: none; border: 8px solid #537f79; border-image: var(--frame) 8 / 8px / 0 repeat; background: #00233a; }
 #gallery-game { margin-top: 24px; }
+.gallery-tabs { display: flex; gap: 8px; margin-top: 24px; }
+.gallery-tabs a { min-width: 224px; padding: 12px 20px; color: #bad6c3; background: #173d47; border: 8px solid #537f79; border-image: var(--frame) 8 / 8px / 0 repeat; text-align: center; }
+.gallery-tabs a:hover, .gallery-tabs a:focus-visible { color: var(--gold); background: #315c55; }
 #game canvas, #gallery-game canvas { display: block; width: auto; height: auto; max-width: none; margin: 0 auto; image-rendering: pixelated; }
 .voyage-top { margin-bottom: 24px; }
 .voyage-regions { display: flex; gap: 8px; padding-bottom: 8px; }

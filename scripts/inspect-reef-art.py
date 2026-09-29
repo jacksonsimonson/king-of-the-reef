@@ -2,7 +2,8 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 ids = ["garden-eel", "hermit-crab", "flounder", "lionfish", "mantis-shrimp", "pufferfish", "boxfish", "needlefish", "seahorse", "electric-eel", "sea-urchin", "invisible-ink-squid", "moray-eel"]
-sheet = Image.new("RGB", (1120, 880), "#00233a")
+ids += ["parrotfish", "pistol-shrimp", "frogfish", "stonefish", "titan-triggerfish", "crown-of-thorns", "decorator-crab", "coral-grouper"]
+sheet = Image.new("RGB", (1120, ((len(ids) + 3) // 4) * 220), "#00233a")
 draw = ImageDraw.Draw(sheet)
 for i, name in enumerate(ids):
     sprite = Image.open(Path("public/assets/fish") / (name + ".png")).convert("RGBA")
@@ -14,7 +15,9 @@ for i, name in enumerate(ids):
     whites = [(px, py) for py in range(64) for px in range(64) if sprite.getpixel((px, py)) == (255,255,255,255)]
     assert sprite.size == (64, 64), name
     assert set(sprite.getchannel("A").get_flattened_data()) <= {0, 255}, name
-    assert len(whites) == (2 if name in ["hermit-crab", "flounder", "mantis-shrimp", "sea-urchin"] else 1), name
+    expected = 0 if name in ["sea-urchin", "crown-of-thorns"] else (2 if name in ["hermit-crab", "flounder", "mantis-shrimp", "pistol-shrimp", "decorator-crab"] else 1)
+    assert len(whites) == expected, name
+    assert sum(pixel == (255, 255, 255, 255) for pixel in large.get_flattened_data()) == len(whites) * 4, name
     assert len(sprite.getcolors(4096)) <= 9, name
     print(name, sprite.getbbox(), "white pixels", whites)
 Path(".cache").mkdir(exist_ok=True)

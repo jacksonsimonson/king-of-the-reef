@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import type { CardEdge, Direction, EdgeEffect, FishCard } from "../data/starterFish";
-import { SHOCK_PATTERN, SPINES_PATTERN, revelationPixels } from "./cardVisuals";
+import { SHOCK_PATTERN, SPINES_PATTERN, abilityPixels, abilityBackgroundColor } from "./cardVisuals";
 
 const COLORS = {
   deep: 0x00233a,
@@ -118,9 +118,9 @@ export function drawFishCard({
   });
 
   card.add([outer, inset]);
-  if (fish.ability === "revelation" && !silhouette) {
-    const pattern = scene.add.graphics().fillStyle(0x151d38).fillRect(-32 * integerScale, -32 * integerScale, 64 * integerScale, 64 * integerScale);
-    for (const p of revelationPixels()) pattern.fillStyle(p.color).fillRect((p.x - 32) * integerScale, (p.y - 32) * integerScale, integerScale, integerScale);
+  if (fish.ability && !silhouette) {
+    const pattern = scene.add.graphics().fillStyle(abilityBackgroundColor(fish.ability)).fillRect(-32 * integerScale, -32 * integerScale, 64 * integerScale, 64 * integerScale);
+    for (const p of abilityPixels(fish.ability)) pattern.fillStyle(p.color).fillRect((p.x - 32) * integerScale, (p.y - 32) * integerScale, integerScale, integerScale);
     card.add(pattern);
   }
   card.add([sprite, ...edgeBadges]);

@@ -1,9 +1,8 @@
-import { STARTERS } from "../data/starterFish.ts";
 import { FishingSession } from "../fishing/view.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
 import { CHARMS, CHARM_IDS, charmCanvas } from "../data/tideCharms.ts";
-import { shopOffers } from "./state.ts";
+import { shopOffers, runFishDefinition } from "./state.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { COLUMNS, REGIONS, SPACE_INFO, type Space } from "./maps.ts";
 import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
@@ -194,7 +193,7 @@ export class VoyageView {
         const pick = button("", () => this.resolve(offer.id), "catch-choice shop-offer");
         pick.dataset.offerId = offer.id;
         if (offer.kind === "fish") {
-          const fish = STARTERS.find((entry) => entry.texture === offer.texture)!;
+          const fish = runFishDefinition(run, offer.texture)!;
           pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("span", "offer-description", "Healthy Creature · Joins Your School"));
         } else {
           const art = element("span", "school-card-art charm-card"); art.append(charmCanvas(offer.charm, 8));
@@ -209,7 +208,7 @@ export class VoyageView {
       actions.append(button("Sail On", () => this.resolve("leave")));
     } else if (node.type === "fishing") {
       for (const texture of offers(run)) {
-        const fish = STARTERS.find((f) => f.texture === texture)!;
+        const fish = runFishDefinition(run, texture)!;
         const pick = button("", () => {
           if (beginFishing(run, texture)) { this.save(); this.openFishing(false); }
         }, "catch-choice");
@@ -267,7 +266,7 @@ export class VoyageView {
   private openFishing(resumed: boolean): void {
     const run = this.run, attempt = run?.fishing;
     if (!run || !attempt || this.fishing) return;
-    const fish = STARTERS.find((f) => f.texture === attempt.texture)!;
+    const fish = runFishDefinition(run, attempt.texture)!;
     this.fishing = new FishingSession({ ...fish, owner: "player", condition: "healthy" }, attempt.snapshot, run.seed, resumed,
       (snapshot) => { if (run.fishing?.nodeId === attempt.nodeId) { run.fishing.snapshot = snapshot; this.save(); } },
       (snapshot) => { finishFishing(run, snapshot); this.save(); },

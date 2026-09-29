@@ -15,6 +15,14 @@ DEFAULT_CLUSTER_SIZE = 20
 OPAQUE_THRESHOLD = 128
 OPAQUE_COLORS = 7
 CLUSTER_SIZE_OVERRIDES = {
+    "parrotfish-generated": 22,
+    "pistol-shrimp-generated": 22,
+    "frogfish-generated": 22,
+    "stonefish-generated": 22,
+    "titan-triggerfish-generated": 22,
+    "crown-of-thorns-generated": 22,
+    "decorator-crab-generated": 22,
+    "coral-grouper-generated": 22,
     "garden-eel-generated": 22,
     "hermit-crab-generated": 22,
     "flounder-generated": 22,
@@ -35,6 +43,13 @@ CLUSTER_SIZE_OVERRIDES = {
 # Coordinates refer to the final 64x64 canvas. Every side-profile creature must
 # finish with exactly one isolated white eye pixel in its visible eye socket.
 EYE_TOUCHUPS = {
+    "parrotfish-generated": {"eyes": [(46, 27)], "remove": []},
+    "pistol-shrimp-generated": {"eyes": [(30, 21), (36, 22)], "remove": []},
+    "frogfish-generated": {"eyes": [(40, 24)], "remove": []},
+    "stonefish-generated": {"eyes": [(47, 31)], "remove": []},
+    "titan-triggerfish-generated": {"eyes": [(48, 28)], "remove": []},
+    "decorator-crab-generated": {"eyes": [(35, 17), (44, 17)], "remove": []},
+    "coral-grouper-generated": {"eyes": [(48, 26)], "remove": []},
     "garden-eel-generated": {"eyes": [(45, 9)], "remove": []},
     "hermit-crab-generated": {"eyes": [(44, 18), (52, 20)], "remove": []},
     "flounder-generated": {"eyes": [(56, 28), (56, 33)], "remove": []},
@@ -45,7 +60,6 @@ EYE_TOUCHUPS = {
     "needlefish-generated": {"eyes": [(44, 31)], "remove": []},
     "seahorse-generated": {"eyes": [(36, 17)], "remove": []},
     "electric-eel-generated": {"eyes": [(49, 21)], "remove": []},
-    "sea-urchin-generated": {"eyes": [(24, 31), (37, 31)], "remove": []},
     "invisible-ink-squid-generated": {"eyes": [(35, 32)], "remove": []},
     "moray-eel-generated": {"eyes": [(47, 20)], "remove": []},
     "anchovy-generated": {"eyes": [(57, 32)], "remove": [(60, 33), (56, 34)]},

@@ -1,0 +1,5 @@
+{
+  "id": "conch-snail",
+  "eyes": true,
+  "prompt": "Edit this conch snail pixel-art game sprite. Keep its peach spiral shell and right-facing orientation. Clearly show a small snail head emerging from the lower right of the shell with two short sturdy eyestalks. Eyes should be prominent dark dots with tiny pure-white highlights, connected to the animal, not floating. Simplify shell markings to a few broad peach/coral bands with dark outlines, no speckle noise. Logical 64x64 pixel sprite enlarged in uniform square blocks, centered with 6 logical pixels of padding, 6 body colors and white eyes, transparent background. No antialiasing, gradients, text or scene."
+}

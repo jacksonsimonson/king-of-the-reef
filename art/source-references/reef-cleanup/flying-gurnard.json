@@ -1,0 +1,5 @@
+{
+  "id": "flying-gurnard",
+  "eyes": true,
+  "prompt": "Edit this existing flying gurnard game sprite. Keep the species, pose, orientation and recognizable silhouette. Clean up the pixel art: replace scattered speckle noise with a few large connected flat color clusters, simplify small markings, strong dark outline, maximum 6 body colors. Make its anatomically positioned visible eye prominent: a small pure-white 2-pixel highlight with a dark eye outline, clearly readable at 64px. Do not put eyes on shell or fins. Native logical 64x64 pixel art enlarged in exact uniform square blocks; creature occupies roughly 52x52 logical pixels, centered with padding. Actual transparent background. No antialiasing, gradients, blur, text, badges, background or new objects. "
+}

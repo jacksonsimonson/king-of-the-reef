@@ -1,3 +1,6 @@
+import { REEF_ART_CARDS } from "./reefArtCards.ts";
+import { REEF_DESIGNS } from "./reefDesigns.ts";
+
 export type Direction = "up" | "right" | "down" | "left";
 export type Owner = "player" | "rival";
 export type EdgeEffect = "standard" | "double" | "weak" | "bigger-fish" | "swap" | "hook" | "wave" | "shock" | "spines";
@@ -16,10 +19,10 @@ export interface FishCard {
   edges: CardEdge[];
   owner: Owner;
   condition: "healthy" | "killed";
-  ability?: "revelation";
+  ability?: "revelation" | "rally";
 }
 
-export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [
+export const LEGACY_STARTERS: Omit<FishCard, "owner" | "condition">[] = [
   { id: "minnow", name: "Minnow", species: "Shallows", texture: "minnow", edges: standard("up") },
   { id: "anchovy", name: "Anchovy", species: "Coast", texture: "anchovy", edges: standard("right") },
   { id: "sardine", name: "Sardine", species: "Open Water", texture: "sardine", edges: standard("down") },
@@ -47,7 +50,22 @@ export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [
   { id: "sea-urchin", name: "Sea Urchin", species: "Reef", texture: "sea-urchin", edges: ["up", "right", "down", "left"].map((d) => edge(d as Direction, "spines")) },
   { id: "invisible-ink-squid", name: "Invisible Ink Squid", species: "Reef", texture: "invisible-ink-squid", edges: [edge("up", "standard"), edge("down", "weak")], ability: "revelation" },
   { id: "moray-eel", name: "Moray Eel", species: "Reef", texture: "moray-eel", edges: [edge("right", "bigger-fish")] },
+  { id: "parrotfish", name: "Parrotfish", species: "Reef", texture: "parrotfish", edges: [edge("up", "double"), edge("down", "weak")] },
+  { id: "pistol-shrimp", name: "Pistol Shrimp", species: "Reef", texture: "pistol-shrimp", edges: [edge("right", "shock"), edge("down", "standard")] },
+  { id: "frogfish", name: "Frogfish", species: "Reef", texture: "frogfish", edges: [edge("left", "hook"), edge("right", "standard")] },
+  { id: "stonefish", name: "Stonefish", species: "Reef", texture: "stonefish", edges: [edge("left", "spines"), edge("right", "spines"), edge("down", "weak")] },
+  { id: "titan-triggerfish", name: "Titan Triggerfish", species: "Reef", texture: "titan-triggerfish", edges: [edge("left", "double"), edge("up", "standard"), edge("right", "weak")] },
+  { id: "crown-of-thorns", name: "Crown-of-Thorns Starfish", species: "Reef", texture: "crown-of-thorns", edges: [edge("left", "spines"), edge("right", "spines"), edge("up", "standard")] },
+  { id: "decorator-crab", name: "Decorator Crab", species: "Reef", texture: "decorator-crab", edges: [edge("up", "hook"), edge("left", "weak"), edge("right", "weak")] },
+  { id: "coral-grouper", name: "Coral Grouper", species: "Reef", texture: "coral-grouper", edges: standard("up", "right", "down"), ability: "rally" },
 ] satisfies Omit<FishCard, "owner" | "condition">[];
+
+export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [...LEGACY_STARTERS, ...REEF_ART_CARDS].map((fish) => ({
+  ...fish, edges: REEF_DESIGNS[fish.texture]?.edges ?? fish.edges,
+}));
+
+// Catalog that shipped before roster snapshots; keep its order stable for legacy saves.
+export const ORIGINAL_FISH_TEXTURES = STARTERS.slice(0, 27).map((fish) => fish.texture);
 
 function edge(direction: Direction, effect: EdgeEffect): CardEdge {
   return { direction, effect };

@@ -49,6 +49,10 @@ A 5×5 board creates space for maneuvering, specialized fish, and environmental 
 
 Powerups are now **Tide Charms**: consumable items used on the player's turn before placing a fish. Using a charm does not spend the fish placement; multiple charms may be used if their targets are valid. Shop stock, prices and the first four charms are described in [SHOPS.md](SHOPS.md).
 
+The Gallery includes a separate **Battle Roster** tab. Cards are divided into The Shoreline, Open Ocean, and Bermuda Triangle. Within each environment, related creatures remain next to one another in a consistent order: conventional fish, sharks and rays, reptiles and mammals, cephalopods, crustaceans, mollusks, echinoderms, jellies and anemones, corals and sponges, then curios. These types affect organization only and do not add visible subsections. Each fish can be enabled or disabled once per shared browser profile. Changes affect both Quick Match decks immediately. A Voyage snapshots the enabled roster when the run begins, so changes never rewrite an active or saved run; they apply when the next Voyage starts. Older saves retain the original complete roster. The UI keeps at least five fish available for battle and at least three distinct catches in each region.
+
+Reef now contains eight advanced Rare creatures, with the original Rare and Moray draw weights preserved. Coral Grouper introduces **Rally**: after pushing an enemy, inspect the next reserve card and keep it or send it to the bottom before the replacement draw. Its whole-card ability background uses flags; Revelation uses eyes. Full card definitions, balance roles and acquisition weights are in [REEF_CARDS.md](REEF_CARDS.md).
+
 ## Fish cards
 
 Every fish should have:
