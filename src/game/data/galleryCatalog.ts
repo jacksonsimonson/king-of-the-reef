@@ -1,5 +1,6 @@
 import type { FishCard } from "./starterFish";
 import { openOceanCard } from "./openOceanCards.ts";
+import { bermudaCard } from "./bermudaCards.ts";
 
 export type GalleryEnvironment = "shoreline" | "ocean" | "bermuda";
 type GalleryType = "fish" | "sharks-rays" | "reptiles-mammals" | "cephalopods" | "crustaceans" | "mollusks" | "echinoderms" | "jellies-anemones" | "corals-sponges" | "curios";
@@ -38,13 +39,13 @@ const TYPES: Partial<Record<string, GalleryType>> = {
 };
 
 export function galleryEnvironment(texture: string): GalleryEnvironment {
-  if (BERMUDA.has(texture)) return "bermuda";
+  if (BERMUDA.has(texture) || bermudaCard(texture)) return "bermuda";
   if (OPEN_OCEAN.has(texture) || openOceanCard(texture)) return "ocean";
   return "shoreline";
 }
 
 export function galleryType(texture: string): GalleryType {
-  return TYPES[texture] ?? openOceanCard(texture)?.type ?? "fish";
+  return TYPES[texture] ?? openOceanCard(texture)?.type ?? bermudaCard(texture)?.type ?? "fish";
 }
 
 export function catalogSections<T extends Pick<FishCard, "texture">>(cards: readonly T[]): Array<{ environment: typeof GALLERY_ENVIRONMENTS[number]; cards: T[] }> {

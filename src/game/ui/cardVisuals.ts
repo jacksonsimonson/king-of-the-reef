@@ -1,6 +1,7 @@
 import type { EdgeEffect, FishCard } from "../data/starterFish.ts";
 import { oceanRarity } from "../data/oceanPool.ts";
 import { reefRarity } from "../data/reefPool.ts";
+import { bermudaRarity } from "../data/bermudaPool.ts";
 
 export const OCEAN_PATTERNS = {
   ram: ["##.##...", "##.##.#.", "......##", "########", "########", "......##", "##.##.#.", "##.##..."],
@@ -30,7 +31,7 @@ export const EFFECT_HELP: Record<EdgeEffect, string> = {
   dive: "Dive: jump over an adjacent creature into an empty on-board tile; ignores all defenses",
 };
 export function cardDescription(card: FishCard): string {
-  const rarity = reefRarity(card.texture) ?? oceanRarity(card.texture);
+  const rarity = reefRarity(card.texture) ?? oceanRarity(card.texture) ?? bermudaRarity(card.texture);
   const effects = [...new Set(card.edges.map((edge) => edge.effect))];
   return [card.name + (rarity ? " (" + rarity + ")" : ""),
     ...effects.map((effect) => card.edges.filter((edge) => edge.effect === effect).map((edge) => edge.direction[0].toUpperCase() + edge.direction.slice(1)).join("/") + " — " + EFFECT_HELP[effect]),

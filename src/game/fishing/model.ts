@@ -1,5 +1,6 @@
 import { OCEAN_DESIGNS } from "../data/oceanDesigns.ts";
 import { REEF_DESIGNS } from "../data/reefDesigns.ts";
+import { BERMUDA_DESIGNS } from "../data/bermudaDesigns.ts";
 import type { RegionId } from "../run/maps.ts";
 
 export type Movement = "gradual" | "darter" | "runner" | "drifter" | "lurker";
@@ -26,6 +27,7 @@ for (const [texture, design] of Object.entries(REEF_DESIGNS)) {
   FISH_MOVEMENT[texture] ??= design.movement;
 }
 for (const [texture, design] of Object.entries(OCEAN_DESIGNS)) FISH_MOVEMENT[texture] = design.movement;
+for (const [texture, design] of Object.entries(BERMUDA_DESIGNS)) FISH_MOVEMENT[texture] = design.movement;
 export function movementFor(texture: string): Movement {
   const movement = FISH_MOVEMENT[texture];
   if (!movement) throw new Error("Assign a fishing movement pattern to " + texture);
