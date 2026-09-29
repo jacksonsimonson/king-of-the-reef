@@ -1,5 +1,7 @@
 # Reef Card Pool
 
+Current gameplay assignments supersede the historical notes below: see [Reef Edge Roster](REEF_EDGE_ROSTER.md). All 46 former art previews are now playable, bringing the Reef pool to 76 unique edge layouts.
+
 30 cards in the Shoreline/Reef pool: all 15 nonempty combinations of basic arrows, seven original specials, and eight advanced rares. There are 35 gallery entries across all regions. Existing creatures retain their edges and rarity.
 
 ## Basic Arrows

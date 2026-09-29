@@ -123,7 +123,7 @@ if '--check' in sys.argv:
     assert not existing.intersection(ids), 'Duplicate existing creature'
     assert set(ids) == {source.stem.removesuffix('-generated') for source in sources}
     for card in cards:
-        assert not card['edges'] and 'ability' not in card
+        assert card['edges'] and 'ability' not in card
         sprite = Image.open(ROOT / 'public/assets/fish' / f"{card['texture']}.png").convert('RGBA')
         assert card['id'] in EYES or card['id'] in NO_FACE or card['id'] in USER_SOURCES, f"Missing eye review: {card['id']}"
         for eye in EYES.get(card['id'], []):

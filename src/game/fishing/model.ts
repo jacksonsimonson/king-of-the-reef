@@ -1,3 +1,4 @@
+import { REEF_DESIGNS } from "../data/reefDesigns.ts";
 import type { RegionId } from "../run/maps.ts";
 
 export type Movement = "gradual" | "darter" | "runner" | "drifter" | "lurker";
@@ -20,6 +21,9 @@ export const FISH_MOVEMENT: Record<string, Movement> = {
   parrotfish: "gradual", "pistol-shrimp": "darter", frogfish: "lurker", stonefish: "lurker",
   "titan-triggerfish": "runner", "crown-of-thorns": "lurker", "decorator-crab": "lurker", "coral-grouper": "darter",
 };
+for (const [texture, design] of Object.entries(REEF_DESIGNS)) {
+  FISH_MOVEMENT[texture] ??= design.movement;
+}
 export function movementFor(texture: string): Movement {
   const movement = FISH_MOVEMENT[texture];
   if (!movement) throw new Error("Assign a fishing movement pattern to " + texture);

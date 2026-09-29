@@ -1,5 +1,7 @@
 # Reef Art Expansion
 
+Current gameplay assignments supersede the historical notes below: see [Reef Edge Roster](REEF_EDGE_ROSTER.md). All 46 former art previews are now playable, bringing the Reef pool to 76 unique edge layouts.
+
 This is an art-first expansion. New creatures appear as framed cards in the Gallery, labelled **Art Preview**, with empty edges and no card abilities. Rarity, fishing patterns, regional weights, and battle availability are deferred until the balance pass. They are intentionally separate from the playable roster and cannot alter saved Voyages.
 
 The approved 50-creature backlog was checked against `starterFish.ts`. Hermit Crab, Lionfish, Mantis Shrimp, and Pufferfish already exist and are excluded. The remaining 46 species have unique IDs and asset paths. Distinct relatives such as Hawksbill/Green Sea Turtle and Clown/Titan Triggerfish remain separate species.

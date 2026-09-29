@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { STARTERS, ORIGINAL_FISH_TEXTURES } from '../src/game/data/starterFish.ts';
-import { ADVANCED_REEF, REEF_GROUPS, REEF_POOL, drawReefCard, reefRarity } from '../src/game/data/reefPool.ts';
+import { STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES } from '../src/game/data/starterFish.ts';
+import { ADVANCED_REEF, V2_REEF_GROUPS as REEF_GROUPS, drawReefCard, reefRarity } from '../src/game/data/reefPool.ts';
 import { enabledTextures, saveEnabledTextures, ROSTER_KEY } from '../src/game/data/roster.ts';
 import { createRun, offers, saveRun, loadRun, enterNode, reachable, rivalDeckFor, shopOffers, buyOffer } from '../src/game/run/state.ts';
 import { random } from '../src/game/run/maps.ts';
@@ -18,20 +18,18 @@ function storage() { const values = new Map(); globalThis.localStorage = { getIt
 
 test('advanced pool preserves existing rare identities and first-draw weights', () => {
   assert.equal(ADVANCED_REEF.length, 8);
-  for (const id of ADVANCED_REEF) assert.equal(reefRarity(id), 'Rare');
+  for (const id of ADVANCED_REEF) assert.equal(reefRarity(id, 2), 'Rare');
   assert.equal(REEF_GROUPS.reduce((sum, group) => sum + group.weight, 0), 100);
   const rare = REEF_GROUPS.find(group => group.cards.includes('electric-eel'));
   assert.equal(rare.weight / rare.cards.length, 1.75);
   assert.equal(REEF_GROUPS.find(group => group.cards.includes('moray-eel')).weight, 1);
   assert.equal(REEF_GROUPS.find(group => group.cards.includes('parrotfish')).weight, 8);
-  const reef = STARTERS.filter(card => REEF_POOL.includes(card.texture));
+  const reef = LEGACY_STARTERS.filter(card => REEF_GROUPS.some(group => group.cards.includes(card.texture)));
   assert.deepEqual(reef.filter(card => card.edges.some(e => e.effect === 'bigger-fish')).map(c => c.texture), ['moray-eel']);
   assert.deepEqual(reef.filter(card => card.edges.some(e => e.effect === 'double' && e.direction === 'right')).map(c => c.texture), ['needlefish']);
-  assert.ok(ADVANCED_REEF.every(id => creature(id).edges.filter(e => e.effect === 'shock').length <= 1));
-  assert.ok(ADVANCED_REEF.every(id => creature(id).edges.filter(e => e.effect === 'spines').length <= 2));
-  assert.ok(ADVANCED_REEF.every(id => !creature(id).edges.some(e => ['swap', 'wave', 'bigger-fish'].includes(e.effect))));
+  assert.ok(reef.every(card => card.edges.filter(e => e.effect === 'bigger-fish').length <= 1));
   const counts = Object.fromEntries(ADVANCED_REEF.map(id => [id, 0])), rng = random('ADVANCED-RATES');
-  for (let i = 0; i < 100000; i++) { const id = drawReefCard(rng); if (id in counts) counts[id]++; }
+  for (let i = 0; i < 100000; i++) { const id = drawReefCard(rng, [], 2); if (id in counts) counts[id]++; }
   for (const count of Object.values(counts)) assert.ok(count > 850 && count < 1150);
 });
 

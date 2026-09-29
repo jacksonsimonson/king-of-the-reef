@@ -1,11 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { STARTERS } from "../src/game/data/starterFish.ts";
-import { REEF_ART_CARDS } from "../src/game/data/reefArtCards.ts";
 import { catalogSections, galleryType } from "../src/game/data/galleryCatalog.ts";
 
 test("gallery separates environments and keeps creature types contiguous", () => {
-  const cards = [...STARTERS, ...REEF_ART_CARDS];
+  const cards = STARTERS;
   const sections = catalogSections(cards);
   assert.deepEqual(sections.map(({ environment }) => environment.id), ["shoreline", "ocean", "bermuda"]);
   assert.deepEqual(sections.map(({ cards }) => cards.length), [75, 4, 2]);
