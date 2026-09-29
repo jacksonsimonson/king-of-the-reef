@@ -10,16 +10,16 @@ const COLORS = {
 };
 
 export const EFFECT_COLORS: Record<EdgeEffect, number> = {
-  ram: 0xf5a66c, "follow-current": 0x6be2b5, bounce: 0xffa6d1, dive: 0xb4a2ff,
+  ram: 0xff7a1a, "follow-current": 0x35b85a, bounce: 0xffa6d1, dive: 0x4659c7,
   standard: 0xf2fff7,
   double: 0x62e9ff,
-  weak: 0xffd65c,
+  weak: 0x77838d,
   "bigger-fish": 0xff6b5f,
   swap: 0xc987ff,
-  hook: 0xffa34d,
-  wave: 0x55bfff,
+  hook: 0xc7d0d9,
+  wave: 0x2979d9,
   shock: 0xfff080,
-  spines: 0xe8a0d7,
+  spines: 0xa58d72,
 };
 
 const VECTORS: Record<Direction, { row: number; column: number }> = {
