@@ -10,4 +10,6 @@ The Spotted Eagle Ray, Bottlenose Dolphin, Yellow Tang, Butterflyfish, Moorish I
 
 `remora-left-facing.png` is the supplied 64×64 Remora sprite. The game only mirrors it horizontally so the fish faces right.
 
+`needlefish.png` is the supplied 64×64 Needlefish sprite. It already faces right and is used unchanged.
+
 `scripts/prepare_reef_foundations.py --rebuild --check` applies the orientation and prepares the game asset.

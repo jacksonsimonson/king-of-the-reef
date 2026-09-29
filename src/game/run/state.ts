@@ -1,3 +1,4 @@
+import { drawOceanCard, LEGACY_OCEAN_POOL } from "../data/oceanPool.ts";
 import { STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
@@ -12,6 +13,7 @@ export interface Run {
   resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
   roster: string[];
   reefPoolVersion: 1 | 2 | 3;
+  oceanPoolVersion?: 1;
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
   charms: CharmId[];
   shop?: { nodeId: string; purchased: string[] };
@@ -28,7 +30,7 @@ export function recruit(run: Run, texture: string): void {
 export function createRun(seed: string): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i));
   const roster = enabledTextures();
-  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, oceanPoolVersion: 1, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   const enabled = new Set(roster);
   const preferred = ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"];
   const starting = [...preferred.filter((texture) => enabled.has(texture)), ...REGIONS[0].pool.filter((texture) => enabled.has(texture) && !preferred.includes(texture))].slice(0, 8);
@@ -48,13 +50,21 @@ export function enterNode(run: Run, id: string): boolean {
   run.pending = id;
   return true;
 }
+function regionPool(run: Run): readonly string[] {
+  return run.region === 1 && run.oceanPoolVersion !== 1 ? LEGACY_OCEAN_POOL : REGIONS[run.region].pool;
+}
 export function offers(run: Run): string[] {
   const enabled = new Set(run.roster);
-  const pool: string[] = REGIONS[run.region].pool.filter((texture) => enabled.has(texture));
+  const pool: string[] = regionPool(run).filter((texture) => enabled.has(texture));
   const rng = random(`${run.seed}:${run.pending}:offers`);
   if (run.region === 0) {
     const result: string[] = [];
     while (result.length < 3) result.push(drawReefCard(rng, [...result, ...REGIONS[0].pool.filter((texture) => !enabled.has(texture))], run.reefPoolVersion));
+    return result;
+  }
+  if (run.region === 1 && run.oceanPoolVersion === 1) {
+    const result: string[] = [];
+    while (result.length < Math.min(3, pool.length)) result.push(drawOceanCard(rng, run.roster, result, activeNode(run).column));
     return result;
   }
   for (let i = pool.length - 1; i > 0; i--) {
@@ -66,13 +76,13 @@ export function offers(run: Run): string[] {
 
 export function rivalDeckFor(run: Run): FishCard[] {
   const enabled = new Set(run.roster);
-  const pool = REGIONS[run.region].pool.filter((texture) => enabled.has(texture));
+  const pool = regionPool(run).filter((texture) => enabled.has(texture));
   const excluded = REGIONS[0].pool.filter((texture) => !enabled.has(texture));
   const rng = random(`${run.seed}:${run.pending}:rival`);
   const leader = ["octopus", "swordfish", "hypno-squid"][run.region];
   return Array.from({ length: 10 }, (_, i) => {
     const texture = activeNode(run).type === "boss" && i < 5 && enabled.has(leader)
-      ? leader : run.region === 0 ? drawReefCard(rng, excluded, run.reefPoolVersion) : pool[Math.floor(rng() * pool.length)];
+      ? leader : run.region === 0 ? drawReefCard(rng, excluded, run.reefPoolVersion) : run.region === 1 && run.oceanPoolVersion === 1 ? drawOceanCard(rng, run.roster, [], activeNode(run).column) : pool[Math.floor(rng() * pool.length)];
     return { ...runFishDefinition(run, texture)!, id: `rival-${i}`, owner: "rival", condition: "healthy" };
   });
 }
@@ -90,7 +100,7 @@ export function canRelease(run: Run, id: string): boolean {
 }
 export function shopOffers(run: Run): ShopOffer[] {
   if (!run.pending || activeNode(run).type !== "shop") return [];
-  return generateShop(run.seed, run.pending, run.region, offers(run), run.reefPoolVersion);
+  return generateShop(run.seed, run.pending, run.region, offers(run), run.reefPoolVersion, run.oceanPoolVersion === 1);
 }
 export function buyOffer(run: Run, id: string): boolean {
   if (run.status !== "active") return false;
@@ -214,6 +224,7 @@ export function loadRun(): Run | null {
     // Older voyages predate roster selection and retain the original full pool.
     run.roster ??= [...ORIGINAL_FISH_TEXTURES];
     run.reefPoolVersion ??= 1;
+    if (run.oceanPoolVersion !== undefined && run.oceanPoolVersion !== 1) return null;
     if (![1, 2, 3].includes(run.reefPoolVersion)) return null;
     if (!Array.isArray(run.roster) || run.roster.length < 5 || !run.roster.every((texture) => STARTERS.some((fish) => fish.texture === texture))) return null;
     if (run.shop && (run.shop.nodeId !== run.pending || activeNode(run).type !== "shop"

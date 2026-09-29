@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import type { CardEdge, Direction, EdgeEffect, FishCard } from "../data/starterFish";
-import { SHOCK_PATTERN, SPINES_PATTERN, abilityPixels, abilityBackgroundColor } from "./cardVisuals";
+import { OCEAN_PATTERNS, SHOCK_PATTERN, SPINES_PATTERN, abilityPixels, abilityBackgroundColor } from "./cardVisuals";
 
 const COLORS = {
   deep: 0x00233a,
@@ -10,15 +10,16 @@ const COLORS = {
 };
 
 export const EFFECT_COLORS: Record<EdgeEffect, number> = {
+  ram: 0xff7a1a, "follow-current": 0x35b85a, bounce: 0xffa6d1, dive: 0x4659c7,
   standard: 0xf2fff7,
   double: 0x62e9ff,
-  weak: 0xffd65c,
+  weak: 0x77838d,
   "bigger-fish": 0xff6b5f,
   swap: 0xc987ff,
-  hook: 0xffa34d,
-  wave: 0x55bfff,
+  hook: 0xaebbc6,
+  wave: 0x3d91e8,
   shock: 0xfff080,
-  spines: 0xe8a0d7,
+  spines: 0xa58d72,
 };
 
 const VECTORS: Record<Direction, { row: number; column: number }> = {
@@ -169,6 +170,7 @@ function directionAngle(direction: Direction): number {
 
 function drawEdgeIcon(scene: Phaser.Scene, effect: EdgeEffect, badgeSize: number): Phaser.GameObjects.Graphics {
   const color = EFFECT_COLORS[effect];
+  if (effect in OCEAN_PATTERNS) return drawPixelPattern(scene, OCEAN_PATTERNS[effect as keyof typeof OCEAN_PATTERNS], color, badgeSize);
   if (effect === "standard") return drawPixelPattern(scene, STANDARD_ARROW_PATTERN, color, badgeSize);
   if (effect === "double") return drawPixelPattern(scene, DOUBLE_ARROW_PATTERN, color, badgeSize);
   if (effect === "weak") return drawPixelPattern(scene, SHIELD_PATTERN, color, badgeSize);

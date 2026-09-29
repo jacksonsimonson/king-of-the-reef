@@ -1,3 +1,4 @@
+import { OCEAN_DESIGNS } from "../data/oceanDesigns.ts";
 import { REEF_DESIGNS } from "../data/reefDesigns.ts";
 import type { RegionId } from "../run/maps.ts";
 
@@ -24,6 +25,7 @@ export const FISH_MOVEMENT: Record<string, Movement> = {
 for (const [texture, design] of Object.entries(REEF_DESIGNS)) {
   FISH_MOVEMENT[texture] ??= design.movement;
 }
+for (const [texture, design] of Object.entries(OCEAN_DESIGNS)) FISH_MOVEMENT[texture] = design.movement;
 export function movementFor(texture: string): Movement {
   const movement = FISH_MOVEMENT[texture];
   if (!movement) throw new Error("Assign a fishing movement pattern to " + texture);

@@ -22,7 +22,9 @@ export function edgeBlocks(target: FishCard, incoming: Direction, effect: EdgeEf
   const defender = target.edges.find((edge) => edge.direction === DIRECTIONS[incoming].opposite);
   if (!defender || defender.effect === "shock" || defender.effect === "spines") return false;
   if (effect === "shock") return defender.effect === "weak";
-  if (effect === "double" || effect === "hook") return defender.effect !== "standard";
+  if (effect === "dive") return false;
+  if (effect === "double" || effect === "follow-current" || effect === "hook")
+    return !["standard", "bounce", "dive", "ram"].includes(defender.effect);
   return true;
 }
 
@@ -43,6 +45,22 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
   for (const edge of card.edges) {
     if (board[source]?.id !== card.id || shocked.has(card.id)) break;
     if (edge.effect === "weak" || edge.effect === "spines") continue;
+    if (edge.effect === "ram") {
+      const line: number[] = [];
+      for (let index = neighbor(source, edge.direction); index !== null && board[index]; index = neighbor(index, edge.direction)) line.push(index);
+      for (const index of line.reverse()) {
+        const target = board[index]!;
+        if (edgeBlocks(target, edge.direction, "ram", shocked)) continue;
+        const destination = neighbor(index, edge.direction);
+        if (destination !== null && board[destination]) continue;
+        board[index] = null;
+        if (destination !== null) board[destination] = target;
+        if (target.owner !== card.owner) pushedEnemies.add(target.id);
+        if (index === neighbor(source, edge.direction) && target.owner !== card.owner && !shocked.has(target.id)
+          && target.edges.some(e => e.direction === DIRECTIONS[edge.direction].opposite && e.effect === "spines")) board[source] = null;
+      }
+      continue;
+    }
     if (edge.effect === "wave") {
       const forward = DIRECTIONS[edge.direction];
       for (const spread of [-1, 0, 1]) {
@@ -64,7 +82,20 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
       continue;
     }
     const adjacent = neighbor(source, edge.direction);
-    if (adjacent === null) continue;
+    if (edge.effect === "dive") {
+      const destination = adjacent === null ? null : neighbor(adjacent, edge.direction);
+      if (adjacent !== null && board[adjacent] && destination !== null && !board[destination]) {
+        board[source] = null; board[destination] = card; source = destination;
+      }
+      continue;
+    }
+    const bounce = () => {
+      const back = neighbor(source, DIRECTIONS[edge.direction].opposite);
+      if (edge.effect === "bounce" && board[source]?.id === card.id && back !== null && !board[back]) {
+        board[source] = null; board[back] = card; source = back;
+      }
+    };
+    if (adjacent === null) { bounce(); continue; }
     if (edge.effect === "hook") {
       if (board[adjacent]) continue;
       const index = neighbor(adjacent, edge.direction);
@@ -75,22 +106,27 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
       continue;
     }
     const target = board[adjacent];
-    if (!target || edgeBlocks(target, edge.direction, edge.effect, shocked)) continue;
+    if (!target || edgeBlocks(target, edge.direction, edge.effect, shocked)) { bounce(); continue; }
     if (edge.effect === "shock") { shocked.add(target.id); continue; }
     if (edge.effect === "swap") {
       board[source] = target; board[adjacent] = card; source = adjacent;
       continue;
     }
     const destination = neighbor(adjacent, edge.direction);
-    if (destination !== null && board[destination]) continue;
-    if (target.owner !== card.owner && (edge.effect === "standard" || edge.effect === "double")) pushedEnemies.add(target.id);
+    if (destination !== null && board[destination]) { bounce(); continue; }
+    const directPush = ["standard", "double", "follow-current", "bounce"].includes(edge.effect);
+    if (target.owner !== card.owner && directPush) pushedEnemies.add(target.id);
     board[adjacent] = null;
     if (edge.effect !== "bigger-fish" && destination !== null) board[destination] = target;
     // Retaliation follows a successful direct enemy push, even when it kills the Urchin.
-    if ((edge.effect === "standard" || edge.effect === "double") && target.owner !== card.owner
+    if (directPush && target.owner !== card.owner
       && !shocked.has(target.id) && target.edges.some((e) => e.direction === DIRECTIONS[edge.direction].opposite && e.effect === "spines")) {
       board[source] = null;
     }
+    if (edge.effect === "follow-current" && board[source]?.id === card.id) {
+      board[source] = null; board[adjacent] = card; source = adjacent;
+    }
+    bounce();
   }
   return { board, shocked, killedIds: removedCardIds(before, board), pushedEnemyIds: [...pushedEnemies] };
 }

@@ -7,6 +7,7 @@ import { reefRarity } from "../data/reefPool";
 import { enabledTextures, toggleFish } from "../data/roster";
 import { REGIONS } from "../run/maps";
 import { catalogSections } from "../data/galleryCatalog";
+import { oceanRarity } from "../data/oceanPool";
 
 const GALLERY_CARDS = STARTERS;
 
@@ -17,7 +18,7 @@ const COLUMNS = 8;
 const CARD_STEP = CARD_SIZE + ROW_GAP;
 const START_Y = 136;
 const SECTION_HEADING_HEIGHT = 72;
-const FOOTER_HEIGHT = 180;
+const FOOTER_HEIGHT = 310;
 function galleryHeight(cards: readonly Omit<FishCard, "owner" | "condition">[]): number {
   return START_Y + catalogSections(cards).reduce((height, section) => height + SECTION_HEADING_HEIGHT + Math.ceil(section.cards.length / COLUMNS) * CARD_STEP, 0) + FOOTER_HEIGHT;
 }
@@ -33,6 +34,10 @@ const EFFECTS: Array<{ effect: EdgeEffect; label: string }> = [
   { effect: "wave", label: "WAVE" },
   { effect: "shock", label: "SHOCK" },
   { effect: "spines", label: "SPINES" },
+  { effect: "ram", label: "RAM" },
+  { effect: "follow-current", label: "FOLLOW CURRENT" },
+  { effect: "bounce", label: "BOUNCE" },
+  { effect: "dive", label: "DIVE" },
 ];
 
 export class GalleryScene extends Phaser.Scene {
@@ -54,7 +59,7 @@ export class GalleryScene extends Phaser.Scene {
     this.add.text(32, 26, rosterMode ? "BATTLE ROSTER" : "CREATURE GALLERY", this.textStyle(26, "#39ff14", true));
     this.add.text(32, 62, rosterMode
       ? `${enabled.size}/${STARTERS.length} enabled · Click to toggle for Quick Match and your next Voyage.`
-      : `${GALLERY_CARDS.length} playable creatures · Grouped by environment.`, this.textStyle(15, "#b8ffd0"));
+      : `${GALLERY_CARDS.length} creatures · Grouped by environment.`, this.textStyle(15, "#b8ffd0"));
     const detail = this.add.text(32, (rosterMode ? ROSTER_HEIGHT : GALLERY_HEIGHT) - 92, rosterMode
       ? "Active Voyages keep their starting roster. New fish are enabled by default."
       : "Card backgrounds: Eyes = Revelation. Flags = Rally.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 64);
@@ -86,22 +91,23 @@ export class GalleryScene extends Phaser.Scene {
         if (rosterMode && !enabled.has(fish.texture)) card.setAlpha(0.3);
         this.add.text(x, y + CARD_SIZE / 2 + 18, fish.name, this.textStyle(14, "#f2fff7", true))
           .setWordWrapWidth(160).setAlign("center").setOrigin(0.5, 0);
-        this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : reefRarity(fish.texture) ?? "Other Waters",
+        this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : reefRarity(fish.texture) ?? oceanRarity(fish.texture) ?? "Other Waters",
           this.textStyle(8, rosterMode ? (enabled.has(fish.texture) ? "#b8ffd0" : "#ff8b8b") : "#b8d7dc")).setOrigin(0.5, 0);
       });
       sectionY += Math.ceil(section.cards.length / COLUMNS) * CARD_STEP;
     }
 
     if (rosterMode) return;
-    const legendY = GALLERY_HEIGHT - 170;
+    const legendY = GALLERY_HEIGHT - 260;
     const itemWidth = 140;
-    const legendWidth = EFFECTS.length * itemWidth;
+    const legendColumns = Math.max(1, Math.floor((this.scale.width - 64) / itemWidth));
+    const legendWidth = Math.min(EFFECTS.length, legendColumns) * itemWidth;
     const legendStart = Math.floor((this.scale.width - legendWidth) / 2) + itemWidth / 2;
     this.add.text(this.scale.width / 2, legendY - 40, "EDGE EFFECTS", this.textStyle(17, "#39ff14", true)).setOrigin(0.5);
     EFFECTS.forEach(({ effect, label }, index) => {
-      drawEffectBadge(this, effect, 30).setPosition(legendStart + index * itemWidth, legendY)
+      drawEffectBadge(this, effect, 30).setPosition(legendStart + (index % legendColumns) * itemWidth, legendY + Math.floor(index / legendColumns) * 70)
         .setSize(40, 40).setInteractive().on("pointerover", () => detail.setText(EFFECT_HELP[effect]));
-      this.add.text(legendStart + index * itemWidth, legendY + 24, label, this.textStyle(11, "#f2fff7", true)).setOrigin(0.5, 0);
+      this.add.text(legendStart + (index % legendColumns) * itemWidth, legendY + Math.floor(index / legendColumns) * 70 + 24, label, this.textStyle(11, "#f2fff7", true)).setOrigin(0.5, 0);
     });
   }
 

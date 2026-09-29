@@ -1,3 +1,4 @@
+import { OCEAN_POOL } from "../data/oceanPool.ts";
 import { REEF_POOL } from "../data/reefPool.ts";
 
 export type Space = "start" | "battle" | "fishing" | "shop" | "event" | "hydration" | "release" | "boss";
@@ -18,7 +19,7 @@ export const SPACE_INFO: Record<Space, { name: string; color: string; descriptio
 export const SPACE_WEIGHTS = { battle: 38, fishing: 25, shop: 10, event: 12, hydration: 10, release: 5 };
 export const REGIONS = [
   { id: "shoreline", name: "The Shoreline", subtitle: "From warm shallows to the coral crown", boss: "Reef Colossal", zones: ["SUNLIT SHALLOWS", "TIDEPOOL GARDENS", "CORAL KINGDOM"], weights: SPACE_WEIGHTS, pool: REEF_POOL, accent: "#7fe5c0" },
-  { id: "ocean", name: "The Open Ocean", subtitle: "Follow the cold current into the abyss", boss: "Abyssal Colossal", zones: ["CONTINENTAL SHELF", "POLAR CURRENT", "MIDNIGHT TRENCH"], weights: SPACE_WEIGHTS, pool: ["sardine", "swordfish", "barracuda", "ocean-sunfish", "octopus", "lure"], accent: "#8ccdf3" },
+  { id: "ocean", name: "The Open Ocean", subtitle: "Follow the cold current into the abyss", boss: "Abyssal Colossal", zones: ["CONTINENTAL SHELF", "POLAR CURRENT", "MIDNIGHT TRENCH"], weights: SPACE_WEIGHTS, pool: OCEAN_POOL, accent: "#8ccdf3" },
   { id: "bermuda", name: "The Bermuda Triangle", subtitle: "Every current leads toward the impossible", boss: "Triangle Colossal", zones: ["THE WRECK FIELD", "STORM CONVERGENCE", "THE TRIANGLE'S HEART"], weights: SPACE_WEIGHTS, pool: ["hypno-squid", "lure", "barracuda", "swordfish", "ocean-sunfish"], accent: "#c6a5ff" },
 ] as const;
 

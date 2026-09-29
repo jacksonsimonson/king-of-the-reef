@@ -1,6 +1,13 @@
 import type { EdgeEffect, FishCard } from "../data/starterFish.ts";
+import { oceanRarity } from "../data/oceanPool.ts";
 import { reefRarity } from "../data/reefPool.ts";
 
+export const OCEAN_PATTERNS = {
+  ram: ["##.##...", "##.##.#.", "......##", "########", "########", "......##", "##.##.#.", "##.##..."],
+  "follow-current": ["#...#...", ".#...#..", "..#...#.", "...#...#", "...#...#", "..#...#.", ".#...#..", "#######."],
+  bounce: ["..####..", ".######.", ".....#..", "..###...", ".#......", "..###...", ".....#..", ".######."],
+  dive: [".#.#.#.#.#", "#.#.#.#.#.", "..........", ".....#....", "....#.....", "...#..#...", "....##....", "..######..", "...####...", "....#....."],
+};
 export const SHOCK_PATTERN = ["....##..", "...##...", "..##....", ".######.", "....##..", "...##...", "..##....", ".##....."];
 export const SPINES_PATTERN = ["#..##..#", ".#.##.#.", "..####..", "########", "########", "..####..", ".#.##.#.", "#..##..#"];
 export const ABILITY_HELP = {
@@ -9,17 +16,21 @@ export const ABILITY_HELP = {
 };
 export const EFFECT_HELP: Record<EdgeEffect, string> = {
   standard: "Standard: push 1; blocked by opposing defenses",
-  double: "Double: push 1; beats Standard",
-  weak: "Shield: blocks every edge effect; never pushes",
+  double: "Double: push 1; beats Standard, Ram, Bounce and Dive defenses",
+  weak: "Shield: blocks pushes and Shock; Dive passes through; never pushes",
   "bigger-fish": "Bite: kill if an undefended push would succeed",
   swap: "Swap: exchange with an adjacent undefended card",
   hook: "Hook: pull across 1 empty space; ignores Standard",
   wave: "Wave: push undefended cards on 3 rays; only kills off-board",
   shock: "Shock: disable adjacent edges for this battle; only Shield blocks; no defense",
-  spines: "Spines: no defense; after a successful enemy Standard/Double push, kill the attacker",
+  spines: "Spines: no defense; retaliates against direct Standard, Double, Ram, Follow Current and Bounce pushes",
+  ram: "Ram: push a contiguous line 1 tile, farthest first; opposing defenses block",
+  "follow-current": "Follow Current: Double-strength push, then follow into the vacated tile",
+  bounce: "Bounce: Standard push attempt, then retreat 1 empty on-board tile even if blocked",
+  dive: "Dive: jump over an adjacent creature into an empty on-board tile; ignores all defenses",
 };
 export function cardDescription(card: FishCard): string {
-  const rarity = reefRarity(card.texture);
+  const rarity = reefRarity(card.texture) ?? oceanRarity(card.texture);
   const effects = [...new Set(card.edges.map((edge) => edge.effect))];
   return [card.name + (rarity ? " (" + rarity + ")" : ""),
     ...effects.map((effect) => card.edges.filter((edge) => edge.effect === effect).map((edge) => edge.direction[0].toUpperCase() + edge.direction.slice(1)).join("/") + " — " + EFFECT_HELP[effect]),
