@@ -91,6 +91,8 @@ A Hydration space lets the player select up to three killed cards to restore. A 
 
 The playable [Voyage foundation](VOYAGE.md) now generates all three regions from a seed with weighted encounter types, guaranteed route milestones, persistent schools, and encounter rewards. Colossals are giant ocean creatures that rule parts of the sea; their identities and special mechanics will be designed separately.
 
+The first [Open Ocean card foundation](OPEN_OCEAN_CARDS.md) reserves stable identities, art filenames, gallery categories, provisional rarities, and zone assignments for 43 new creatures across the Continental Shelf, Polar Current, and Midnight Trench. Planned cards stay out of gameplay until their supplied art and edge designs are approved.
+
 ## Knockouts and recovery
 
 Fish killed by an edge ability or pushed off the playable board become unavailable during a run. Their status persists when the match ends. Hydration restores up to three selected cards; losses alone no longer kill reserve creatures.
