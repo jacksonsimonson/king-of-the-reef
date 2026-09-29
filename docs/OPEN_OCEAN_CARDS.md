@@ -1,22 +1,22 @@
 # Open Ocean Card Foundation
 
-The Open Ocean expansion begins with a deliberately varied roster of iconic animals rather than several near-identical species. The single tuna is Yellowfin Tuna. Sailfish represents the billfish silhouette; Blue Marlin is intentionally omitted. The existing Ocean Sunfish remains part of this region and is not duplicated.
+The Open Ocean expansion begins with a deliberately varied roster of iconic animals rather than several near-identical species. The single tuna is Yellowfin Tuna. Sailfish and Blue Marlin are both retained as provisional billfish while the complete art roster is reviewed. The existing Ocean Sunfish remains part of this region and is not duplicated.
 
 `src/game/data/openOceanCards.ts` is the canonical art intake manifest. Every planned creature already has a stable ID, future PNG filename, map zone, gallery type, and provisional rarity. New artwork should be a transparent, right-facing 64×64 PNG placed at `public/assets/fish/<texture>.png`, following `PIXEL_ART_GUIDE.md`.
 
 These cards are **not playable yet**. They remain separate from `STARTERS` and the Open Ocean encounter pool until their artwork and edge layouts are approved. This prevents missing textures, unfinished cards, and save-file changes while art arrives. The manifest's rarity values are organizational starting points for the later balance pass.
 
-The first supplied art batch covers Yellowfin Tuna, Mahi-Mahi, Wahoo, Flying Fish, Sailfish, Great White Shark, Thresher Shark, Whale Shark, Giant Oceanic Manta Ray, and Leatherback Sea Turtle. These sprites appear in the Creature Gallery as art previews but remain absent from the Battle Roster and all gameplay until the combat-design pass. The Whale Shark source faced left and is horizontally mirrored for the game; every other sprite is shipped exactly as supplied.
+The supplied art batches currently cover 22 creatures, from Yellowfin Tuna through Beluga Whale, with Arctic Cod intentionally still awaiting art. These sprites appear in the Creature Gallery as art previews but remain absent from the Battle Roster and all gameplay until the combat-design pass. The Whale Shark and Paper Nautilus sources faced left and are horizontally mirrored for the game; every other sprite is shipped exactly as supplied.
 
 ## Planned distribution
 
 | Zone | Purpose | New cards |
 | --- | --- | ---: |
-| Continental Shelf | Bright pelagic water and recognizable surface animals | 18 |
+| Continental Shelf | Bright pelagic water and recognizable surface animals | 19 |
 | Polar Current | Cold-water creatures, ice wildlife, and polar icons | 15 |
 | Midnight Trench | Bioluminescent and pressure-adapted deep-sea creatures | 10 |
 
-The planned manifest contains 43 new cards. Ocean Sunfish is already implemented, giving this Open Ocean pass 44 represented creatures before any later additions.
+The planned manifest contains 44 new cards. Ocean Sunfish is already implemented, giving this provisional Open Ocean pass 45 represented creatures before final cuts.
 
 ## Art intake
 
