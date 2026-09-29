@@ -440,7 +440,15 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
   "electric-eel": {
     "edges": [
       {
+        "direction": "up",
+        "effect": "shock"
+      },
+      {
         "direction": "right",
+        "effect": "shock"
+      },
+      {
+        "direction": "down",
         "effect": "shock"
       },
       {
@@ -450,7 +458,7 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
     ],
     "rarity": "Rare",
     "movement": "runner",
-    "rationale": "Fantasy Reef resident; two discharge directions"
+    "rationale": "Gimmick: electrical discharge threatens every adjacent side"
   },
   "sea-urchin": {
     "edges": [
