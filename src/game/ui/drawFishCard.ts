@@ -16,8 +16,8 @@ export const EFFECT_COLORS: Record<EdgeEffect, number> = {
   weak: 0x77838d,
   "bigger-fish": 0xff6b5f,
   swap: 0xc987ff,
-  hook: 0xc7d0d9,
-  wave: 0x2979d9,
+  hook: 0xaebbc6,
+  wave: 0x3d91e8,
   shock: 0xfff080,
   spines: 0xa58d72,
 };
