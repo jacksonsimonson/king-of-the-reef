@@ -7,8 +7,12 @@ import { reefRarity } from "../data/reefPool";
 import { enabledTextures, toggleFish } from "../data/roster";
 import { REGIONS } from "../run/maps";
 import { catalogSections } from "../data/galleryCatalog";
+import { OPEN_OCEAN_CARDS, plannedOpenOceanCard } from "../data/openOceanCards";
 
-const GALLERY_CARDS = STARTERS;
+const OPEN_OCEAN_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = OPEN_OCEAN_CARDS
+  .filter((fish) => fish.art === "ready")
+  .map((fish) => ({ id: fish.id, name: fish.name, species: "Open Ocean", texture: fish.texture, edges: [] }));
+const GALLERY_CARDS = [...STARTERS, ...OPEN_OCEAN_ART_CARDS];
 
 const CARD_SIZE = 144;
 const COLUMN_GAP = 24;
@@ -54,7 +58,7 @@ export class GalleryScene extends Phaser.Scene {
     this.add.text(32, 26, rosterMode ? "BATTLE ROSTER" : "CREATURE GALLERY", this.textStyle(26, "#39ff14", true));
     this.add.text(32, 62, rosterMode
       ? `${enabled.size}/${STARTERS.length} enabled · Click to toggle for Quick Match and your next Voyage.`
-      : `${GALLERY_CARDS.length} playable creatures · Grouped by environment.`, this.textStyle(15, "#b8ffd0"));
+      : `${GALLERY_CARDS.length} creatures · Grouped by environment.`, this.textStyle(15, "#b8ffd0"));
     const detail = this.add.text(32, (rosterMode ? ROSTER_HEIGHT : GALLERY_HEIGHT) - 92, rosterMode
       ? "Active Voyages keep their starting roster. New fish are enabled by default."
       : "Card backgrounds: Eyes = Revelation. Flags = Rally.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 64);
@@ -77,7 +81,9 @@ export class GalleryScene extends Phaser.Scene {
         const card = drawFishCard({ scene: this, container: cards, fish, x, y, size: CARD_SIZE });
         card.setInteractive().on("pointerover", () => detail.setText(rosterMode
           ? `${fish.name}: ${enabled.has(fish.texture) ? "Enabled" : "Disabled"}. ${cardDescription(fish)}`
-          : cardDescription(fish)));
+          : plannedOpenOceanCard(fish.texture)?.art === "ready"
+            ? `${fish.name}: Art ready · Edge abilities pending.`
+            : cardDescription(fish)));
         if (rosterMode) card.on("pointerdown", () => {
           const result = toggleFish(fish.texture, REGIONS.map((region) => region.pool));
           if (!result.changed) { detail.setText(result.reason ?? "Roster unchanged."); return; }
@@ -86,7 +92,7 @@ export class GalleryScene extends Phaser.Scene {
         if (rosterMode && !enabled.has(fish.texture)) card.setAlpha(0.3);
         this.add.text(x, y + CARD_SIZE / 2 + 18, fish.name, this.textStyle(14, "#f2fff7", true))
           .setWordWrapWidth(160).setAlign("center").setOrigin(0.5, 0);
-        this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : reefRarity(fish.texture) ?? "Other Waters",
+        this.add.text(x, y + CARD_SIZE / 2 + 88, rosterMode ? (enabled.has(fish.texture) ? "ENABLED" : "DISABLED") : reefRarity(fish.texture) ?? plannedOpenOceanCard(fish.texture)?.rarity ?? "Other Waters",
           this.textStyle(8, rosterMode ? (enabled.has(fish.texture) ? "#b8ffd0" : "#ff8b8b") : "#b8d7dc")).setOrigin(0.5, 0);
       });
       sectionY += Math.ceil(section.cards.length / COLUMNS) * CARD_STEP;

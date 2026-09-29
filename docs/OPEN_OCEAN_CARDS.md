@@ -6,7 +6,7 @@ The Open Ocean expansion begins with a deliberately varied roster of iconic anim
 
 These cards are **not playable yet**. They remain separate from `STARTERS` and the Open Ocean encounter pool until their artwork and edge layouts are approved. This prevents missing textures, unfinished cards, and save-file changes while art arrives. The manifest's rarity values are organizational starting points for the later balance pass.
 
-The first supplied art batch covers Yellowfin Tuna, Mahi-Mahi, Wahoo, Flying Fish, Sailfish, Great White Shark, Thresher Shark, Whale Shark, Giant Oceanic Manta Ray, and Leatherback Sea Turtle. These sprites are art-ready but remain inactive until the combat-design pass. The Whale Shark source faced left and is horizontally mirrored for the game; every other sprite is shipped exactly as supplied.
+The first supplied art batch covers Yellowfin Tuna, Mahi-Mahi, Wahoo, Flying Fish, Sailfish, Great White Shark, Thresher Shark, Whale Shark, Giant Oceanic Manta Ray, and Leatherback Sea Turtle. These sprites appear in the Creature Gallery as art previews but remain absent from the Battle Roster and all gameplay until the combat-design pass. The Whale Shark source faced left and is horizontally mirrored for the game; every other sprite is shipped exactly as supplied.
 
 ## Planned distribution
 
