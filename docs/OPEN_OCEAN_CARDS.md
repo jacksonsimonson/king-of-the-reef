@@ -6,7 +6,7 @@ The Open Ocean expansion begins with a deliberately varied roster of iconic anim
 
 These cards are **not playable yet**. They remain separate from `STARTERS` and the Open Ocean encounter pool until their artwork and edge layouts are approved. This prevents missing textures, unfinished cards, and save-file changes while art arrives. The manifest's rarity values are organizational starting points for the later balance pass.
 
-The supplied art batches currently cover 22 creatures, from Yellowfin Tuna through Beluga Whale, with Arctic Cod intentionally still awaiting art. These sprites appear in the Creature Gallery as art previews but remain absent from the Battle Roster and all gameplay until the combat-design pass. The Whale Shark and Paper Nautilus sources faced left and are horizontally mirrored for the game; every other sprite is shipped exactly as supplied.
+The supplied art batches currently cover 33 creatures across the Continental Shelf and Polar Current, with Arctic Cod intentionally still awaiting art. These sprites appear in the Creature Gallery as art previews but remain absent from the Battle Roster and all gameplay until the combat-design pass. The Whale Shark, Paper Nautilus, Emperor Penguin, and Atlantic Puffin sources faced left and are horizontally mirrored for the game; every other sprite is shipped exactly as supplied.
 
 ## Planned distribution
 

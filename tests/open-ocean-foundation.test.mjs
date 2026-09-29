@@ -36,5 +36,7 @@ test("the supplied entries have approved art", () => {
     "great-white-shark", "thresher-shark", "whale-shark", "giant-oceanic-manta-ray", "leatherback-sea-turtle",
     "common-dolphin", "humpback-whale", "orca", "portuguese-man-of-war", "pelagic-octopus", "paper-nautilus",
     "sea-snake", "albatross", "greenland-shark", "narwhal", "beluga-whale",
+    "bowhead-whale", "walrus", "ringed-seal", "polar-bear", "emperor-penguin", "atlantic-puffin",
+    "king-crab", "antarctic-krill-swarm", "sea-angel", "colossal-squid", "leopard-seal",
   ]);
 });
