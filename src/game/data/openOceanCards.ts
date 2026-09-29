@@ -18,7 +18,7 @@ export interface PlannedOpenOceanCard {
   zone: OpenOceanZone;
   type: OceanCreatureType;
   rarity: Rarity;
-  art: "awaiting-art";
+  art: "awaiting-art" | "ready";
 }
 
 const card = (
@@ -27,20 +27,21 @@ const card = (
   zone: OpenOceanZone,
   type: OceanCreatureType,
   rarity: Rarity,
-): PlannedOpenOceanCard => ({ id: texture, name, texture, zone, type, rarity, art: "awaiting-art" });
+  art: PlannedOpenOceanCard["art"] = "awaiting-art",
+): PlannedOpenOceanCard => ({ id: texture, name, texture, zone, type, rarity, art });
 
 export const OPEN_OCEAN_CARDS: readonly PlannedOpenOceanCard[] = [
   // Continental Shelf: recognizable pelagic animals and surface travelers.
-  card("yellowfin-tuna", "Yellowfin Tuna", "continental-shelf", "fish", "Common"),
-  card("mahi-mahi", "Mahi-Mahi", "continental-shelf", "fish", "Uncommon"),
-  card("wahoo", "Wahoo", "continental-shelf", "fish", "Uncommon"),
-  card("flying-fish", "Flying Fish", "continental-shelf", "fish", "Common"),
-  card("sailfish", "Sailfish", "continental-shelf", "fish", "Rare"),
-  card("great-white-shark", "Great White Shark", "continental-shelf", "sharks-rays", "Extremely Rare"),
-  card("thresher-shark", "Thresher Shark", "continental-shelf", "sharks-rays", "Rare"),
-  card("whale-shark", "Whale Shark", "continental-shelf", "sharks-rays", "Rare"),
-  card("giant-oceanic-manta-ray", "Giant Oceanic Manta Ray", "continental-shelf", "sharks-rays", "Rare"),
-  card("leatherback-sea-turtle", "Leatherback Sea Turtle", "continental-shelf", "reptiles-mammals", "Uncommon"),
+  card("yellowfin-tuna", "Yellowfin Tuna", "continental-shelf", "fish", "Common", "ready"),
+  card("mahi-mahi", "Mahi-Mahi", "continental-shelf", "fish", "Uncommon", "ready"),
+  card("wahoo", "Wahoo", "continental-shelf", "fish", "Uncommon", "ready"),
+  card("flying-fish", "Flying Fish", "continental-shelf", "fish", "Common", "ready"),
+  card("sailfish", "Sailfish", "continental-shelf", "fish", "Rare", "ready"),
+  card("great-white-shark", "Great White Shark", "continental-shelf", "sharks-rays", "Extremely Rare", "ready"),
+  card("thresher-shark", "Thresher Shark", "continental-shelf", "sharks-rays", "Rare", "ready"),
+  card("whale-shark", "Whale Shark", "continental-shelf", "sharks-rays", "Rare", "ready"),
+  card("giant-oceanic-manta-ray", "Giant Oceanic Manta Ray", "continental-shelf", "sharks-rays", "Rare", "ready"),
+  card("leatherback-sea-turtle", "Leatherback Sea Turtle", "continental-shelf", "reptiles-mammals", "Uncommon", "ready"),
   card("common-dolphin", "Common Dolphin", "continental-shelf", "reptiles-mammals", "Uncommon"),
   card("humpback-whale", "Humpback Whale", "continental-shelf", "reptiles-mammals", "Extremely Rare"),
   card("orca", "Orca", "continental-shelf", "reptiles-mammals", "Extremely Rare"),
