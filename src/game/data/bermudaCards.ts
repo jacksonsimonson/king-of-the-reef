@@ -26,6 +26,7 @@ export const BERMUDA_CARDS: readonly BermudaCard[] = [
   card("figurehead-fish", "Figurehead Fish", "wreck-field", "fish", "Uncommon"),
   card("ghost-net", "Ghost Net", "wreck-field", "curios", "Rare"),
   card("mimic-chest", "Mimic Chest", "wreck-field", "curios", "Extremely Rare"),
+  card("skeleton-fisherman", "Skeleton Fisherman", "wreck-field", "curios", "Rare"),
   card("bottomless-maw", "Bottomless Maw", "triangles-heart", "fish", "Extremely Rare"),
   card("lightning-marlin", "Lightning Marlin", "storm-convergence", "fish", "Rare"),
   card("thunder-jelly", "Thunder Jelly", "storm-convergence", "jellies-anemones", "Rare"),

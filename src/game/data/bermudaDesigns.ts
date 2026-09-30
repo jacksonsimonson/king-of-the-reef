@@ -12,6 +12,7 @@ export const BERMUDA_DESIGNS: Record<string, { edges: CardEdge[]; movement: Move
   "figurehead-fish": { edges: [{ direction: "up", effect: "weak" }, { direction: "right", effect: "double" }, { direction: "down", effect: "ram" }], movement: "gradual" },
   "ghost-net": { edges: [{ direction: "up", effect: "hook" }, { direction: "right", effect: "hook" }, { direction: "down", effect: "hook" }], movement: "drifter" },
   "mimic-chest": { edges: [{ direction: "up", effect: "weak" }, { direction: "right", effect: "bigger-fish" }, { direction: "down", effect: "weak" }, { direction: "left", effect: "weak" }], movement: "lurker" },
+  "skeleton-fisherman": { edges: [{ direction: "up", effect: "hook" }, { direction: "right", effect: "hook" }, { direction: "down", effect: "weak" }, { direction: "left", effect: "shock" }], movement: "lurker" },
   "bottomless-maw": { edges: [{ direction: "up", effect: "hook" }, { direction: "right", effect: "bigger-fish" }, { direction: "down", effect: "hook" }, { direction: "left", effect: "bigger-fish" }], movement: "lurker" },
   "lightning-marlin": { edges: [{ direction: "up", effect: "shock" }, { direction: "right", effect: "ram" }, { direction: "down", effect: "double" }], movement: "runner" },
   "thunder-jelly": { edges: [{ direction: "up", effect: "shock" }, { direction: "right", effect: "wave" }, { direction: "down", effect: "shock" }, { direction: "left", effect: "weak" }], movement: "drifter" },
