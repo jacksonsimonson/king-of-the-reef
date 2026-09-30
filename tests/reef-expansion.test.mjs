@@ -23,8 +23,8 @@ test('all 138 cards have unique directional layouts, independent of full-card ab
 });
 
 test('Reef special edges stay within the approved limits and named gimmicks', () => {
-  assert.equal(REEF_POOL.length, 76);
-  assert.equal(new Set(REEF_POOL).size, 76);
+  assert.equal(REEF_POOL.length, 77);
+  assert.equal(new Set(REEF_POOL).size, 77);
   const gimmicks = { boxfish: ['weak', 4], 'electric-eel': ['shock', 4], 'sea-urchin': ['spines', 4], 'giant-clam': ['weak', 3] };
   const normal = new Set(['minnow','anchovy','sardine','goby','blenny','flounder','clownfish','cleaner-wrasse','blue-tang','yellow-tang','butterflyfish','moorish-idol','queen-angelfish','coral-grouper','parrotfish']);
   for (const id of REEF_POOL) {

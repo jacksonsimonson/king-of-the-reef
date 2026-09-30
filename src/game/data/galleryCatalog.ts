@@ -17,7 +17,7 @@ const TYPE_ORDER: GalleryType[] = [
 ];
 
 const OPEN_OCEAN = new Set(["sardine", "swordfish", "barracuda", "ocean-sunfish"]);
-const BERMUDA = new Set(["hypno-squid", "lure"]);
+const BERMUDA = new Set(["hypno-squid"]);
 
 const TYPES: Partial<Record<string, GalleryType>> = {
   "blacktip-reef-shark": "sharks-rays", "nurse-shark": "sharks-rays", stingray: "sharks-rays",

@@ -21,7 +21,7 @@ export const SPACE_WEIGHTS = { battle: 38, fishing: 25, shop: 10, event: 12, hyd
 export const REGIONS = [
   { id: "shoreline", name: "The Shoreline", subtitle: "From warm shallows to the coral crown", boss: "Reef Colossal", zones: ["SUNLIT SHALLOWS", "TIDEPOOL GARDENS", "CORAL KINGDOM"], weights: SPACE_WEIGHTS, pool: REEF_POOL, accent: "#7fe5c0" },
   { id: "ocean", name: "The Open Ocean", subtitle: "Follow the cold current into the abyss", boss: "Abyssal Colossal", zones: ["CONTINENTAL SHELF", "POLAR CURRENT", "MIDNIGHT TRENCH"], weights: SPACE_WEIGHTS, pool: OCEAN_POOL, accent: "#8ccdf3" },
-  { id: "bermuda", name: "The Bermuda Triangle", subtitle: "Every current leads toward the impossible", boss: "Triangle Colossal", zones: ["THE WRECK FIELD", "STORM CONVERGENCE", "THE TRIANGLE'S HEART"], weights: SPACE_WEIGHTS, pool: ["hypno-squid", "lure", ...BERMUDA_POOL], accent: "#c6a5ff" },
+  { id: "bermuda", name: "The Bermuda Triangle", subtitle: "Every current leads toward the impossible", boss: "Triangle Colossal", zones: ["THE WRECK FIELD", "STORM CONVERGENCE", "THE TRIANGLE'S HEART"], weights: SPACE_WEIGHTS, pool: ["hypno-squid", ...BERMUDA_POOL], accent: "#c6a5ff" },
 ] as const;
 
 export function random(seed: string): () => number {
