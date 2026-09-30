@@ -7,7 +7,7 @@ test("gallery separates environments and keeps creature types contiguous", () =>
   const cards = STARTERS;
   const sections = catalogSections(cards);
   assert.deepEqual(sections.map(({ environment }) => environment.id), ["shoreline", "ocean", "bermuda"]);
-  assert.deepEqual(sections.map(({ cards }) => cards.length), [76, 48, 28]);
+  assert.deepEqual(sections.map(({ cards }) => cards.length), [76, 48, 38]);
   const flattened = sections.flatMap(({ cards }) => cards);
   assert.equal(flattened.length, cards.length);
   assert.equal(new Set(flattened.map(({ texture }) => texture)).size, cards.length);
