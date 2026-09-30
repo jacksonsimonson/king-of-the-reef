@@ -31,6 +31,7 @@ export const BERMUDA_DESIGNS: Record<string, { edges: CardEdge[]; movement: Move
   "triangle-shard": { edges: [{ direction: "up", effect: "dive" }, { direction: "right", effect: "swap" }, { direction: "down", effect: "shock" }, { direction: "left", effect: "hook" }], movement: "drifter" },
   "reef-titan": { edges: [{ direction: "up", effect: "spines" }, { direction: "right", effect: "bigger-fish" }, { direction: "down", effect: "wave" }, { direction: "left", effect: "ram" }], movement: "lurker" },
   "paradox-puffer": { edges: [{ direction: "up", effect: "bounce" }, { direction: "right", effect: "shock" }, { direction: "down", effect: "bigger-fish" }, { direction: "left", effect: "dive" }], movement: "darter" },
+  "map-serpent": { edges: [{ direction: "up", effect: "swap" }, { direction: "right", effect: "hook" }, { direction: "down", effect: "follow-current" }, { direction: "left", effect: "dive" }], movement: "drifter" },
   "lightning-marlin": { edges: [{ direction: "up", effect: "shock" }, { direction: "right", effect: "ram" }, { direction: "down", effect: "double" }], movement: "runner" },
   "thunder-jelly": { edges: [{ direction: "up", effect: "shock" }, { direction: "right", effect: "wave" }, { direction: "down", effect: "shock" }, { direction: "left", effect: "weak" }], movement: "drifter" },
   "squall-crab": { edges: [{ direction: "up", effect: "weak" }, { direction: "right", effect: "ram" }, { direction: "down", effect: "wave" }, { direction: "left", effect: "bounce" }], movement: "darter" },

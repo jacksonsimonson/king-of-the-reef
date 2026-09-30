@@ -6,9 +6,9 @@ import { STARTERS } from "../src/game/data/starterFish.ts";
 import { REGIONS } from "../src/game/run/maps.ts";
 import { movementFor } from "../src/game/fishing/model.ts";
 
-test("37 supplied Bermuda designs are playable regional cards", () => {
-  assert.equal(BERMUDA_CARDS.length, 37);
-  assert.equal(new Set(BERMUDA_POOL).size, 37);
+test("38 Bermuda designs are playable regional cards", () => {
+  assert.equal(BERMUDA_CARDS.length, 38);
+  assert.equal(new Set(BERMUDA_POOL).size, 38);
   for (const data of BERMUDA_CARDS) {
     const card = STARTERS.find(card => card.texture === data.texture);
     assert.ok(card, data.name);

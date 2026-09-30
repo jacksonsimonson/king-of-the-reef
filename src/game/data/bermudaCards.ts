@@ -45,6 +45,7 @@ export const BERMUDA_CARDS: readonly BermudaCard[] = [
   card("triangle-shard", "Triangle Shard", "triangles-heart", "curios", "Extremely Rare"),
   card("reef-titan", "Reef Titan", "triangles-heart", "crustaceans", "Extremely Rare"),
   card("paradox-puffer", "Paradox Puffer", "triangles-heart", "fish", "Rare"),
+  card("map-serpent", "Map Serpent", "triangles-heart", "curios", "Extremely Rare"),
   card("lightning-marlin", "Lightning Marlin", "storm-convergence", "fish", "Rare"),
   card("thunder-jelly", "Thunder Jelly", "storm-convergence", "jellies-anemones", "Rare"),
   card("squall-crab", "Squall Crab", "storm-convergence", "crustaceans", "Extremely Rare"),
