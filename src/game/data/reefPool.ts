@@ -15,7 +15,7 @@ export const V2_REEF_GROUPS = [
   { weight: 8, rarity: "Rare" as const, cards: ADVANCED_REEF },
 ];
 export const REEF_GROUPS = ([ [47, "Common"], [37, "Uncommon"], [15, "Rare"], [1, "Extremely Rare"] ] as [number, Rarity][]).map(([weight, rarity]) => ({
-  weight, rarity, cards: Object.keys(REEF_DESIGNS).filter((id) => REEF_DESIGNS[id].rarity === rarity),
+  weight, rarity, cards: [...Object.keys(REEF_DESIGNS).filter((id) => REEF_DESIGNS[id].rarity === rarity), ...(rarity === "Uncommon" ? ["lure"] : [])],
 }));
 export const REEF_POOL = REEF_GROUPS.flatMap((group) => group.cards);
 export function reefRarity(texture: string, version: 1 | 2 | 3 = 3): Rarity | undefined {

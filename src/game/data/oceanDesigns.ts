@@ -21,6 +21,7 @@ export const OCEAN_DESIGNS: Record<string, { edges: CardEdge[]; movement: Moveme
   "paper-nautilus": { edges: [{ direction: "up", effect: "dive" }, { direction: "right", effect: "bounce" }, { direction: "left", effect: "weak" }], movement: "drifter" },
   "sea-snake": { edges: [{ direction: "up", effect: "dive" }, { direction: "right", effect: "bigger-fish" }], movement: "runner" },
   "albatross": { edges: [{ direction: "up", effect: "bounce" }, { direction: "right", effect: "follow-current" }, { direction: "left", effect: "dive" }], movement: "runner" },
+  "sea-mine": { edges: [{ direction: "up", effect: "spines" }, { direction: "right", effect: "spines" }, { direction: "left", effect: "spines" }], movement: "drifter" },
   "greenland-shark": { edges: [{ direction: "up", effect: "weak" }, { direction: "right", effect: "bigger-fish" }, { direction: "left", effect: "wave" }], movement: "lurker" },
   "narwhal": { edges: [{ direction: "right", effect: "ram" }, { direction: "left", effect: "double" }], movement: "runner" },
   "beluga-whale": { edges: [{ direction: "up", effect: "wave" }, { direction: "right", effect: "dive" }], movement: "gradual" },

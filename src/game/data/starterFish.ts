@@ -3,6 +3,8 @@ import { REEF_DESIGNS } from "./reefDesigns.ts";
 
 import { OPEN_OCEAN_CARDS } from "./openOceanCards.ts";
 import { OCEAN_DESIGNS } from "./oceanDesigns.ts";
+import { BERMUDA_CARDS } from "./bermudaCards.ts";
+import { BERMUDA_DESIGNS } from "./bermudaDesigns.ts";
 
 export type Direction = "up" | "right" | "down" | "left";
 export type Owner = "player" | "rival";
@@ -72,6 +74,10 @@ export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [
   ...OPEN_OCEAN_CARDS.map(fish => ({
     id: fish.id, name: fish.name, texture: fish.texture, species: "Open Ocean",
     edges: OCEAN_DESIGNS[fish.texture].edges,
+  })),
+  ...BERMUDA_CARDS.map(fish => ({
+    id: fish.id, name: fish.name, texture: fish.texture, species: "Bermuda Triangle",
+    edges: BERMUDA_DESIGNS[fish.texture].edges,
   })),
 ];
 
