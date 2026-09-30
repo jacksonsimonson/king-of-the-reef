@@ -42,6 +42,7 @@ export const OPEN_OCEAN_CARDS: readonly OpenOceanCard[] = [
   card("paper-nautilus", "Paper Nautilus", "continental-shelf", "mollusks", "Rare"),
   card("sea-snake", "Sea Snake", "continental-shelf", "reptiles-mammals", "Rare"),
   card("albatross", "Albatross", "continental-shelf", "curios", "Rare"),
+  card("sea-mine", "Sea Mine", "continental-shelf", "curios", "Rare"),
 
   // Polar Current: cold-water fish, ice wildlife and unmistakable polar icons.
   card("greenland-shark", "Greenland Shark", "polar-current", "sharks-rays", "Extremely Rare"),

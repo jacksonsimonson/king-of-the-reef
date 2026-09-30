@@ -27,10 +27,22 @@ export const BERMUDA_CARDS: readonly BermudaCard[] = [
   card("ghost-net", "Ghost Net", "wreck-field", "curios", "Rare"),
   card("mimic-chest", "Mimic Chest", "wreck-field", "curios", "Extremely Rare"),
   card("skeleton-fisherman", "Skeleton Fisherman", "wreck-field", "curios", "Rare"),
+  card("drowned-diver", "Drowned Diver", "wreck-field", "curios", "Rare"),
+  card("buoy-jelly", "Buoy Jelly", "wreck-field", "jellies-anemones", "Uncommon"),
+  card("bonefish", "Bonefish", "wreck-field", "fish", "Rare"),
+  card("ghost-ship", "Ghost Ship", "wreck-field", "curios", "Extremely Rare"),
   card("bottomless-maw", "Bottomless Maw", "triangles-heart", "fish", "Extremely Rare"),
+  card("void-angler", "Void Angler", "triangles-heart", "fish", "Extremely Rare"),
+  card("phantom-shark", "Phantom Shark", "triangles-heart", "sharks-rays", "Rare"),
+  card("living-whirlpool", "Living Whirlpool", "triangles-heart", "curios", "Extremely Rare"),
+  card("abyssal-spadefish", "Abyssal Spadefish", "triangles-heart", "fish", "Rare"),
+  card("mobius-eel", "Mobius Eel", "triangles-heart", "fish", "Extremely Rare"),
   card("lightning-marlin", "Lightning Marlin", "storm-convergence", "fish", "Rare"),
   card("thunder-jelly", "Thunder Jelly", "storm-convergence", "jellies-anemones", "Rare"),
   card("squall-crab", "Squall Crab", "storm-convergence", "crustaceans", "Extremely Rare"),
+  card("tempest-seahorse", "Tempest Seahorse", "storm-convergence", "fish", "Rare"),
+  card("stormfin-tuna", "Stormfin Tuna", "storm-convergence", "fish", "Rare"),
+  card("stormback-whale", "Stormback Whale", "storm-convergence", "curios", "Extremely Rare"),
 ] as const;
 
 export const BERMUDA_POOL = BERMUDA_CARDS.map(card => card.texture);
