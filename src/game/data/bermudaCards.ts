@@ -54,6 +54,10 @@ export const BERMUDA_CARDS: readonly BermudaCard[] = [
   card("reef-titan", "Reef Titan", "triangles-heart", "crustaceans", "Extremely Rare"),
   card("paradox-puffer", "Paradox Puffer", "triangles-heart", "fish", "Rare"),
   card("map-serpent", "Map Serpent", "triangles-heart", "curios", "Extremely Rare"),
+  card("red-door", "The Red Door", "triangles-heart", "curios", "Extremely Rare"),
+  card("bottle-ocean", "Bottle Ocean", "triangles-heart", "curios", "Extremely Rare"),
+  card("split-timeline-shark", "Split-Timeline Shark", "triangles-heart", "sharks-rays", "Rare"),
+  card("abyssal-sharktopus", "Abyssal Sharktopus", "triangles-heart", "cephalopods", "Extremely Rare"),
 ] as const;
 
 export const BERMUDA_POOL = BERMUDA_CARDS.map(card => card.texture);
