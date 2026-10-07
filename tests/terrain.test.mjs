@@ -9,7 +9,7 @@ const state = (entries = {}, rocks = [8], whirlpools = [6, 19]) => ({ board: Obj
 test('regional terrain avoids reefs, overlaps, and board boundaries', () => {
   for (const region of ['shoreline', 'ocean', 'bermuda']) {
     const terrain = battleTerrain(region), cells = [...terrain.rocks, ...terrain.whirlpools, ...terrain.features.keys()];
-    assert.equal(new Set(cells).size, 6);
+    assert.equal(new Set(cells).size, region === 'shoreline' ? 9 : 6);
     assert.ok(cells.every(i => i >= 0 && i < 25 && ![2, 11, 18].includes(i)));
     assert.deepEqual(battleTerrain(region), terrain);
   }
@@ -29,7 +29,7 @@ test('kelp anchors forced movement but allows shock and predation', () => {
 });
 test('tide channel carries direct placement toward a reef, but cannot overwrite a card', () => {
   const input = state({}, [], [0, 24]), placed = fish('placed');
-  input.terrain.features = new Map([[10, 'channel']]);
+  input.terrain.features = new Map([[10, 'channel-right']]);
   assert.equal(resolvePlacement(input, 10, placed).board[11], placed);
   input.board[11] = fish('target');
   assert.equal(resolvePlacement(input, 10, placed).board[10], placed);
@@ -77,16 +77,58 @@ test('rocks and invalid indices reject placement without mutating state', () => 
   for (const index of [8, -1, 25, 1.5]) assert.throws(() => resolvePlacement(input, index, fish('placed')));
   assert.ok(input.board.every(card => card === null));
 });
-test('teleport resolves edges at the exit and does not count travel as a casualty', () => {
-  const target = fish('target'), placed = fish('placed', 'standard', 'left');
-  const input = state({ 18: target });
+test('whirlpool resolves edges at the entrance before travelling once', () => {
+  const target = fish('target'), placed = fish('placed', 'standard');
+  const input = state({ 7: target }, []);
   const result = resolvePlacement(input, 6, placed);
   assert.equal(result.board[19], placed);
-  assert.equal(result.board[17], target);
+  assert.equal(result.board[8], target);
   assert.equal(result.board[6], null);
   assert.deepEqual(result.killedIds, []);
-  assert.equal(input.board[18], target);
-  assert.equal(placementDestination(input.board, 6, input.terrain), 19);
+  assert.equal(input.board[7], target);
+  assert.equal(placementDestination(input.board, 6, input.terrain), 6);
+});
+
+test('whirlpool checks exit occupancy after edges, without firing edges again', () => {
+  const placed = fish('placed', 'standard'), target = fish('target');
+  const result = resolvePlacement(state({ 7: target }, [], [6, 7]), 6, placed);
+  assert.equal(result.board[7], placed);
+  assert.equal(result.board[8], target);
+  assert.equal(result.board[9], null);
+  const blocked = resolvePlacement(state({ 8: target }, [], [6, 7]), 6, fish('placed', 'hook'));
+  assert.equal(blocked.board[6].id, 'placed');
+  assert.equal(blocked.board[7], target);
+});
+
+test('whirlpool cannot resurrect a killed card or retrieve one that moved off its entrance', () => {
+  const input = state({ 7: fish('target') }, []);
+  const dive = resolvePlacement(input, 6, fish('placed', 'dive'));
+  assert.equal(dive.board[8].id, 'placed');
+  assert.equal(dive.board[19], null);
+  input.board[7] = fish('target', 'spines', 'left');
+  const killed = resolvePlacement(input, 6, fish('placed', 'standard'));
+  assert.deepEqual(killed.killedIds, ['placed']);
+  assert.equal(killed.board[19], null);
+});
+
+test('all four tide directions work, stop at edges without wrapping, and respect blockers', () => {
+  for (const [direction, exit, boundary] of [['up', 7, 2], ['right', 13, 14], ['down', 17, 22], ['left', 11, 10]]) {
+    const input = state({}, [], [0, 24]), placed = fish('placed');
+    input.terrain.features = new Map([[12, `channel-${direction}`], [boundary, `channel-${direction}`]]);
+    assert.equal(placementDestination(input.board, 12, input.terrain), exit);
+    assert.equal(resolvePlacement(input, 12, placed).board[exit], placed);
+    assert.equal(resolvePlacement(input, boundary, placed).board[boundary], placed);
+    input.board[exit] = fish('target');
+    assert.equal(resolvePlacement(input, 12, placed).board[12], placed);
+    input.board[exit] = null; input.terrain.rocks.add(exit);
+    assert.equal(resolvePlacement(input, 12, placed).board[12], placed);
+  }
+});
+
+test('channel arrival on a whirlpool does not chain into teleportation', () => {
+  const input = state({}, [], [13, 24]), placed = fish('placed');
+  input.terrain.features = new Map([[12, 'channel-right']]);
+  assert.equal(resolvePlacement(input, 12, placed).board[13], placed);
 });
 test('occupied exit keeps placement at entrance; reverse travel works once', () => {
   const input = state({ 19: fish('target') }), placed = fish('placed');

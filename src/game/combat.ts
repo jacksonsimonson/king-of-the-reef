@@ -36,8 +36,9 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
   const pushedEnemies = new Set<string>();
   if (!Number.isInteger(placedIndex) || placedIndex < 0 || placedIndex >= board.length || board[placedIndex] || (state.terrain && blocksPlacement(state.terrain, placedIndex))) throw new Error("Placement requires an empty water tile");
   const feature = state.terrain?.features?.get(placedIndex);
+  const poolEntry = state.terrain?.whirlpools.includes(placedIndex) ? placedIndex : null;
   card = placementCard(card, placedIndex, state.terrain);
-  placedIndex = placementDestination(board, placedIndex, state.terrain);
+  placedIndex = placementDestination(board, placedIndex, state.terrain, size);
   board[placedIndex] = card;
   const before = [...board];
   const offset = (index: number, dr: number, dc: number): number | null => {
@@ -162,5 +163,13 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     bounce();
   }
   sink();
+  if (state.terrain && poolEntry !== null && board[poolEntry]?.id === card.id) {
+    const [a, b] = state.terrain.whirlpools;
+    const exit = poolEntry === a ? b : a;
+    if (exit !== null && !board[exit] && !blocksPlacement(state.terrain, exit)) {
+      board[poolEntry] = null;
+      board[exit] = card;
+    }
+  }
   return { board, shocked, killedIds: removedCardIds(before, board), pushedEnemyIds: [...pushedEnemies] };
 }
