@@ -13,7 +13,7 @@ const state = (...entries) => ({ board: Object.assign(Array(25).fill(null), Obje
 
 test("Reef keeps all 15 basic arrow combinations alongside its special cards", () => {
   const cards = STARTERS.filter((f) => REEF_POOL.includes(f.texture));
-  assert.equal(cards.length, 76);
+  assert.equal(cards.length, 77);
   const masks = cards.filter((f) => f.edges.every((e) => e.effect === "standard")).map((f) => f.edges.reduce((mask, e) => mask | (1 << ["up", "right", "down", "left"].indexOf(e.direction)), 0));
   assert.deepEqual(masks.sort((a, b) => a - b), Array.from({ length: 15 }, (_, i) => i + 1));
 });

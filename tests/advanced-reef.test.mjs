@@ -94,7 +94,7 @@ test('new fish default enabled while old toggle choices survive catalog expansio
 
 test('rival schools and Colossals honor the saved roster through all regions', () => {
   storage(); const run = createRun('RIVALS');
-  run.roster = ['minnow', 'anchovy', 'goby', 'sardine', 'lure', 'ocean-sunfish', 'barracuda'];
+  run.roster = ['minnow', 'anchovy', 'goby', 'sardine', 'lure', 'ocean-sunfish', 'barracuda', 'anchor-crab', 'shipwreck-moray', 'chain-catshark'];
   for (let region = 0; region < 3; region++) {
     run.region = region; run.current = run.maps[region].nodes[0].id;
     for (const type of ['battle', 'boss']) {
@@ -119,7 +119,7 @@ test('legacy voyages preserve seeded offers and stock across the new weight tabl
 });
 
 test('a small regional roster still starts eight enabled cards with unique identities', () => {
-  storage(); saveEnabledTextures(['sardine', 'octopus', 'lure', 'barracuda', 'swordfish', 'hypno-squid', 'minnow']);
+  storage(); saveEnabledTextures(['sardine', 'octopus', 'lure', 'barracuda', 'swordfish', 'hypno-squid', 'minnow', 'anchor-crab', 'shipwreck-moray']);
   const run = createRun('SMALL');
   assert.equal(run.school.length, 8); assert.equal(new Set(run.school.map(c => c.id)).size, 8);
   assert.ok(run.school.every(card => run.roster.includes(card.texture)));

@@ -12,8 +12,8 @@ const directions = ['up', 'right', 'down', 'left'];
 const layout = card => directions.map(d => card.edges.find(e => e.direction === d)?.effect ?? 'blank').join('/');
 function storage() { const values = new Map(); globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; }
 
-test('all 124 cards have unique directional layouts, independent of full-card abilities', () => {
-  assert.equal(STARTERS.length, 124);
+test('all 167 cards have unique directional layouts, independent of full-card abilities', () => {
+  assert.equal(STARTERS.length, 167);
   const seen = new Map();
   for (const card of STARTERS) {
     assert.equal(new Set(card.edges.map(e => e.direction)).size, card.edges.length, card.name);
@@ -23,8 +23,8 @@ test('all 124 cards have unique directional layouts, independent of full-card ab
 });
 
 test('Reef special edges stay within the approved limits and named gimmicks', () => {
-  assert.equal(REEF_POOL.length, 76);
-  assert.equal(new Set(REEF_POOL).size, 76);
+  assert.equal(REEF_POOL.length, 77);
+  assert.equal(new Set(REEF_POOL).size, 77);
   const gimmicks = { boxfish: ['weak', 4], 'electric-eel': ['shock', 4], 'sea-urchin': ['spines', 4], 'giant-clam': ['weak', 3] };
   const normal = new Set(['minnow','anchovy','sardine','goby','blenny','flounder','clownfish','cleaner-wrasse','blue-tang','yellow-tang','butterflyfish','moorish-idol','queen-angelfish','coral-grouper','parrotfish']);
   for (const id of REEF_POOL) {

@@ -16,8 +16,8 @@ const state = (...entries) => ({board:Object.assign(Array(25).fill(null),Object.
 const actor = effect => fish("actor",[edge("right",effect)],"player");
 function storage(){const m=new Map();globalThis.localStorage={getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v)};}
 
-test("43 ocean cards have art, gameplay, fishing and blank sides; no placeholders",()=>{
-  assert.equal(OPEN_OCEAN_CARDS.length,43);
+test("44 ocean cards have art, gameplay, fishing and blank sides; no placeholders",()=>{
+  assert.equal(OPEN_OCEAN_CARDS.length,44);
   for(const data of OPEN_OCEAN_CARDS){
     const c=STARTERS.find(c=>c.texture===data.texture);
     assert.ok(c.edges.length>0&&c.edges.length<=3,data.name);
@@ -104,7 +104,7 @@ test("all new effects preserve identities, board bounds and death accounting in 
       const sample=STARTERS[Math.floor(rng()*STARTERS.length)];
       s.board[i]={...sample,id:"target-"+i,owner:rng()<.5?"player":"rival",condition:"healthy"};
     }
-    const sample=STARTERS[81+Math.floor(rng()*43)], c={...sample,id:"placed",owner:"player",condition:"healthy"};
+    const sample=STARTERS[81+Math.floor(rng()*44)], c={...sample,id:"placed",owner:"player",condition:"healthy"};
     const before=JSON.stringify(s.board), ids=[...s.board.filter(Boolean),c].map(c=>c.id);
     const r=resolvePlacement(s,index,c), survivors=r.board.filter(Boolean).map(c=>c.id);
     assert.equal(r.board.length,25);assert.equal(new Set(survivors).size,survivors.length);
