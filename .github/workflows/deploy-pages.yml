@@ -27,17 +27,14 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .node-version
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Test map generation and run progression
-        run: npm test
-
-      - name: Build
-        run: npm run build
+      - name: Test and build
+        run: npm run verify
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
