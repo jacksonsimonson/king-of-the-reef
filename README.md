@@ -2,6 +2,10 @@
 
 A fish-based tactical card roguelike about building a school of fish and battling for control of valuable reefs.
 
+[![CI](https://github.com/jacksonsimonson/king-of-the-reef/actions/workflows/ci.yml/badge.svg)](https://github.com/jacksonsimonson/king-of-the-reef/actions/workflows/ci.yml)
+
+Built as a learning and portfolio project, with a playable demo and reviewable development history. There is no planned commercial release.
+
 ## Project status
 
 King of the Reef is in early development. The current playable build uses a 5×5 board, three reef objectives, directional fish-card pushing, a computer opponent, scoring, and rematches.
@@ -20,10 +24,10 @@ The goal is to take inspiration from positional card games without reproducing J
 
 ## Run locally
 
-Install dependencies and start the development server:
+Use the Node version in `.node-version`, install locked dependencies, and start the development server:
 
 ```powershell
-npm.cmd install
+npm.cmd ci
 npm.cmd run dev
 ```
 
@@ -31,6 +35,7 @@ The terminal will display the local URL. Stop the server with `Ctrl+C`.
 
 ## Documentation
 
+- [Contributor workflow, skills, and token-efficient tasks](CONTRIBUTING.md)
 - [Game design](docs/GAME_DESIGN.md)
 - [Voyage maps and roguelike rules](docs/VOYAGE.md)
 - [Edge-effect rules](docs/EDGE_EFFECTS.md)
@@ -62,4 +67,4 @@ The intended presentation uses deep ocean blue, lighter aquatic green, shiny pin
 
 Features are implemented in small, playable batches. Speculative ideas remain in the idea backlog until they are accepted into the game design and scheduled on the roadmap.
 
-Start work on a `codex/` feature branch, validate with `npm test` and `npm run build`, then merge completed, authorized work into `main`. Voyage in the main menu starts or resumes a three-region run; each region ends at a Colossal.
+Start work on a `codex/` feature branch and validate with `npm run verify` (tests plus type-check/build). Pull requests run the same checks. Merge only after explicit approval of that PR; see [the contributor workflow](CONTRIBUTING.md). Voyage in the main menu starts or resumes a three-region run; each region ends at a Colossal.
