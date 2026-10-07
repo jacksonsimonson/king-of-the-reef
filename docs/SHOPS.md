@@ -1,5 +1,7 @@
 # Shops And Tide Charms
 
+Shops open on **The Shell Exchange**, a dedicated illustrated screen. View Chart / Resume Visit preserves the active shop; Sail On completes it. See [encounter screens](ENCOUNTER_SCREENS.md) for navigation and art behavior.
+
 Every shop generates exactly three fixed offers from the voyage seed and that shop's node ID. At least one is a regional creature and at least one is a Tide Charm; the third has an equal chance of either. No duplicate fish or charm types within a shop. Offers are ordered left to right from cheapest to most expensive, with distinct prices. Layout can expand or scroll; artwork and text never scale fractionally.
 
 Buying spends the displayed price once and immediately adds the creature to the school or the charm to inventory. The shop stays open. Purchased offers remain visible as Sold Out; buying, reopening or reloading never replenishes stock or changes prices. Sail On completes the stop. Each different shop has its own new stock and purchase record. Unused charms carry across shops and regions, and duplicate charms stack without an inventory limit. Older saves gain an empty charm inventory and retain their shells.

@@ -3,8 +3,9 @@ import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
 import { CHARMS, CHARM_IDS, charmCanvas } from "../data/tideCharms.ts";
 import { shopOffers, runFishDefinition } from "./state.ts";
+import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
-import { COLUMNS, REGIONS, SPACE_INFO, type Space } from "./maps.ts";
+import { COLUMNS, REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
 import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
 
 let memory: Run | null = null;
@@ -24,6 +25,7 @@ export class VoyageView {
   private selected: string | null = null;
   private observer?: ResizeObserver;
   private storageOk = true;
+  private viewingMap = false;
   private fishing?: FishingSession;
   constructor(root: HTMLElement) {
     this.root = root; this.run = currentRun(); this.preview = this.run?.region ?? 0;
@@ -33,7 +35,7 @@ export class VoyageView {
   private save(): void { if (this.run) this.storageOk = persistRun(this.run); }
   private start(seed?: string): void {
     const id = seed?.trim().slice(0, 64) || crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase();
-    this.run = createRun(id); this.preview = 0; this.selected = null; this.save(); this.render();
+    this.viewingMap = false; this.run = createRun(id); this.preview = 0; this.selected = null; this.save(); this.render();
   }
   private render(): void {
     this.fishing?.destroy(); this.fishing = undefined;
@@ -44,13 +46,20 @@ export class VoyageView {
     const run = this.run;
     this.root.dataset.region = REGIONS[this.preview].id;
     const top = element("header", "voyage-top");
+    const encounter = run?.status === "active" && run.pending && isEncounterSpace(activeNode(run).type) && !this.viewingMap;
     const title = element("div");
-    title.append(element("p", "voyage-kicker", "KING OF THE REEF / EXPEDITION"), element("h2", "voyage-title", run ? "Chart your course" : "Beyond the shallows"));
+    title.append(element("p", "voyage-kicker", "KING OF THE REEF / EXPEDITION"), element("h2", "voyage-title", encounter ? "A pause in the current" : run ? "Chart your course" : "Beyond the shallows"));
     const controls = element("nav", "voyage-controls");
     const menu = element("a", "voyage-button", "Main Menu"); menu.href = "#menu";
     controls.append(menu);
     if (run) controls.append(button("New voyage", () => this.newRunDialog()));
+    if (this.viewingMap && run?.pending && isEncounterSpace(activeNode(run).type)) controls.prepend(button("Resume visit →", () => { this.viewingMap = false; this.preview = run.region; this.render(); }));
     top.append(title, controls); this.root.append(top);
+    if (encounter && run) {
+      this.renderEncounter(run, activeNode(run));
+      if (run.fishing) this.openFishing(true);
+      return;
+    }
     if (!run) {
       const intro = element("div", "voyage-intro");
       intro.append(element("p", "voyage-kicker", "THREE SEAS. ONE SCHOOL."), element("h3", "", "Leave the shore. Find the impossible."), element("p", "", "Choose branching currents, catch new creatures, and challenge the Colossals of the reef, the abyss, and the Triangle."));
@@ -177,10 +186,37 @@ export class VoyageView {
     const info = SPACE_INFO[node.type];
     panel.append(element("h3", "", node.type === "boss" ? REGIONS[run.region].boss : info.name), element("p", "", info.description));
     if (!run.pending) {
-      if (reachable(run).includes(node.id)) panel.append(button("Enter this space →", () => { enterNode(run, node.id); this.save(); this.render(); }));
+      if (reachable(run).includes(node.id)) panel.append(button("Enter this space →", () => { if (enterNode(run, node.id)) { this.viewingMap = false; this.save(); this.render(); } }));
       else panel.append(element("p", "", run.visited.includes(node.id) ? "Already visited." : "This space is not connected to your current position."));
       return;
     }
+    if (isEncounterSpace(node.type)) {
+      panel.append(element("p", "", "Your visit is still in progress. Viewing the chart does not spend this stop."), button("Resume visit →", () => { this.viewingMap = false; this.render(); }));
+      return;
+    }
+    this.renderEncounterActions(panel, run, node);
+  }
+  private renderEncounter(run: Run, node: MapNode): void {
+    const screen = element("section", "encounter-screen"); screen.dataset.encounter = node.type;
+    const nav = element("div", "encounter-navigation");
+    nav.append(button("← View chart", () => { this.viewingMap = true; this.preview = run.region; this.render(); }), element("p", "voyage-kicker", REGIONS[run.region].name + " / " + SPACE_INFO[node.type].name));
+    const artFrame = element("div", "encounter-art");
+    const art = element("canvas"); art.setAttribute("aria-hidden", "true"); artFrame.append(art);
+    const panel = element("div", "encounter-content");
+    const heading = element("h3", "", encounterTitle(node.type)); heading.tabIndex = -1;
+    panel.append(heading, element("p", "encounter-description", SPACE_INFO[node.type].description));
+    const resources = element("p", "encounter-resources", run.shells + " Shells · " + run.resolve + "/3 Resolve · " + run.school.filter(f => f.condition === "healthy").length + "/" + run.school.length + " Ready");
+    const status = element("p", "encounter-status", node.type === "shop" ? `${run.shop?.purchased.length ?? 0} / 3 Offers Purchased · ${this.storageOk ? "Auto-saved" : "Save unavailable"}` : "Choose when you are ready. Viewing the chart keeps this visit open."); status.setAttribute("role", "status");
+    panel.append(resources, status);
+    if (!this.storageOk) panel.append(element("p", "encounter-status", "Save unavailable — keep this tab open."));
+    this.renderEncounterActions(panel, run, node);
+    screen.append(nav, artFrame, panel); this.root.append(screen);
+    const draw = () => { art.width = Math.max(640, Math.floor(artFrame.clientWidth)); art.height = 256; drawEncounterArt(art, node.type, REGIONS[run.region].id, run.seed); };
+    draw(); this.observer = new ResizeObserver(draw); this.observer.observe(artFrame);
+    heading.focus({ preventScroll: true });
+    window.scrollTo({ top: 0 });
+  }
+  private renderEncounterActions(panel: HTMLElement, run: Run, node: MapNode): void {
     const actions = element("div", "encounter-actions");
     if (node.type === "battle" || node.type === "boss") {
       panel.append(element("p", "", run.log));
@@ -215,7 +251,6 @@ export class VoyageView {
         pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", "Try · " + MOVEMENTS[movementFor(texture)].name));
         actions.append(pick);
       }
-      panel.append(element("p", "", "Try One Catch Or Skip. Use Left / Right To Follow The Fish. If It Escapes, This Stop Is Used Up."));
       actions.append(button("Skip", () => this.resolve("leave")));
     } else if (node.type === "hydration" || node.type === "release") {
       const hydration = node.type === "hydration";
