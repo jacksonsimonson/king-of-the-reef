@@ -3,6 +3,7 @@
 Solo learning/portfolio game; no planned commercial release. Reuse existing helpers and conventions.
 
 - Use a `codex/` branch. Validate, allow requested playtesting, then open a PR. Merge only with explicit approval of that PR; never bypass protections.
+- Gameplay: mechanics must create meaningful choices in ordinary play, especially positioning and reef control; avoid niche effects dependent on rare cards/statuses.
 - Pixel art: whole-number scales. Canvas/text: native size. Use layout/scrolling instead of fractional scaling.
 - One agent by default; use extra worktrees, issues, plans, or reviews only for a concrete need.
 - Search narrowly with `rg`; read relevant ranges and skills once, then only changed/missing context. Avoid dumping catalogs, archives, lockfiles, or passing logs.
