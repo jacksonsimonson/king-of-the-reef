@@ -9,9 +9,9 @@ Paths below are relative to the repository root. Read only the requested region'
 
 | Region | Design | Data entry points |
 | --- | --- | --- |
-| Shoreline | `docs/REEF_CARDS.md` | `src/game/data/reefArtCards.ts`, `reefDesigns.ts`, `reefPool.ts` in the same directory |
-| Open Ocean | `docs/OPEN_OCEAN_CARDS.md` | `src/game/data/openOceanCards.ts`, `oceanDesigns.ts`, `oceanPool.ts` in the same directory |
-| Bermuda | `art/source-references/user-supplied/bermuda/README.md` and the provisional assignments in the data | `src/game/data/bermudaCards.ts`, `bermudaDesigns.ts`, `bermudaPool.ts` in the same directory |
+| Shoreline | [Reef design](../../../docs/REEF_CARDS.md) | `src/game/data/reefArtCards.ts`, `reefDesigns.ts`, `reefPool.ts` in the same directory |
+| Open Ocean | [Open Ocean design](../../../docs/OPEN_OCEAN_CARDS.md) | `src/game/data/openOceanCards.ts`, `oceanDesigns.ts`, `oceanPool.ts` in the same directory |
+| Bermuda | [Bermuda source notes](../../../art/source-references/user-supplied/bermuda/README.md) and the provisional assignments in the data | `src/game/data/bermudaCards.ts`, `bermudaDesigns.ts`, `bermudaPool.ts` in the same directory |
 
 - Trace the card's texture ID through `starterFish.ts`, `galleryCatalog.ts`, `roster.ts`, the regional pool, and `src/game/fishing/model.ts`. Some integrations are derived automatically: inspect them, do not duplicate registration.
 - Preserve existing IDs, saved roster choices, seeded offers, and legacy pool/version behavior. A rename of display text is different from a persisted ID migration.

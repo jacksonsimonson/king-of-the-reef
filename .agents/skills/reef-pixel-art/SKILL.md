@@ -5,7 +5,7 @@ description: Prepare or revise King of the Reef creature sprites using the appro
 
 # Reef pixel art
 
-Paths below are relative to the repository root. Read `docs/PIXEL_ART_GUIDE.md` before changing assets; it is the authoritative art specification, not this skill.
+Paths below are relative to the repository root. Read the [pixel-art guide](../../../docs/PIXEL_ART_GUIDE.md) before changing assets; it is the authoritative art specification, not this skill.
 
 1. Identify whether the input is generated reference art or an already pixel-authored user asset. Inspect the actual image and its dimensions before choosing a conversion. Preserve the original under the appropriate `art/source-references/` location.
 2. For generated references, use the approved reference and `scripts/prepare_generated_sprite.py`. Read its command help before invoking it. Measure cluster size if the source differs from existing examples; ordinary image resizing does not replace cluster collapse.

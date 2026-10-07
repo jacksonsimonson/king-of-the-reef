@@ -18,7 +18,10 @@ Use `npm` instead of `npm.cmd` on macOS/Linux. `npm ci` installs the committed l
 # During iteration: run the affected test file.
 node --test tests/shop.test.mjs
 
-# Before a code/data/workflow handoff: all gameplay tests, type-check, and build.
+# Fast check for agent instructions, skills, and GitHub YAML.
+npm.cmd run check:workflow
+
+# Before a code/data/workflow handoff: configuration, tests, type-check, and build.
 npm.cmd run verify
 ```
 
@@ -37,6 +40,10 @@ Keep speculative ideas in `docs/IDEA_BACKLOG.md`, accepted milestones in `docs/R
 ## Skills and efficient Codex use
 
 Repository skills live in `.agents/skills/`, travel with the checkout, and keep detailed procedures out of the always-loaded `AGENTS.md`. Names/descriptions are available for discovery; full instructions load when relevant. If newly added skills are not listed in an existing session, start a new chat in this checkout or point Codex at the exact `SKILL.md` path.
+
+`CLAUDE.md` is a compatibility import of `AGENTS.md`, so project rules have one source of truth. Skills stay committed in `.agents/skills/`; another client can read the listed skill file directly if it does not discover that directory. No copied skill trees or per-worktree junction setup is required. Machine-specific Claude notes/settings are ignored by Git; keep credentials out of instruction files.
+
+`check:workflow` validates skill YAML, unique names, descriptions, linked files, Claude imports, and GitHub YAML. It enforces an 8 KiB root instruction budget and a 32 KiB repository root-to-leaf instruction-chain budget. These are repository byte limits, not token counts or guarantees about a client's complete context. It does not prove workflow behavior or replace GitHub's own validation.
 
 | Skill | Example request |
 | --- | --- |
@@ -63,12 +70,20 @@ These are efficiency practices, not a measured percentage saving. For several co
 
 Guidance: [OpenAI on concise skills and instructions](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra), [repository-local skill workflows](https://developers.openai.com/blog/skills-agents-sdk).
 
+## Larger tasks and handoffs
+
+Use a short `docs/plans/<feature>-plan.md` only when work has meaningful phases, risky dependencies, or needs to survive multiple sessions. Include the goal, relevant entry points, non-obvious hazards, decisions already made, phase exit checks, unresolved questions, and next step. Record rejected alternatives only when their rationale prevents repeated investigation. Small fixes can keep their acceptance criteria in the task or PR.
+
+When handing off work, include branch/PR, current behavior, changed files, checks actually run, unresolved risks, and next action. Verify any delegated work from its diff and evidence. If delegation is requested, scope independent tasks to distinct files and avoid repeating the same search in the parent session. Introduce additional modules, orchestration, or setup automation only after an actual repeated need appears.
+
+Never skip a failing gate or relax an assertion simply to pass. Fix the cause or clearly report the blocker. Update affected documentation with the implementation; a new permission round for routine documentation would add friction to already authorized work.
+
 ## GitHub configuration
 
 `CI / Verify` tests and builds pull requests and `main`, with read-only permissions and cancellation of superseded runs. The Pages workflow separately verifies the exact build it deploys. No path filters skip required PR checks. Monthly Dependabot proposals keep dependency review batched; they are not auto-merged.
 
-Repository files do not themselves enable branch protection. After the first CI run, inspect the existing rule/ruleset for `main` and preserve all existing protections while adding the `Verify` status check from GitHub Actions. Recommended settings are PR-only changes, passing checks, resolved review conversations, and blocked force pushes/deletion. Never weaken existing rules to make a merge pass.
+Repository files do not themselves enable branch protection. On 2026-10-07, remote protection for `main` was enabled and read back: PRs required; the `Verify` check must come from GitHub Actions; branches must be current; review conversations must be resolved; admins are included; force pushes and deletion are blocked. Preserve existing protections when modifying settings. Never weaken rules to make a merge pass.
 
 For a solo repository, requiring another approving GitHub reviewer can deadlock work: authors cannot approve their own PRs. Keep explicit owner approval in the development workflow; require an independent reviewer when a real collaborator is available. Do not claim self-review or AI review is an independent approval.
 
-Branch settings must be checked on GitHub; this document describes the intended policy, not proof that remote enforcement is enabled. See [GitHub branch protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches).
+The dated check is a snapshot; inspect current settings on GitHub before changing them. See [GitHub branch protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches).

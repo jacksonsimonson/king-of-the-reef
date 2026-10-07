@@ -67,4 +67,4 @@ The intended presentation uses deep ocean blue, lighter aquatic green, shiny pin
 
 Features are implemented in small, playable batches. Speculative ideas remain in the idea backlog until they are accepted into the game design and scheduled on the roadmap.
 
-Start work on a `codex/` feature branch and validate with `npm run verify` (tests plus type-check/build). Pull requests run the same checks. Merge only after explicit approval of that PR; see [the contributor workflow](CONTRIBUTING.md). Voyage in the main menu starts or resumes a three-region run; each region ends at a Colossal.
+Start work on a `codex/` feature branch and validate with `npm run verify` (workflow configuration, tests, and type-check/build). Pull requests run the same checks. Merge only after explicit approval of that PR; see [the contributor workflow](CONTRIBUTING.md). Voyage in the main menu starts or resumes a three-region run; each region ends at a Colossal.

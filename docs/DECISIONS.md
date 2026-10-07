@@ -1,5 +1,15 @@
 # Design Decisions
 
+## 2026-10-07 — Lightweight agent workflow
+
+**Decision:** Keep project rules in `AGENTS.md`, three focused workflows in committed `.agents/skills/`, and detailed contributor guidance in `CONTRIBUTING.md`. `CLAUDE.md` imports the shared rules for compatibility. Validate skill metadata, file links, instruction budgets, and GitHub YAML in the same CI gate as tests and build.
+
+**Reasoning:** This starter project should demonstrate reviewable engineering and reduce repeated context. It has no planned commercial release. On-demand skills and targeted reads fit the current repository without a separate orchestration system.
+
+**Deferred:** Per-module instructions until conventions diverge; skill junctions and MCP configuration generation until another client needs them; pre-commit hook packages until they add feedback beyond the fast local command and required CI; arbitrary coverage floors and scheduled AI chores without a demonstrated need. Keep durable decisions here rather than introducing a second decision-record system.
+
+**Plan policy:** Save plans for substantial or multi-session tasks, with hazards, verification, and a next step. Routine edits do not need a plan file or an extra permission round for relevant documentation. Existing explicit approval before merging remains required.
+
 ## 2026-09-23 — Procedural voyages and Colossals
 
 - Runs cross three left-to-right branching charts: Shoreline, Open Ocean and Bermuda Triangle.
