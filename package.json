@@ -4,8 +4,9 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "verify": "npm run check:workflow && npm test && npm run build",
+    "verify": "node scripts/verify.mjs",
     "check:workflow": "node scripts/check-workflow.mjs",
+    "context:budget": "node scripts/check-workflow.mjs --budget",
     "test": "node --test tests/*.test.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

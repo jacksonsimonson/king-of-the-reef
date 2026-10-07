@@ -2,6 +2,8 @@
 
 ## 2026-10-07 — Lightweight agent workflow
 
+**Solo refinement:** Default to one developer and one agent. Keep issues, separate worktrees, and independent reviews optional. Compact local verification output while retaining full logs, warnings, original failure codes, and every gate; keep verbose CI evidence. Measure instruction/discovery bytes and displayed output rather than claiming unmeasured token savings. Details and sources live in `AGENT_EFFICIENCY.md`, loaded only for workflow tuning.
+
 **Decision:** Keep project rules in `AGENTS.md`, three focused workflows in committed `.agents/skills/`, and detailed contributor guidance in `CONTRIBUTING.md`. `CLAUDE.md` imports the shared rules for compatibility. Validate skill metadata, file links, instruction budgets, and GitHub YAML in the same CI gate as tests and build.
 
 **Reasoning:** This starter project should demonstrate reviewable engineering and reduce repeated context. It has no planned commercial release. On-demand skills and targeted reads fit the current repository without a separate orchestration system.

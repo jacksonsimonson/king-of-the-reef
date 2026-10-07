@@ -1,6 +1,6 @@
 ---
 name: reef-pixel-art
-description: Prepare or revise King of the Reef creature sprites using the approved source-art and pixel conversion workflow. Use for sprite assets, not general UI styling or unrelated image generation.
+description: Prepare King of the Reef creature sprites from generated references or user-authored pixel art.
 ---
 
 # Reef pixel art

@@ -1,6 +1,6 @@
 ---
 name: reef-content
-description: Add or change King of the Reef fish cards, regional pools, or catalog entries while preserving playable integration and saved runs. Use for card content work, not unrelated UI changes.
+description: Add or change King of the Reef cards, regional pools, and catalog entries without breaking saved runs.
 ---
 
 # Reef content

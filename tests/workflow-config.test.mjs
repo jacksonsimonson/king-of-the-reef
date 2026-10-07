@@ -65,3 +65,14 @@ test("workflow validator ignores generated directories and rejects missing front
   put(".agents/skills/example/SKILL.md", "No metadata\n");
   assert.match(checkWorkflow(root).errors.join("\n"), /missing YAML frontmatter/);
 });
+
+test("workflow validator measures discovery bytes and rejects a bloated skill catalog", t => {
+  const { root, put } = fixture(t);
+  const before = checkWorkflow(root);
+  assert.ok(before.metadataBytes > 0);
+  assert.ok(before.skillSizes[0].fileBytes > before.metadataBytes);
+  for (const name of ["first", "second", "third"]) {
+    put(`.agents/skills/${name}/SKILL.md`, `---\nname: ${name}\ndescription: ${"x".repeat(800)}\n---\n`);
+  }
+  assert.match(checkWorkflow(root).errors.join("\n"), /discovery metadata exceeds/);
+});

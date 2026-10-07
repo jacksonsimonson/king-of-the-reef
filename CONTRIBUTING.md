@@ -2,6 +2,8 @@
 
 This is a learning and portfolio game. The goal is to practice understandable design, small reviewed changes, reproducible checks, and a playable demo. There is no planned commercial release.
 
+The owner is the sole developer for the foreseeable future. Default to one agent and one focused branch. Use PRs for a readable history and validation evidence; issues, extra worktrees, and independent reviews are optional tools for real needs. No team ceremonies, assigned reviewers, or artificial approval counts are required.
+
 ## Setup and checks
 
 Use the Node version in `.node-version` (also used by both GitHub workflows). Install it with your preferred Node installer/version manager; the version file alone does not change your local runtime.
@@ -21,9 +23,14 @@ node --test tests/shop.test.mjs
 # Fast check for agent instructions, skills, and GitHub YAML.
 npm.cmd run check:workflow
 
+# Inspect standing instruction and skill-discovery sizes.
+npm.cmd run context:budget
+
 # Before a code/data/workflow handoff: configuration, tests, type-check, and build.
 npm.cmd run verify
 ```
+
+Local verification prints compact results, preserves warnings and failure exit codes, and saves complete logs plus output-byte measurements in `.cache/verify/`. Use `npm.cmd run verify -- --verbose` for full terminal output; CI uses full output automatically. No successful checks are cached or skipped.
 
 Browser playtesting is currently manual. Record what you actually exercised; passing logic tests does not prove that layout, drag input, or pixel art looks correct. Prose-only changes need a diff/link check rather than a game rebuild.
 
@@ -43,7 +50,7 @@ Repository skills live in `.agents/skills/`, travel with the checkout, and keep 
 
 `CLAUDE.md` is a compatibility import of `AGENTS.md`, so project rules have one source of truth. Skills stay committed in `.agents/skills/`; another client can read the listed skill file directly if it does not discover that directory. No copied skill trees or per-worktree junction setup is required. Machine-specific Claude notes/settings are ignored by Git; keep credentials out of instruction files.
 
-`check:workflow` validates skill YAML, unique names, descriptions, linked files, Claude imports, and GitHub YAML. It enforces an 8 KiB root instruction budget and a 32 KiB repository root-to-leaf instruction-chain budget. These are repository byte limits, not token counts or guarantees about a client's complete context. It does not prove workflow behavior or replace GitHub's own validation.
+`check:workflow` validates skill YAML, unique names, descriptions, linked files, Claude imports, and GitHub YAML. It enforces budgets of 8 KiB for root instructions, 32 KiB for a repository root-to-leaf instruction chain, and 2 KiB for combined skill names/descriptions. These are repository byte limits, not token counts or guarantees about a client's complete context. It does not prove workflow behavior or replace GitHub's own validation.
 
 | Skill | Example request |
 | --- | --- |
@@ -55,20 +62,7 @@ For an ordinary task, a short request is enough:
 
 > Fix [observed behavior]. Done means [observable outcome]. Follow the project workflow and report verification. I want to playtest before the PR.
 
-Practical ways to reduce token use and rework:
-
-- Give the exact failing behavior, affected screen, and seed/error when known. Avoid pasting whole logs when a failing assertion identifies the problem.
-- Keep one coherent feature in a chat. Continue related fixes there; for unrelated work, start from a compact handoff containing branch/PR, relevant files, observed checks, and the next action.
-- Ask for a plan when design choices are unresolved. Let straightforward fixes proceed without a separate planning conversation.
-- Read targeted files and relevant skill references. Keep instructions in one authoritative place; do not paste all design documents into every request.
-- Run deterministic scripts for repeated transformations. Use targeted tests while iterating and full verification at the final checkpoint; summarize successful output without hiding failures.
-- Use a capable default model for ordinary work. Reserve more expensive reasoning or an independent review for uncertain architecture and difficult bugs; compare total time and rework, not just the length of the answer.
-- Use parallel agents only when independent work justifies duplicated context. Avoid installing large skill collections whose overlapping descriptions make selection harder.
-- Keep detailed explanations when they help learning or a decision. Token efficiency should remove redundant context, not necessary validation or useful teaching.
-
-These are efficiency practices, not a measured percentage saving. For several comparable tasks, record available token usage, elapsed time, correction rounds, and outcome before deciding whether a new skill helps.
-
-Guidance: [OpenAI on concise skills and instructions](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra), [repository-local skill workflows](https://developers.openai.com/blog/skills-agents-sdk).
+The on-demand [agent efficiency guide](docs/AGENT_EFFICIENCY.md) records 16 implemented methods, session/compaction controls, a compact handoff format, measurements, and official sources. Read it when tuning the workflow, not before every game change. Token efficiency removes redundant work; it does not remove useful teaching or validation.
 
 ## Larger tasks and handoffs
 

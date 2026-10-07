@@ -61,6 +61,7 @@ export function checkWorkflow(directory) {
   const skills = files.filter(path => path.startsWith(skillsRoot + sep) && basename(path) === "SKILL.md");
   if (!skills.length) fail(skillsRoot, "no skills found");
   const names = new Set();
+  const skillSizes = [];
   for (const path of skills) {
     const data = frontmatter(path);
     if (!data || typeof data !== "object" || Array.isArray(data)) {
@@ -71,6 +72,7 @@ export function checkWorkflow(directory) {
     if (data.name !== basename(dirname(path))) fail(path, "name must match its directory");
     if (names.has(data.name)) fail(path, "duplicate skill name");
     names.add(data.name);
+    skillSizes.push({ name: data.name, metadataBytes: Buffer.byteLength(`${data.name}\n${data.description}`), fileBytes: statSync(path).size });
     if (typeof data.description !== "string" || !data.description.trim() || data.description.length > 1024 || /[<>]/.test(data.description)) fail(path, "description must be 1-1024 characters without angle brackets");
 
     // Validate Markdown file links, including images and reference-style definitions.
@@ -92,7 +94,9 @@ export function checkWorkflow(directory) {
       if (!data?.name || !data?.about) fail(path, "issue template requires name and about");
     }
   }
-  return { errors, skills: skills.length, instructionBytes: existsSync(rootInstructions) ? statSync(rootInstructions).size : 0 };
+  const metadataBytes = skillSizes.reduce((total, skill) => total + skill.metadataBytes, 0);
+  if (metadataBytes > 2048) fail(skillsRoot, "skill discovery metadata exceeds the 2048-byte project budget; shorten descriptions or retire unused skills");
+  return { errors, skills: skills.length, instructionBytes: existsSync(rootInstructions) ? statSync(rootInstructions).size : 0, metadataBytes, skillSizes };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -102,5 +106,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     process.exitCode = 1;
   } else {
     console.log(`Workflow checks passed: ${result.skills} skills; root instructions ${result.instructionBytes}/${ROOT_BUDGET} bytes; GitHub YAML valid.`);
+    if (process.argv.includes("--budget")) {
+      console.log(`Skill names/descriptions: ${result.metadataBytes}/2048 bytes. These are bytes, not billed tokens; client overhead is excluded.`);
+      for (const skill of result.skillSizes) console.log(`${skill.name}: discovery ${skill.metadataBytes} bytes; on-demand file ${skill.fileBytes} bytes`);
+    }
   }
 }

@@ -1,29 +1,22 @@
-# Project workflow
+# King of the Reef
 
-- King of the Reef is a learning and portfolio project, not a planned commercial release. Optimize for small playable changes and demonstrable engineering practices.
-- Begin each change on a `codex/` feature branch, never directly on `main`.
-- Validate the feature and let the user test when requested, then open a pull request. Never merge until the user explicitly approves that PR. Never bypass remote protection rules.
-- Keep pixel artwork at whole-number scales. Canvas and text render at native size; use layout changes or scrolling instead of fractional scaling.
+Solo learning/portfolio game; no planned commercial release. Reuse existing helpers and conventions.
 
-## Context and validation
+- Use a `codex/` branch. Validate, allow requested playtesting, then open a PR. Merge only with explicit approval of that PR; never bypass protections.
+- Pixel art: whole-number scales. Canvas/text: native size. Use layout/scrolling instead of fractional scaling.
+- One agent by default; use extra worktrees, issues, plans, or reviews only for a concrete need.
+- Search narrowly with `rg`; read relevant ranges and skills once, then only changed/missing context. Avoid dumping catalogs, archives, lockfiles, or passing logs.
+- Node: `.node-version`. Windows: `npm.cmd`. `npm run verify`: config, tests, build; compact output/full logs. Iterate with the affected test file; full check after final relevant edit. Prose: diff/links. Skills: `npm run check:workflow`.
+- Fix failing gates; never skip or weaken them. Read saved diagnostics before retrying unchanged failures. State blocked/untested work.
+- Update only affected docs: `docs/DECISIONS.md`, `docs/ROADMAP.md`, `docs/IDEA_BACKLOG.md`. Report result, checks, next action; explain more when useful for learning.
 
-- Read only the relevant design document and implementation. Use targeted `rg` searches; do not load the entire docs folder, card catalog, source-art archive, or successful test logs by default.
-- Use `npm.cmd` on Windows (`npm` elsewhere). Runtime version: `.node-version`. `npm run verify` checks agent/GitHub config, runs tests, and type-checks/builds; use it before handing off code, data, or workflow changes.
-- During iteration, run the affected test file first. After the final relevant edit, run full verification once; repeat only if changes or failures justify it. For prose-only edits, check links and the diff instead of rebuilding the game.
-- Keep durable decisions in `docs/DECISIONS.md`, accepted work in `docs/ROADMAP.md`, and speculative ideas in `docs/IDEA_BACKLOG.md`. Update only documents affected by the task.
-- Put reusable task procedures in `.agents/skills/`; keep this file short. Do not reread unchanged references or duplicate their contents in skills.
-- Fix failing checks at their cause; do not skip gates or weaken assertions to get green. Report blockers and unperformed checks plainly.
-- Reuse surrounding helpers and conventions. For substantial multi-session work, keep a compact plan with risks, decisions, verification, and the next unfinished step; see `CONTRIBUTING.md`.
-
-## Task entry points
-
-| Work | Start here |
+| Task | Entry point |
 | --- | --- |
-| Combat rules | `src/game/combat.ts`, `docs/EDGE_EFFECTS.md` |
-| Voyage, saves, shops | `src/game/run/`, `docs/VOYAGE.md`, `docs/SHOPS.md` |
+| Combat | `src/game/combat.ts`, `docs/EDGE_EFFECTS.md` |
+| Voyage/saves/shops | `src/game/run/`, `docs/VOYAGE.md`, `docs/SHOPS.md` |
 | Fishing | `src/game/fishing/`, `docs/FISHING.md` |
-| Fish/card content | `.agents/skills/reef-content/SKILL.md` |
-| Sprite preparation | `.agents/skills/reef-pixel-art/SKILL.md` |
-| Validation and PR handoff | `.agents/skills/reef-verify/SKILL.md` |
+| Cards | `.agents/skills/reef-content/SKILL.md` |
+| Sprites | `.agents/skills/reef-pixel-art/SKILL.md` |
+| Validate/PR | `.agents/skills/reef-verify/SKILL.md` |
 
-Contributor setup, token-efficient task examples, and GitHub configuration are in `CONTRIBUTING.md`; read the relevant section when needed.
+Read `CONTRIBUTING.md` for setup/handoffs; `docs/AGENT_EFFICIENCY.md` only when tuning workflow.
