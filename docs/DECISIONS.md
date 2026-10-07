@@ -142,3 +142,7 @@ This log records important choices and their reasoning.
 **Decision:** Keep the recovered 4×4 browser prototype in Git history, but remove it from the current application once the scalable build reaches feature parity.
 
 **Reasoning:** Git retains the project's real starting point without exposing an obsolete second version in the shipped game.
+
+## 2026-10-07: Regional battle terrain
+
+Add rocks and linked whirlpools plus two terrain types per sea. Use fixed layouts initially so rivals and rematches share readable rules. Terrain affects both players through the same combat resolver. See [terrain rules](TERRAIN.md). Favor effects that matter to everyday placement and reef control; replaced niche shock cleansing with a thermal vent eruption that moves neighboring cards. No save migration.

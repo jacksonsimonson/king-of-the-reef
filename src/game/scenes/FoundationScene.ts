@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { battleTerrain, blocksPlacement, placementCard, placementDestination, terrainLegend, TERRAIN_INFO } from "../terrain";
 import { STARTERS, type FishCard } from "../data/starterFish";
 import { createEnabledDeck } from "../data/roster";
 import { drawFishCard } from "../ui/drawFishCard";
@@ -29,6 +30,7 @@ interface VoyageBattle {
 
 export class FoundationScene extends Phaser.Scene {
   private board: Array<FishCard | null> = [];
+  private terrain = battleTerrain();
   private playerHand: HandSlot[] = [];
   private rivalHand: HandSlot[] = [];
   private playerDeck: FishCard[] = [];
@@ -69,6 +71,7 @@ export class FoundationScene extends Phaser.Scene {
       const palette = { shoreline: [0x164d59, 0x73cbb1], ocean: [0x112f49, 0x80b9d2], bermuda: [0x302343, 0xa385c6] }[this.voyageBattle.region];
       [this.waterColor, this.borderColor] = palette;
     }
+    this.terrain = battleTerrain(this.voyageBattle?.region);
     this.resetMatch();
   }
 
@@ -158,8 +161,11 @@ export class FoundationScene extends Phaser.Scene {
       const cell = this.add.rectangle(x + CELL / 2, y + CELL / 2, CELL, CELL, this.waterColor)
         .setStrokeStyle(3, reef ? COLORS.pink : this.borderColor, reef ? 1 : 0.72);
       add(cell);
+      if (!this.board[index]) this.drawTerrain(index, x, y);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
+      const feature = this.terrain.features?.get(index);
+      if (feature && this.board[index]) add(this.add.text(x + CELL / 2, y + CELL - 4, TERRAIN_INFO[feature].name, { ...this.textStyle(8, "#c4ece1"), backgroundColor: "#00233a" }).setOrigin(0.5, 1));
       if (this.isLegalPlayerPlacement(index)) {
         cell.setInteractive({ useHandCursor: true })
           .on("pointerover", () => {
@@ -180,6 +186,7 @@ export class FoundationScene extends Phaser.Scene {
       add(cancel);
     }
 
+    add(this.add.text(this.scale.width - 194, board.y + 310, terrainLegend(this.terrain), this.textStyle(8, "#b8d7dc")).setWordWrapWidth(168).setLineSpacing(6));
     if (this.finished) this.drawResult(scores.player, scores.rival);
     else {
       const detail = this.add.text(40, this.scale.height - 68, "Hover a card to read its edges and ability.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 80);
@@ -235,13 +242,13 @@ export class FoundationScene extends Phaser.Scene {
     card.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       card.setPosition(dragX, dragY);
       const index = this.boardIndexAt(pointer.x, pointer.y);
-      if (index !== null && !this.board[index] && !REEFS.has(index)) this.showPlacementPreview(index, slot.card);
+      if (index !== null && !this.board[index] && !REEFS.has(index) && !blocksPlacement(this.terrain, index)) this.showPlacementPreview(index, slot.card);
       else this.clearPlacementPreview();
     });
     card.on("dragend", () => {
       const placement = this.previewIndex;
       this.clearPlacementPreview();
-      if (placement !== null && !this.board[placement] && !REEFS.has(placement)) this.playPlayerCard(placement);
+      if (placement !== null && !this.board[placement] && !REEFS.has(placement) && !blocksPlacement(this.terrain, placement)) this.playPlayerCard(placement);
       else {
         card.setPosition(x, y).setScale(1).setDepth(2);
         this.selectedId = null;
@@ -252,6 +259,29 @@ export class FoundationScene extends Phaser.Scene {
       this.selectedId = selected ? null : slot.card.id;
       this.render(this.selectedId ? `${slot.card.name} selected — choose open water.` : "Selection cleared.");
     });
+  }
+
+  private drawTerrain(index: number, x: number, y: number): void {
+    const rock = this.terrain.rocks.has(index);
+    const pool = this.terrain.whirlpools.indexOf(index);
+    const feature = this.terrain.features?.get(index);
+    if (feature) {
+      const info = TERRAIN_INFO[feature];
+      info.pixels.forEach((row, py) => [...row].forEach((value, px) => {
+        if (value === "1") this.ui?.add(this.add.rectangle(x + 28 + px * 8, y + 20 + py * 8, 8, 8, info.color).setOrigin(0));
+      }));
+      this.ui?.add(this.add.text(x + CELL / 2, y + 70, info.name, this.textStyle(8, "#c4ece1")).setOrigin(0.5));
+      return;
+    }
+    if (!rock && pool < 0) return;
+    const pixels = rock
+      ? ["000000000000", "000011110000", "001122221000", "011222222100", "012223322210", "122233222210", "122222222221", "122222222221", "011111111110", "000000000000"]
+      : ["000111111000", "001222222100", "012211112210", "122100001221", "121002210121", "121012210121", "122100010221", "012211112210", "001222222100", "000111111000"];
+    const palette = rock ? [0, 0x344c60, 0x72929a, 0xb1c5b8] : [0, 0x277b99, 0x8be9e5, 0xffffff];
+    pixels.forEach((row, py) => [...row].forEach((value, px) => {
+      if (value !== "0") this.ui?.add(this.add.rectangle(x + 24 + px * 4, y + 18 + py * 4, 4, 4, palette[Number(value)]).setOrigin(0));
+    }));
+    this.ui?.add(this.add.text(x + CELL / 2, y + 70, rock ? "ROCK" : pool === 0 ? "POOL A" : "POOL B", this.textStyle(8, "#c4ece1")).setOrigin(0.5));
   }
 
   private drawPearl(x: number, y: number): void {
@@ -274,12 +304,13 @@ export class FoundationScene extends Phaser.Scene {
   private showPlacementPreview(index: number, fish: FishCard): void {
     if (this.previewIndex === index) return;
     this.clearPlacementPreview();
-    const row = Math.floor(index / BOARD_SIZE);
-    const column = index % BOARD_SIZE;
+    const destination = placementDestination(this.board, index, this.terrain);
+    const row = Math.floor(destination / BOARD_SIZE);
+    const column = destination % BOARD_SIZE;
     const board = this.boardOrigin();
     const x = board.x + column * (CELL + GAP) + CELL / 2;
     const y = board.y + row * (CELL + GAP) + CELL / 2;
-    this.placementPreview = this.drawFishCard(fish, x, y, BOARD_CARD_SIZE, false).setAlpha(0.42).setDepth(30);
+    this.placementPreview = this.drawFishCard(placementCard(fish, index, this.terrain), x, y, BOARD_CARD_SIZE, false).setAlpha(0.42).setDepth(30);
     this.previewIndex = index;
   }
 
@@ -389,12 +420,12 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private isLegalPlayerPlacement(index: number): boolean {
-    return Boolean(this.selectedId && this.turn === "player" && !this.finished && !this.pendingReveal && !this.pendingRally && !this.board[index] && !REEFS.has(index));
+    return Boolean(this.selectedId && this.turn === "player" && !this.finished && !this.pendingReveal && !this.pendingRally && !this.board[index] && !REEFS.has(index) && !blocksPlacement(this.terrain, index));
   }
 
   private playPlayerCard(index: number): void {
     const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId);
-    if (!slot || this.board[index] || REEFS.has(index) || this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally) return;
+    if (!slot || this.board[index] || REEFS.has(index) || blocksPlacement(this.terrain, index) || this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally) return;
     slot.played = true;
     this.selectedId = null;
     const playedCard = slot.card;
@@ -415,7 +446,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private playRivalTurn(): void {
-    const open = this.board.map((card, index) => (!card && !REEFS.has(index) ? index : -1)).filter((index) => index >= 0);
+    const open = this.board.map((card, index) => (!card && !REEFS.has(index) && !blocksPlacement(this.terrain, index) ? index : -1)).filter((index) => index >= 0);
     const available = this.rivalHand.filter((slot) => !slot.played);
     if (!open.length || !available.length) return this.finishMatch();
     let best: { slot: HandSlot; index: number; score: number } | undefined;
@@ -452,7 +483,7 @@ export class FoundationScene extends Phaser.Scene {
     const opposingOwner = card.owner === "player" ? "rival" : "player";
     const opposingBefore = simulation.filter((fish) => fish?.owner === opposingOwner).length;
     const ownBefore = simulation.filter((fish) => fish?.owner === card.owner).length + 1;
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked }, index, card);
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card);
     simulation = result.board;
     const afterScores = this.getScores(simulation);
     const opposingAfter = simulation.filter((fish) => fish?.owner === opposingOwner).length;
@@ -465,7 +496,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private placeCard(index: number, card: FishCard): ReturnType<typeof resolvePlacement> {
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked }, index, card);
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card);
     this.board = result.board;
     this.shocked = result.shocked;
     for (const id of result.killedIds) this.killedIds.add(id);
@@ -510,7 +541,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private checkEnd(): boolean {
     if ((!canPlayFish(this.playerHand, this.plays.player) && !canPlayFish(this.rivalHand, this.plays.rival))
-      || !this.board.some((fish, index) => !fish && !REEFS.has(index))) {
+      || !this.board.some((fish, index) => !fish && !REEFS.has(index) && !blocksPlacement(this.terrain, index))) {
       this.finishMatch();
       return true;
     }

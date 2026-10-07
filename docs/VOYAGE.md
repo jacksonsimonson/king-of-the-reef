@@ -6,9 +6,9 @@ Voyage is a saved three-region run reached from the main menu. Maps read left to
 
 1. **Shoreline:** sunlit sand and shallows on the left, tidepools through the middle, coral reefs on the right.
 2. **Open Ocean:** the continental shelf darkens toward a midnight trench. An arctic current and ice floes cross the middle of the chart.
-3. **Bermuda Triangle:** wrecks, frequent forked lightning, whirlpools, waterspouts and rogue waves converge on the triangle's heart. Disasters are scenery for now.
+3. **Bermuda Triangle:** wrecks, frequent forked lightning, whirlpools, waterspouts and rogue waves converge on the triangle's heart. The voyage-chart disasters remain scenery; battle terrain has its own explicit rules.
 
-Battlefields use subtle native-size scenery and water/border palettes matching their current region. Board size and combat rules remain the same across regions.
+Battlefields use subtle native-size scenery and water/border palettes matching their current region. Board size and core card rules stay consistent; [regional terrain](TERRAIN.md) adds rocks, whirlpools, and two themed positional mechanics per sea.
 
 Each region ends at a **Colossal**, a giant ocean creature ruling that part of the sea. Reef Colossal, Abyssal Colossal and Triangle Colossal are provisional encounter labels. Their species, identities, unique artwork and bespoke rules await the user's designs. For this foundation they use ordinary reef combat with themed, stronger schools.
 
