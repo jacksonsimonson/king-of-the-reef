@@ -1,4 +1,6 @@
+import { canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
+import { battleTerrain, blocksPlacement, placementCard, placementDestination, terrainLegend, TERRAIN_INFO } from "../terrain";
 import { STARTERS, type FishCard } from "../data/starterFish";
 import { createEnabledDeck } from "../data/roster";
 import { drawFishCard } from "../ui/drawFishCard";
@@ -7,7 +9,7 @@ import type { RegionId } from "../run/maps";
 import { resolvePlacement, revealCard, revealTargets, type HandSlot } from "../combat";
 import { cardDescription } from "../ui/cardVisuals";
 import { pixelTextStyle, pixelPanel, pixelPearl } from "../ui/pixelTheme";
-import { CHARMS, CHARM_IDS, charmCanvas, charmCard, refillSlot, shuffleHand, canPlayFish, PLAYS_PER_BATTLE, type CharmId } from "../data/tideCharms";
+import { CHARMS, CHARM_CAPACITY, availableCharms, randomCharms, charmCanvas, charmCard, canCharmCard, canDrift, exchangeReserve, refillSlot, shuffleHand, canPlayFish, PLAYS_PER_BATTLE, type CharmId } from "../data/tideCharms";
 import { triggersRally, resolveRally, rivalRallyChoice } from "../rally";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
@@ -29,6 +31,7 @@ interface VoyageBattle {
 
 export class FoundationScene extends Phaser.Scene {
   private board: Array<FishCard | null> = [];
+  private terrain = battleTerrain();
   private playerHand: HandSlot[] = [];
   private rivalHand: HandSlot[] = [];
   private playerDeck: FishCard[] = [];
@@ -45,6 +48,9 @@ export class FoundationScene extends Phaser.Scene {
   private pendingReveal: "card" | "charm" | null = null;
   private pendingRally: HandSlot | null = null;
   private charms: CharmId[] = [];
+  private pendingDraft = false;
+  private pendingDrift = false;
+  private driftFrom: number | null = null;
   private plays = { player: 0, rival: 0 };
   private waterColor = COLORS.water;
   private borderColor = COLORS.green;
@@ -69,6 +75,7 @@ export class FoundationScene extends Phaser.Scene {
       const palette = { shoreline: [0x164d59, 0x73cbb1], ocean: [0x112f49, 0x80b9d2], bermuda: [0x302343, 0xa385c6] }[this.voyageBattle.region];
       [this.waterColor, this.borderColor] = palette;
     }
+    this.terrain = battleTerrain(this.voyageBattle?.region);
     this.resetMatch();
   }
 
@@ -87,7 +94,8 @@ export class FoundationScene extends Phaser.Scene {
     this.shocked.clear();
     this.pendingReveal = null;
     this.pendingRally = null;
-    this.charms = this.voyageBattle?.charms ?? [...CHARM_IDS];
+    this.pendingDraft = false; this.pendingDrift = false; this.driftFrom = null;
+    this.charms = this.voyageBattle?.charms ?? randomCharms();
     this.plays = { player: 0, rival: 0 };
     this.render("Drag a fish to open water, or select it and choose a tile.");
     if (!this.playerHand.length) this.advanceTurn("player");
@@ -158,8 +166,18 @@ export class FoundationScene extends Phaser.Scene {
       const cell = this.add.rectangle(x + CELL / 2, y + CELL / 2, CELL, CELL, this.waterColor)
         .setStrokeStyle(3, reef ? COLORS.pink : this.borderColor, reef ? 1 : 0.72);
       add(cell);
+      if (!this.board[index]) this.drawTerrain(index, x, y);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
+      const feature = this.terrain.features?.get(index);
+      if (feature && this.board[index]) add(this.add.text(x + CELL / 2, y + CELL - 4, TERRAIN_INFO[feature].name, { ...this.textStyle(8, "#c4ece1"), backgroundColor: "#00233a" }).setOrigin(0.5, 1));
+      if (this.pendingDrift && this.driftFrom !== null && canDrift(this.board, this.driftFrom, index, this.terrain)) {
+        cell.setStrokeStyle(4, 0xffdd88).setInteractive({ useHandCursor: true }).on("pointerdown", () => {
+          if (this.driftFrom === null || !canDrift(this.board, this.driftFrom, index, this.terrain) || !this.spendCharm("drift-shell")) return;
+          this.board[index] = this.board[this.driftFrom]; this.board[this.driftFrom] = null;
+          this.pendingDrift = false; this.driftFrom = null; this.render("Fish repositioned. Play your fish when ready.");
+        });
+      }
       if (this.isLegalPlayerPlacement(index)) {
         cell.setInteractive({ useHandCursor: true })
           .on("pointerover", () => {
@@ -175,11 +193,16 @@ export class FoundationScene extends Phaser.Scene {
       }
     }
     if (this.pendingReveal === "charm") {
-      const cancel = this.add.text(38, board.y + 460, "CANCEL REVEAL", this.textStyle(8, "#eed49b")).setInteractive({ useHandCursor: true });
+      const cancel = this.add.text(38, board.y + 520, "CANCEL REVEAL", this.textStyle(8, "#eed49b")).setInteractive({ useHandCursor: true });
       cancel.on("pointerdown", () => { this.pendingReveal = null; this.render("Reveal canceled. Charm kept."); });
       add(cancel);
     }
 
+    add(this.add.text(this.scale.width - 194, board.y + 310, terrainLegend(this.terrain), this.textStyle(8, "#b8d7dc")).setWordWrapWidth(168).setLineSpacing(6));
+    if (this.pendingDrift) {
+      const cancel = this.add.text(38, board.y + 500, "CANCEL DRIFT", this.textStyle(8, "#eed49b")).setInteractive({ useHandCursor: true });
+      cancel.on("pointerdown", () => { this.pendingDrift = false; this.driftFrom = null; this.render("Drift canceled. Charm kept."); }); add(cancel);
+    }
     if (this.finished) this.drawResult(scores.player, scores.rival);
     else {
       const detail = this.add.text(40, this.scale.height - 68, "Hover a card to read its edges and ability.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 80);
@@ -189,6 +212,7 @@ export class FoundationScene extends Phaser.Scene {
       this.events.removeAllListeners("charm-hover");
       this.events.on("charm-hover", (id: CharmId) => detail.setText(`${CHARMS[id].name}: ${CHARMS[id].description}`));
       if (this.pendingRally) this.drawRally();
+      if (this.pendingDraft) this.drawDraft();
     }
   }
 
@@ -221,7 +245,7 @@ export class FoundationScene extends Phaser.Scene {
     if (slot.played) return;
     const card = this.drawFishCard(slot.card, x, y, HAND_CARD_SIZE, selected);
     if (slot.revealed) this.ui?.add(this.add.text(x, y + 90, "REVEALED", this.textStyle(16, "#81e8ed")).setOrigin(0.5));
-    if (this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally) return;
+    if (this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
 
     card.setInteractive({ useHandCursor: true });
     this.input.setDraggable(card);
@@ -235,13 +259,13 @@ export class FoundationScene extends Phaser.Scene {
     card.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       card.setPosition(dragX, dragY);
       const index = this.boardIndexAt(pointer.x, pointer.y);
-      if (index !== null && !this.board[index] && !REEFS.has(index)) this.showPlacementPreview(index, slot.card);
+      if (index !== null && canPlaceFish(this.board, index, slot.card, this.terrain)) this.showPlacementPreview(index, slot.card);
       else this.clearPlacementPreview();
     });
     card.on("dragend", () => {
       const placement = this.previewIndex;
       this.clearPlacementPreview();
-      if (placement !== null && !this.board[placement] && !REEFS.has(placement)) this.playPlayerCard(placement);
+      if (placement !== null && canPlaceFish(this.board, placement, slot.card, this.terrain)) this.playPlayerCard(placement);
       else {
         card.setPosition(x, y).setScale(1).setDepth(2);
         this.selectedId = null;
@@ -254,6 +278,29 @@ export class FoundationScene extends Phaser.Scene {
     });
   }
 
+  private drawTerrain(index: number, x: number, y: number): void {
+    const rock = this.terrain.rocks.has(index);
+    const pool = this.terrain.whirlpools.indexOf(index);
+    const feature = this.terrain.features?.get(index);
+    if (feature) {
+      const info = TERRAIN_INFO[feature];
+      info.pixels.forEach((row, py) => [...row].forEach((value, px) => {
+        if (value === "1") this.ui?.add(this.add.rectangle(x + 28 + px * 8, y + 20 + py * 8, 8, 8, info.color).setOrigin(0));
+      }));
+      this.ui?.add(this.add.text(x + CELL / 2, y + 70, info.name, this.textStyle(8, "#c4ece1")).setOrigin(0.5));
+      return;
+    }
+    if (!rock && pool < 0) return;
+    const pixels = rock
+      ? ["000000000000", "000011110000", "001122221000", "011222222100", "012223322210", "122233222210", "122222222221", "122222222221", "011111111110", "000000000000"]
+      : ["000111111000", "001222222100", "012211112210", "122100001221", "121002210121", "121012210121", "122100010221", "012211112210", "001222222100", "000111111000"];
+    const palette = rock ? [0, 0x344c60, 0x72929a, 0xb1c5b8] : [0, 0x277b99, 0x8be9e5, 0xffffff];
+    pixels.forEach((row, py) => [...row].forEach((value, px) => {
+      if (value !== "0") this.ui?.add(this.add.rectangle(x + 24 + px * 4, y + 18 + py * 4, 4, 4, palette[Number(value)]).setOrigin(0));
+    }));
+    this.ui?.add(this.add.text(x + CELL / 2, y + 70, rock ? "ROCK" : pool === 0 ? "POOL A" : "POOL B", this.textStyle(8, "#c4ece1")).setOrigin(0.5));
+  }
+
   private drawPearl(x: number, y: number): void {
     const pearl = pixelPearl(this, x, y - 4);
     const label = this.add.text(x, y + 28, "REEF", this.textStyle(11, "#ffb8d8", true)).setOrigin(0.5);
@@ -261,7 +308,11 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private drawBoardFish(fish: FishCard, x: number, y: number): void {
-    this.drawFishCard(fish, x + CELL / 2, y + CELL / 2, BOARD_CARD_SIZE, false);
+    const drawing = this.drawFishCard(fish, x + CELL / 2, y + CELL / 2, BOARD_CARD_SIZE, false);
+    if (this.pendingDrift && fish.owner === "player") drawing.on("pointerdown", () => {
+      this.driftFrom = this.board.findIndex(card => card?.id === fish.id);
+      this.render("Choose an adjacent gold-bordered tile, or another friendly fish.");
+    });
   }
 
   private drawFishCard(fish: FishCard, x: number, y: number, size: number, selected: boolean, silhouette = false): Phaser.GameObjects.Container {
@@ -274,12 +325,13 @@ export class FoundationScene extends Phaser.Scene {
   private showPlacementPreview(index: number, fish: FishCard): void {
     if (this.previewIndex === index) return;
     this.clearPlacementPreview();
-    const row = Math.floor(index / BOARD_SIZE);
-    const column = index % BOARD_SIZE;
+    const destination = placementDestination(this.board, index, this.terrain);
+    const row = Math.floor(destination / BOARD_SIZE);
+    const column = destination % BOARD_SIZE;
     const board = this.boardOrigin();
     const x = board.x + column * (CELL + GAP) + CELL / 2;
     const y = board.y + row * (CELL + GAP) + CELL / 2;
-    this.placementPreview = this.drawFishCard(fish, x, y, BOARD_CARD_SIZE, false).setAlpha(0.42).setDepth(30);
+    this.placementPreview = this.drawFishCard(placementCard(fish, index, this.terrain), x, y, BOARD_CARD_SIZE, false).disableInteractive().setAlpha(0.42).setDepth(30);
     this.previewIndex = index;
   }
 
@@ -333,9 +385,9 @@ export class FoundationScene extends Phaser.Scene {
 
   private drawCharms(x: number, y: number): void {
     this.ui?.add(this.add.text(x, y, "TIDE CHARMS", this.textStyle(16, "#eed49b")));
-    this.ui?.add(this.add.text(x, y + 24, "USE BEFORE YOUR FISH", this.textStyle(8, "#8aa8b5")));
-    CHARM_IDS.forEach((id, index) => {
-      const count = this.charms.filter((entry) => entry === id).length;
+    this.ui?.add(this.add.text(x, y + 24, `${availableCharms(this.charms).length}/${CHARM_CAPACITY} · USE BEFORE YOUR FISH`, this.textStyle(8, "#8aa8b5")));
+    availableCharms(this.charms).forEach((id, index) => {
+      const count = 1;
       const active = this.canUseCharm(id);
       const key = `charm-${id}`;
       if (!this.textures.exists(key)) this.textures.addCanvas(key, charmCanvas(id, 2));
@@ -348,15 +400,26 @@ export class FoundationScene extends Phaser.Scene {
       frame.on("pointerover", () => this.events.emit("charm-hover", id));
       frame.on("pointerdown", () => this.useCharm(id));
     });
+    for (let index = availableCharms(this.charms).length; index < CHARM_CAPACITY; index++) {
+      this.ui?.add(this.add.rectangle(x + 76, y + 58 + index * 48, 152, 40, 0x102d3c).setStrokeStyle(2, 0x446270));
+      this.ui?.add(this.add.text(x + 38, y + 50 + index * 48, "EMPTY SLOT", this.textStyle(8, "#8aa8b5")));
+    }
+  }
+
+  private hasLegalMove(owner: "player" | "rival"): boolean {
+    const hand = owner === "player" ? this.playerHand : this.rivalHand;
+    return canPlayFish(hand, this.plays[owner]) && hand.some(slot => !slot.played && this.board.some((_, index) => canPlaceFish(this.board, index, slot.card, this.terrain)));
   }
 
   private canUseCharm(id: CharmId): boolean {
-    if (this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || !canPlayFish(this.playerHand, this.plays.player) || !this.charms.includes(id)) return false;
+    if (this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player) || !availableCharms(this.charms).includes(id)) return false;
     if (id === "spyglass-pearl") return revealTargets(this.rivalHand).length > 0;
     if (id === "current-conch") return this.playerDeck.length > 0;
+    if (id === "drift-shell") return this.board.some((_, from) => this.board.some((_, to) => canDrift(this.board, from, to, this.terrain)));
     const selected = this.getSelectedPlayerCard();
     if (!selected) return false;
-    return id !== "coral-mail" || selected.edges.length < 4;
+    if (id === "dredger-net") return this.playerDeck.length > 0;
+    return canCharmCard(selected, id);
   }
 
   private spendCharm(id: CharmId): boolean {
@@ -373,6 +436,8 @@ export class FoundationScene extends Phaser.Scene {
       this.render("Spyglass Pearl — choose a hidden rival card. Your fish play is still available.");
       return;
     }
+    if (id === "dredger-net") { this.pendingDraft = true; this.render("Dredger Net — choose a replacement from your next three reserve cards."); return; }
+    if (id === "drift-shell") { this.pendingDrift = true; this.driftFrom = null; this.render("Drift Shell — choose a friendly board fish, then an adjacent empty tile."); return; }
     if (!this.spendCharm(id)) return;
     if (id === "current-conch") {
       shuffleHand(this.playerHand, this.playerDeck, () => this.voyageBattle?.rng() ?? Math.random());
@@ -384,17 +449,37 @@ export class FoundationScene extends Phaser.Scene {
     this.render(`${CHARMS[id].name} used. Play your fish when ready.`);
   }
 
+  private drawDraft(): void {
+    const x = Math.floor(this.scale.width / 2), y = Math.floor(this.scale.height / 2);
+    const modal = this.add.container(0, 0).setDepth(210); this.ui?.add(modal);
+    modal.add(pixelPanel(this, x, y, 720, 400));
+    modal.add(this.add.text(x, y - 172, "DREDGER NET · CHOOSE ONE", this.textStyle(24, "#eed49b")).setOrigin(0.5));
+    this.playerDeck.slice(0, 3).forEach((fish, index) => {
+      const cx = x + (index - 1) * 216;
+      const pick = drawFishCard({ scene: this, container: modal, fish, x: cx, y: y - 12, size: HAND_CARD_SIZE });
+      pick.setInteractive({ useHandCursor: true }).on("pointerover", () => this.events.emit("card-hover", fish)).on("pointerdown", () => {
+        const slot = this.playerHand.find(entry => !entry.played && entry.card.id === this.selectedId);
+        if (!slot || !this.playerDeck[index] || !this.spendCharm("dredger-net")) return;
+        exchangeReserve(slot, this.playerDeck, index); this.selectedId = slot.card.id; this.pendingDraft = false;
+        this.render("Replacement chosen. Your old fish is at the bottom of the reserve.");
+      });
+      modal.add(this.add.text(cx, y + 84, fish.name, this.textStyle(8, "#b8d7dc")).setOrigin(0.5).setWordWrapWidth(192));
+    });
+    const cancel = this.add.text(x, y + 148, "CANCEL · KEEP CHARM", this.textStyle(16, "#eed49b")).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    cancel.on("pointerdown", () => { this.pendingDraft = false; this.render("Draft canceled. Charm kept."); }); modal.add(cancel);
+  }
+
   private getSelectedPlayerCard(): FishCard | undefined {
     return this.playerHand.find((slot) => !slot.played && slot.card.id === this.selectedId)?.card;
   }
 
   private isLegalPlayerPlacement(index: number): boolean {
-    return Boolean(this.selectedId && this.turn === "player" && !this.finished && !this.pendingReveal && !this.pendingRally && !this.board[index] && !REEFS.has(index));
+    return Boolean(this.selectedId && this.turn === "player" && !this.finished && !this.pendingReveal && !this.pendingRally && !this.pendingDraft && !this.pendingDrift && canPlaceFish(this.board, index, this.getSelectedPlayerCard(), this.terrain));
   }
 
   private playPlayerCard(index: number): void {
     const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId);
-    if (!slot || this.board[index] || REEFS.has(index) || this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally) return;
+    if (!slot || !canPlaceFish(this.board, index, slot.card, this.terrain) || this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
     slot.played = true;
     this.selectedId = null;
     const playedCard = slot.card;
@@ -415,11 +500,12 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private playRivalTurn(): void {
-    const open = this.board.map((card, index) => (!card && !REEFS.has(index) ? index : -1)).filter((index) => index >= 0);
+    const open = this.board.map((card, index) => (!card && !blocksPlacement(this.terrain, index) ? index : -1)).filter((index) => index >= 0);
     const available = this.rivalHand.filter((slot) => !slot.played);
     if (!open.length || !available.length) return this.finishMatch();
     let best: { slot: HandSlot; index: number; score: number } | undefined;
     for (const slot of available) for (const index of open) {
+      if (!canPlaceFish(this.board, index, slot.card, this.terrain)) continue;
       const score = this.evaluateMove(index, slot.card) + (this.voyageBattle?.rng() ?? Math.random()) * 1.5;
       if (!best || score > best.score) best = { slot, index, score };
     }
@@ -439,8 +525,8 @@ export class FoundationScene extends Phaser.Scene {
 
   private advanceTurn(previous: "player" | "rival"): void {
     if (this.checkEnd()) return;
-    const playerReady = canPlayFish(this.playerHand, this.plays.player);
-    const rivalReady = canPlayFish(this.rivalHand, this.plays.rival);
+    const playerReady = this.hasLegalMove("player");
+    const rivalReady = this.hasLegalMove("rival");
     this.turn = rivalReady && (previous === "player" || !playerReady) ? "rival" : "player";
     this.render(this.turn === "rival" ? "The rival is choosing…" : "Your turn — drag a fish to open water.");
     if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
@@ -452,7 +538,7 @@ export class FoundationScene extends Phaser.Scene {
     const opposingOwner = card.owner === "player" ? "rival" : "player";
     const opposingBefore = simulation.filter((fish) => fish?.owner === opposingOwner).length;
     const ownBefore = simulation.filter((fish) => fish?.owner === card.owner).length + 1;
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked }, index, card);
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card);
     simulation = result.board;
     const afterScores = this.getScores(simulation);
     const opposingAfter = simulation.filter((fish) => fish?.owner === opposingOwner).length;
@@ -465,7 +551,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private placeCard(index: number, card: FishCard): ReturnType<typeof resolvePlacement> {
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked }, index, card);
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card);
     this.board = result.board;
     this.shocked = result.shocked;
     for (const id of result.killedIds) this.killedIds.add(id);
@@ -498,19 +584,11 @@ export class FoundationScene extends Phaser.Scene {
       modal.add([button, this.add.text(bx, y + 144, choice === "keep" ? "KEEP & DRAW" : "SEND TO BOTTOM", this.textStyle(16, "#eed49b")).setOrigin(0.5)]);
     });
   }
-  private getScores(board: Array<FishCard | null> = this.board): { player: number; rival: number } {
-    let player = 0;
-    let rival = 0;
-    for (const index of REEFS) {
-      if (board[index]?.owner === "player") player += 1;
-      if (board[index]?.owner === "rival") rival += 1;
-    }
-    return { player, rival };
-  }
+  private getScores(board: Array<FishCard | null> = this.board): { player: number; rival: number } { return scoreBoard(board); }
 
   private checkEnd(): boolean {
     if ((!canPlayFish(this.playerHand, this.plays.player) && !canPlayFish(this.rivalHand, this.plays.rival))
-      || !this.board.some((fish, index) => !fish && !REEFS.has(index))) {
+      || !this.hasLegalMove("player") && !this.hasLegalMove("rival")) {
       this.finishMatch();
       return true;
     }

@@ -1,5 +1,13 @@
 # Design Decisions
 
+## 2026-10-07 — Expanded charms and reusable full-card abilities
+
+Limit available charm inventory to three items, counting duplicates separately. Quick Match randomly draws three distinct charms. Block shop charm purchases at capacity without spending shells; preserve legacy excess purchases behind the first three available items until used.
+
+Add eight charms focused on ordinary hand selection, positioning, edge upgrades and reef access, plus eight implemented abilities for later creature assignment. Preserve existing creature balance until assignments are chosen. Temporary charm grants stack with innate abilities and never alter the saved school. Targeted charms spend only after a valid selection; cancellation and ineffective upgrades cost nothing.
+
+Version the deterministic shop charm pool per voyage. Existing saves keep the four original charm types and unchanged stock; new voyages use twelve. Ability behavior and timing live in [EDGE_EFFECTS.md](EDGE_EFFECTS.md), with charm usage in [SHOPS.md](SHOPS.md).
+
 ## 2026-10-07 — Lightweight agent workflow
 
 **Solo refinement:** Default to one developer and one agent. Keep issues, separate worktrees, and independent reviews optional. Compact local verification output while retaining full logs, warnings, original failure codes, and every gate; keep verbose CI evidence. Measure instruction/discovery bytes and displayed output rather than claiming unmeasured token savings. Details and sources live in `AGENT_EFFICIENCY.md`, loaded only for workflow tuning.
@@ -142,3 +150,7 @@ This log records important choices and their reasoning.
 **Decision:** Keep the recovered 4×4 browser prototype in Git history, but remove it from the current application once the scalable build reaches feature parity.
 
 **Reasoning:** Git retains the project's real starting point without exposing an obsolete second version in the shipped game.
+
+## 2026-10-07: Regional battle terrain
+
+Add rocks and linked whirlpools plus two terrain types per sea. Use fixed layouts initially so rivals and rematches share readable rules. Terrain affects both players through the same combat resolver. See [terrain rules](TERRAIN.md). Favor effects that matter to everyday placement and reef control; replaced niche shock cleansing with a thermal vent eruption that moves neighboring cards. No save migration.

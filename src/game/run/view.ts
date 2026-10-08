@@ -1,7 +1,7 @@
 import { FishingSession } from "../fishing/view.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
-import { CHARMS, CHARM_IDS, charmCanvas } from "../data/tideCharms.ts";
+import { CHARMS, CHARM_IDS, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
 import { shopOffers, runFishDefinition } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
@@ -149,7 +149,7 @@ export class VoyageView {
     this.renderDetail();
     if (run) {
       const bag = element("details", "voyage-school");
-      bag.append(element("summary", "", `Tide Charms · ${run.charms.length}`));
+      bag.append(element("summary", "", `Tide Charms · ${Math.min(run.charms.length, CHARM_CAPACITY)}/${CHARM_CAPACITY}${run.charms.length > CHARM_CAPACITY ? ` · ${run.charms.length - CHARM_CAPACITY} Legacy Extras` : ""}`));
       const contents = element("div", "charm-inventory");
       for (const id of CHARM_IDS) {
         const count = run.charms.filter((charm) => charm === id).length;
@@ -225,6 +225,7 @@ export class VoyageView {
       panel.append(element("p", "", `${run.shells} Shells · Each Offer Can Be Bought Once. Tide Charms Are Single-Use Battle Items.`));
       const stock = element("div", "shop-stock");
       for (const offer of shopOffers(run)) {
+        const full = offer.kind === "charm" && run.charms.length >= CHARM_CAPACITY;
         const sold = run.shop?.purchased.includes(offer.id) ?? false;
         const pick = button("", () => this.resolve(offer.id), "catch-choice shop-offer");
         pick.dataset.offerId = offer.id;
@@ -236,8 +237,8 @@ export class VoyageView {
           art.style.borderColor = CHARMS[offer.charm].color;
           pick.append(art, element("strong", "", CHARMS[offer.charm].name), element("span", "offer-description", CHARMS[offer.charm].description));
         }
-        pick.append(element("small", "", `${offer.price} Shells`), element("span", "offer-status", sold ? "Sold Out" : run.shells < offer.price ? `Need ${offer.price - run.shells} More` : "Buy"));
-        pick.disabled = sold || run.shells < offer.price;
+        pick.append(element("small", "", `${offer.price} Shells`), element("span", "offer-status", sold ? "Sold Out" : full ? "Charm Inventory Full (3/3)" : run.shells < offer.price ? `Need ${offer.price - run.shells} More` : "Buy"));
+        pick.disabled = sold || full || run.shells < offer.price;
         stock.append(pick);
       }
       panel.append(stock);

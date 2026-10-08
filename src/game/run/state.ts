@@ -3,7 +3,7 @@ import { STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
-import { isCharm, type CharmId } from "../data/tideCharms.ts";
+import { isCharm, CHARM_CAPACITY, availableCharms, type CharmId } from "../data/tideCharms.ts";
 import { generateShop, type ShopOffer } from "./shop.ts";
 import { enabledTextures } from "../data/roster.ts";
 
@@ -14,6 +14,7 @@ export interface Run {
   roster: string[];
   reefPoolVersion: 1 | 2 | 3;
   oceanPoolVersion?: 1;
+  charmPoolVersion?: 1 | 2;
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
   charms: CharmId[];
   shop?: { nodeId: string; purchased: string[] };
@@ -30,7 +31,7 @@ export function recruit(run: Run, texture: string): void {
 export function createRun(seed: string): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i));
   const roster = enabledTextures();
-  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, oceanPoolVersion: 1, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, oceanPoolVersion: 1, charmPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   const enabled = new Set(roster);
   const preferred = ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"];
   const starting = [...preferred.filter((texture) => enabled.has(texture)), ...REGIONS[0].pool.filter((texture) => enabled.has(texture) && !preferred.includes(texture))].slice(0, 8);
@@ -100,12 +101,13 @@ export function canRelease(run: Run, id: string): boolean {
 }
 export function shopOffers(run: Run): ShopOffer[] {
   if (!run.pending || activeNode(run).type !== "shop") return [];
-  return generateShop(run.seed, run.pending, run.region, offers(run), run.reefPoolVersion, run.oceanPoolVersion === 1);
+  return generateShop(run.seed, run.pending, run.region, offers(run), run.reefPoolVersion, run.oceanPoolVersion === 1, run.charmPoolVersion ?? 1);
 }
 export function buyOffer(run: Run, id: string): boolean {
   if (run.status !== "active") return false;
   const offer = shopOffers(run).find((entry) => entry.id === id);
   if (!offer || run.shop?.purchased.includes(id) || run.shells < offer.price) return false;
+  if (offer.kind === "charm" && run.charms.length >= CHARM_CAPACITY) return false;
   run.shop ??= { nodeId: run.pending!, purchased: [] };
   run.shells -= offer.price;
   run.shop.purchased.push(id);
@@ -115,6 +117,7 @@ export function buyOffer(run: Run, id: string): boolean {
 }
 export function consumeCharm(run: Run, id: CharmId): boolean {
   if (run.status !== "active" || !run.pending || !["battle", "boss"].includes(activeNode(run).type)) return false;
+  if (!availableCharms(run.charms).includes(id)) return false;
   const index = run.charms.indexOf(id);
   if (index < 0) return false;
   run.charms.splice(index, 1);
@@ -219,6 +222,7 @@ export function loadRun(): Run | null {
     // Preserve schools from the earlier recovery model.
     run.school.forEach((fish) => { if ((fish.condition as string) === "knocked-out") fish.condition = "killed"; });
     if (![run.shells, run.resolve, run.serial].every(Number.isFinite)) return null;
+    if (run.charmPoolVersion !== undefined && ![1, 2].includes(run.charmPoolVersion)) return null;
     run.charms ??= []; // Older voyages have no Tide Charms yet.
     if (!Array.isArray(run.charms) || !run.charms.every(isCharm)) return null;
     // Older voyages predate roster selection and retain the original full pool.
