@@ -1,4 +1,5 @@
 import { FishingSession } from "../fishing/view.ts";
+import { reefAudio } from "../audio/audio.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
 import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
@@ -38,6 +39,7 @@ export class VoyageView {
     this.viewingMap = false; this.run = createRun(id); this.preview = 0; this.selected = null; this.save(); this.render();
   }
   private render(): void {
+    reefAudio.setTrack(`map-${(this.run?.region ?? 0) as 0 | 1 | 2}`);
     this.fishing?.destroy(); this.fishing = undefined;
     if (this.run?.fishing && this.run.fishing.snapshot.status !== "playing") {
       finishFishing(this.run, this.run.fishing.snapshot); this.save();
@@ -270,6 +272,7 @@ export class VoyageView {
       const status = element("p", "care-selection");
       const confirm = button("", () => {
         if (resolveVisit(run, hydration ? "rest" : [...selected][0], [...selected])) {
+          reefAudio.play(hydration ? "heal" : "reward");
           this.selected = null; this.save(); this.render();
         }
       });
@@ -306,7 +309,7 @@ export class VoyageView {
     panel.append(actions);
   }
   private resolve(choice: string): void {
-    if (this.run && resolveVisit(this.run, choice)) { this.selected = null; this.save(); this.render(); }
+    if (this.run && resolveVisit(this.run, choice)) { if (choice !== "leave") reefAudio.play("reward"); this.selected = null; this.save(); this.render(); }
   }
   private openFishing(resumed: boolean): void {
     const run = this.run, attempt = run?.fishing;
@@ -314,7 +317,7 @@ export class VoyageView {
     const fish = runFishDefinition(run, attempt.texture)!;
     this.fishing = new FishingSession({ ...fish, owner: "player", condition: "healthy" }, attempt.snapshot, run.seed, resumed,
       (snapshot) => { if (run.fishing?.nodeId === attempt.nodeId) { run.fishing.snapshot = snapshot; this.save(); } },
-      (snapshot) => { finishFishing(run, snapshot); this.save(); },
+      (snapshot) => { reefAudio.play(snapshot.status === "caught" ? "reward" : "defeat"); finishFishing(run, snapshot); this.save(); },
       () => { this.fishing = undefined; this.selected = null; this.render(); });
   }
   private newRunDialog(): void {

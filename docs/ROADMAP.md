@@ -67,5 +67,5 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 - Colossal-specific rules
 - Collection journal
 - Accessibility and input options
-- Sound and music
+- Sound and music: implemented three original regional map loops, an escalating battle arrangement per area, combat/encounter cues, and saved audio controls. Next: listening feedback and mix refinement.
 - Save data and broader balancing

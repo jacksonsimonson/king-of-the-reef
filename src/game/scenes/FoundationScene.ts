@@ -1,3 +1,5 @@
+import { reefAudio } from "../audio/audio.ts";
+import { combatCue } from "../audio/cues.ts";
 import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
@@ -444,10 +446,14 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private spendCharm(id: CharmId): boolean {
-    if (this.voyageBattle) return this.voyageBattle.onUseCharm(id);
+    if (this.voyageBattle) {
+      const spent = this.voyageBattle.onUseCharm(id);
+      if (spent) reefAudio.play("charm");
+      return spent;
+    }
     const index = this.charms.indexOf(id);
     if (index < 0) return false;
-    this.charms.splice(index, 1); return true;
+    this.charms.splice(index, 1); reefAudio.play("charm"); return true;
   }
 
   private useCharm(id: CharmId): void {
@@ -585,6 +591,8 @@ export class FoundationScene extends Phaser.Scene {
 
   private async showCombatFrame(frame: CombatFrame): Promise<void> {
     const before = this.board;
+    const cue = combatCue(before, this.shocked, frame);
+    if (cue) reefAudio.play(cue);
     for (const line of describeFrame(before, this.shocked, frame)) this.logCombat(line);
     this.board = frame.board; this.shocked = frame.shocked;
     this.render("Resolving: " + frame.label);
@@ -676,6 +684,7 @@ export class FoundationScene extends Phaser.Scene {
     if (this.finished) return;
     this.finished = true;
     const score = this.getScores();
+    reefAudio.play(score.player > score.rival ? "victory" : score.player < score.rival ? "defeat" : "reward");
     this.voyageBattle?.onResult(score.player, score.rival, [...this.killedIds]);
     this.render(score.player > score.rival ? "You rule the reef!" : score.rival > score.player ? "The rival rules this tide." : "The tide ends in a draw.");
   }
