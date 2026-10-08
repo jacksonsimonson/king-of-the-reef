@@ -1,3 +1,4 @@
+import { hasAbility } from "./abilities.ts";
 import type { Direction, EdgeEffect, FishCard } from "./data/starterFish.ts";
 import { removedCardIds } from "./run/casualties.ts";
 import { blocksPlacement, placementCard, placementDestination, type Terrain } from "./terrain.ts";
@@ -18,7 +19,9 @@ export function revealCard(hand: HandSlot[], id: string): boolean {
   return true;
 }
 
-export function edgeBlocks(target: FishCard, incoming: Direction, effect: EdgeEffect, shocked: ReadonlySet<string>): boolean {
+export function edgeBlocks(target: FishCard, incoming: Direction, effect: EdgeEffect, shocked: ReadonlySet<string>, attacker?: FishCard): boolean {
+  if (hasAbility(attacker, "piercing")) return false;
+  if (hasAbility(target, "bulwark")) return effect !== "dive";
   if (shocked.has(target.id)) return false;
   const defender = target.edges.find((edge) => edge.direction === DIRECTIONS[incoming].opposite);
   if (!defender || defender.effect === "shock" || defender.effect === "spines") return false;
@@ -47,7 +50,7 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
   };
   const neighbor = (index: number, direction: Direction) => offset(index, DIRECTIONS[direction].row, DIRECTIONS[direction].column);
   const rock = (index: number | null) => index !== null && Boolean(state.terrain?.rocks.has(index));
-  const anchored = (index: number) => state.terrain?.features?.get(index) === "kelp";
+  const anchored = (index: number) => state.terrain?.features?.get(index) === "kelp" || hasAbility(board[index], "anchor");
   const sink = () => {
     for (const [index, type] of state.terrain?.features ?? []) if (type === "trench") board[index] = null;
   };
@@ -70,6 +73,16 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
       if (target) shocked.add(target.id);
     }
   }
+  for (const direction of Object.keys(DIRECTIONS) as Direction[]) {
+    const index = neighbor(placedIndex, direction), ally = index === null ? null : board[index];
+    if (!ally) continue;
+    if (hasAbility(card, "ambush") && ally.owner !== card.owner) shocked.add(ally.id);
+    if (hasAbility(card, "escort") && ally.owner === card.owner) {
+      const edges = ally.edges.map(edge => ({ ...edge }));
+      for (const side of Object.keys(DIRECTIONS) as Direction[]) if (!edges.some(edge => edge.direction === side)) edges.push({ direction: side, effect: "weak" });
+      board[index!] = { ...ally, edges };
+    }
+  }
   let source = placedIndex;
   for (const edge of card.edges) {
     sink();
@@ -80,7 +93,7 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
       for (let index = neighbor(source, edge.direction); index !== null && board[index]; index = neighbor(index, edge.direction)) line.push(index);
       for (const index of line.reverse()) {
         const target = board[index]!;
-        if (anchored(index) || edgeBlocks(target, edge.direction, "ram", shocked)) continue;
+        if (anchored(index) || edgeBlocks(target, edge.direction, "ram", shocked, card)) continue;
         const destination = neighbor(index, edge.direction);
         if (rock(destination) || (destination !== null && board[destination])) continue;
         board[index] = null;
@@ -104,7 +117,7 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
         }
         for (const index of ray.reverse()) {
           const target = board[index];
-          if (!target || anchored(index) || edgeBlocks(target, edge.direction, "wave", shocked)) continue;
+          if (!target || anchored(index) || edgeBlocks(target, edge.direction, "wave", shocked, card)) continue;
           const destination = offset(index, dr, dc);
           if (destination === null) board[index] = null;
           else if (!rock(destination) && !board[destination]) { board[destination] = target; board[index] = null; }
@@ -132,13 +145,13 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
       if (board[adjacent]) continue;
       const index = neighbor(adjacent, edge.direction);
       const target = index === null ? null : board[index];
-      if (target && !anchored(index!) && !edgeBlocks(target, edge.direction, "hook", shocked)) {
+      if (target && !anchored(index!) && !edgeBlocks(target, edge.direction, "hook", shocked, card)) {
         board[adjacent] = target; board[index!] = null;
       }
       continue;
     }
     const target = board[adjacent];
-    if (!target || edgeBlocks(target, edge.direction, edge.effect, shocked)) { bounce(); continue; }
+    if (!target || edgeBlocks(target, edge.direction, edge.effect, shocked, card)) { bounce(); continue; }
     if (edge.effect === "shock") { shocked.add(target.id); continue; }
     if (anchored(adjacent) && edge.effect !== "bigger-fish") { bounce(); continue; }
     if (edge.effect === "swap") {
@@ -163,6 +176,17 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     bounce();
   }
   sink();
+  if (board[source]?.id === card.id && hasAbility(card, "wake")) {
+    for (const direction of Object.keys(DIRECTIONS) as Direction[]) {
+      const index = neighbor(source, direction), target = index === null ? null : board[index];
+      if (!target || target.owner === card.owner || anchored(index!)) continue;
+      const destination = neighbor(index!, direction);
+      if (rock(destination) || (destination !== null && board[destination])) continue;
+      board[index!] = null;
+      if (destination !== null) board[destination] = target;
+      pushedEnemies.add(target.id); sink();
+    }
+  }
   if (state.terrain && poolEntry !== null && board[poolEntry]?.id === card.id) {
     const [a, b] = state.terrain.whirlpools;
     const exit = poolEntry === a ? b : a;

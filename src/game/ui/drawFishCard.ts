@@ -119,9 +119,10 @@ export function drawFishCard({
   });
 
   card.add([outer, inset]);
-  if (fish.ability && !silhouette) {
-    const pattern = scene.add.graphics().fillStyle(abilityBackgroundColor(fish.ability)).fillRect(-32 * integerScale, -32 * integerScale, 64 * integerScale, 64 * integerScale);
-    for (const p of abilityPixels(fish.ability)) pattern.fillStyle(p.color).fillRect((p.x - 32) * integerScale, (p.y - 32) * integerScale, integerScale, integerScale);
+  const visibleAbility = fish.battleAbilities?.at(-1) ?? fish.ability;
+  if (visibleAbility && !silhouette) {
+    const pattern = scene.add.graphics().fillStyle(abilityBackgroundColor(visibleAbility)).fillRect(-32 * integerScale, -32 * integerScale, 64 * integerScale, 64 * integerScale);
+    for (const p of abilityPixels(visibleAbility)) pattern.fillStyle(p.color).fillRect((p.x - 32) * integerScale, (p.y - 32) * integerScale, integerScale, integerScale);
     card.add(pattern);
   }
   card.add([sprite, ...edgeBadges]);

@@ -1,3 +1,4 @@
+import { ABILITIES, type CardAbility } from "../abilities.ts";
 import type { EdgeEffect, FishCard } from "../data/starterFish.ts";
 import { oceanRarity } from "../data/oceanPool.ts";
 import { reefRarity } from "../data/reefPool.ts";
@@ -11,10 +12,7 @@ export const OCEAN_PATTERNS = {
 };
 export const SHOCK_PATTERN = ["....##..", "...##...", "..##....", ".######.", "....##..", "...##...", "..##....", ".##....."];
 export const SPINES_PATTERN = ["#..##..#", ".#.##.#.", "..####..", "########", "########", "..####..", ".#.##.#.", "#..##..#"];
-export const ABILITY_HELP = {
-  revelation: "Revelation: on play, reveal 1 opposing hand card until it is played; replacement cards are hidden.",
-  rally: "Rally: after pushing an enemy, peek at your next reserve card. Keep it or send it to the bottom before drawing your replacement. Once per placement.",
-};
+export const ABILITY_HELP = Object.fromEntries(Object.entries(ABILITIES).map(([id, info]) => [id, `${info.name}: ${info.description}`])) as Record<CardAbility, string>;
 export const EFFECT_HELP: Record<EdgeEffect, string> = {
   standard: "Standard: push 1; blocked by opposing defenses",
   double: "Double: push 1; beats Standard, Ram, Bounce and Dive defenses",
@@ -35,7 +33,7 @@ export function cardDescription(card: FishCard): string {
   const effects = [...new Set(card.edges.map((edge) => edge.effect))];
   return [card.name + (rarity ? " (" + rarity + ")" : ""),
     ...effects.map((effect) => card.edges.filter((edge) => edge.effect === effect).map((edge) => edge.direction[0].toUpperCase() + edge.direction.slice(1)).join("/") + " — " + EFFECT_HELP[effect]),
-    ...(card.ability ? [ABILITY_HELP[card.ability]] : []),
+    ...[...new Set([...(card.ability ? [card.ability] : []), ...(card.battleAbilities ?? [])])].map(id => ABILITY_HELP[id]),
   ].join(". ");
 }
 
@@ -52,7 +50,15 @@ export function rallyPixels(): { x: number; y: number; color: number }[] {
 }
 
 export function abilityPixels(ability: NonNullable<FishCard["ability"]>): { x: number; y: number; color: number }[] {
-  return ability === "rally" ? rallyPixels() : revelationPixels();
+  if (ability === "rally") return rallyPixels();
+  if (ability === "revelation") return revelationPixels();
+  const info = ABILITIES[ability], pixels: { x: number; y: number; color: number }[] = [];
+  for (let row = 0; row < 4; row++) for (let col = 0; col < 4; col++) {
+    info.icon.forEach((line, y) => [...line].forEach((cell, x) => {
+      if (cell === "1") pixels.push({ x: 5 + col * 16 + x, y: 5 + row * 16 + y, color: info.color });
+    }));
+  }
+  return pixels;
 }
 export function abilityBackgroundColor(ability: NonNullable<FishCard["ability"]>): number {
   return ability === "rally" ? 0x1a302e : 0x151d38;

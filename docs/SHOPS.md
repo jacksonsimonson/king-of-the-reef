@@ -31,6 +31,18 @@ Tide Charms replace the Powerups label. Hover for the full effect; click a valid
 | Spyglass Pearl | Choose one hidden rival hand card to reveal. Cancel before choosing to keep the charm. Revealing retains your turn and fish placement. A replacement card is hidden again. |
 | Nautilus Dial | Select a hand card first. Turn its edge directions clockwise once. Icons such as Shields remain upright. Only this battle's copy changes. |
 | Coral Mail | Select a hand card with an empty side. Add Shields on every empty side for the rest of this battle. Existing edges stay intact. Does not undo Shock, make a fish immune to being knocked off the board or change the permanent school card. |
+| Spear Shell | Add Standard pushes to all empty sides of the selected hand fish. |
+| Breaker Tooth | Upgrade the selected fish's Standard pushes to Double. |
+| Barbed Wreath | Add Spines to all empty sides of the selected hand fish. |
+| Dredger Net | Exchange the selected hand fish for one of the next three reserve cards. Send the old fish to the bottom; cancel keeps the charm. |
+| Drift Shell | Move a friendly board fish to an adjacent empty safe tile, including a reef. Does not replay edges or placement terrain. Anchor and kelp prevent movement. Cancel keeps the charm. |
+| Anchor Stone | Grant Anchor to the selected hand fish for this battle. |
+| Reef Beacon | Grant Reefborn to the selected hand fish for this battle. |
+| Duelist Pearl | Grant Piercing to the selected hand fish for this battle. |
+
+The menu shows four charms per page; **NEXT** cycles through all three pages. Invalid or unchanged upgrades cannot spend a charm. Ability grants preserve the fish's innate ability and other grants; hover text lists them all. See [full-card abilities](EDGE_EFFECTS.md#full-card-abilities).
+
+New charm starting prices are their catalog bases plus 8 shells: Spear Shell 50, Breaker Tooth 54, Barbed Wreath 50, Dredger Net 46, Drift Shell 58, Anchor Stone 54, Reef Beacon 66 and Duelist Pearl 66. Normal seeded and regional adjustments still apply. New voyages use all twelve charms. Older saves retain their original four-charm shop pool so existing offers and purchases never change; start a new voyage for the expanded shop stock.
 
 Inventory consumption saves immediately on successful use. As with existing combat, unfinished board turns are not saved: leaving or reloading restarts the seeded battle, and spent charms remain spent. Persistent stat upgrades are not introduced yet; the current lasting effects remain on their fish for that battle only.
 

@@ -1,4 +1,4 @@
-import { CHARMS, CHARM_IDS, type CharmId } from "../data/tideCharms.ts";
+import { CHARMS, CHARM_IDS, LEGACY_CHARM_IDS, type CharmId } from "../data/tideCharms.ts";
 import { oceanRarity } from "../data/oceanPool.ts";
 import { reefRarity } from "../data/reefPool.ts";
 import { bermudaRarity } from "../data/bermudaPool.ts";
@@ -7,9 +7,9 @@ import { random } from "./maps.ts";
 export type ShopOffer = { id: string; price: number } & ({ kind: "fish"; texture: string } | { kind: "charm"; charm: CharmId });
 
 /** Fixed seeded stock: one fish, one charm, and one of either. Never reroll after buying. */
-export function generateShop(seed: string, nodeId: string, region: number, fish: string[], poolVersion: 1 | 2 | 3 = 3, oceanPricing = false): ShopOffer[] {
+export function generateShop(seed: string, nodeId: string, region: number, fish: string[], poolVersion: 1 | 2 | 3 = 3, oceanPricing = false, charmPoolVersion: 1 | 2 = 2): ShopOffer[] {
   const rng = random(`${seed}:${nodeId}:shop`);
-  const charms = [...CHARM_IDS];
+  const charms = [...(charmPoolVersion === 1 ? LEGACY_CHARM_IDS : CHARM_IDS)];
   const stock: ShopOffer[] = [];
   for (let i = 0; i < 3; i++) {
     const id = `${nodeId}:${i}`;
