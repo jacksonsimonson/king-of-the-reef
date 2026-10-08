@@ -2,7 +2,7 @@
 
 Every shop generates exactly three fixed offers from the voyage seed and that shop's node ID. At least one is a regional creature and at least one is a Tide Charm; the third has an equal chance of either. No duplicate fish or charm types within a shop. Offers are ordered left to right from cheapest to most expensive, with distinct prices. Layout can expand or scroll; artwork and text never scale fractionally.
 
-Buying spends the displayed price once and immediately adds the creature to the school or the charm to inventory. The shop stays open. Purchased offers remain visible as Sold Out; buying, reopening or reloading never replenishes stock or changes prices. Sail On completes the stop. Each different shop has its own new stock and purchase record. Unused charms carry across shops and regions, and duplicate charms stack without an inventory limit. Older saves gain an empty charm inventory and retain their shells.
+Buying spends the displayed price once and immediately adds the creature to the school or the charm to inventory. The shop stays open. Purchased offers remain visible as Sold Out; buying, reopening or reloading never replenishes stock or changes prices. Sail On completes the stop. Each different shop has its own new stock and purchase record. Unused charms carry across shops and regions, and each charm, including duplicates, occupies one of three inventory slots. Older saves gain an empty charm inventory and retain their shells.
 
 ## Initial Economy
 
@@ -23,7 +23,7 @@ Add a seeded 0 / 2 / 4 / 6 shells per offer and 4 per region after Shoreline. Ti
 
 ## Battle Use
 
-Tide Charms replace the Powerups label. Hover for the full effect; click a valid charm on your turn before playing a fish. Multiple charms are allowed without spending a fish placement. Disabled charms cannot be consumed. Quick Match gives one of each for testing; voyages only use purchased inventory. The rival has no charms in this pass.
+Tide Charms replace the Powerups label. Hover for the full effect; click a valid charm on your turn before playing a fish. Multiple charms are allowed without spending a fish placement. Disabled charms cannot be consumed. Quick Match gives three random, distinct charms; voyages only use purchased inventory. The rival has no charms in this pass.
 
 | Charm | Effect / Target |
 | --- | --- |
@@ -40,7 +40,7 @@ Tide Charms replace the Powerups label. Hover for the full effect; click a valid
 | Reef Beacon | Grant Reefborn to the selected hand fish for this battle. |
 | Duelist Pearl | Grant Piercing to the selected hand fish for this battle. |
 
-The menu shows four charms per page; **NEXT** cycles through all three pages. Invalid or unchanged upgrades cannot spend a charm. Ability grants preserve the fish's innate ability and other grants; hover text lists them all. See [full-card abilities](EDGE_EFFECTS.md#full-card-abilities).
+The battle menu shows three inventory slots, with empty slots visible after use. Shops disable charm purchases when all three slots are filled; creature purchases remain available. Older saves keep purchased excess charms in their original order: only the first three are available, and using one makes the next extra available. New purchases cannot create excess inventory. Invalid or unchanged upgrades cannot spend a charm. Ability grants preserve the fish's innate ability and other grants; hover text lists them all. See [full-card abilities](EDGE_EFFECTS.md#full-card-abilities).
 
 New charm starting prices are their catalog bases plus 8 shells: Spear Shell 50, Breaker Tooth 54, Barbed Wreath 50, Dredger Net 46, Drift Shell 58, Anchor Stone 54, Reef Beacon 66 and Duelist Pearl 66. Normal seeded and regional adjustments still apply. New voyages use all twelve charms. Older saves retain their original four-charm shop pool so existing offers and purchases never change; start a new voyage for the expanded shop stock.
 

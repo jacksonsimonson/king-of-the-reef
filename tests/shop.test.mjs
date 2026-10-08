@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRun, enterNode, reachable, activeNode, resolveVisit, battleResult, shopOffers, buyOffer, consumeCharm, saveRun, loadRun, SAVE_KEY } from '../src/game/run/state.ts';
-import { CHARMS, CHARM_IDS, charmCard, refillSlot, shuffleHand, canPlayFish } from '../src/game/data/tideCharms.ts';
+import { CHARMS, CHARM_IDS, CHARM_CAPACITY, availableCharms, randomCharms, charmCard, refillSlot, shuffleHand, canPlayFish } from '../src/game/data/tideCharms.ts';
 import { resolvePlacement } from '../src/game/combat.ts';
 
 function shop(seed = 'shop') {
@@ -119,3 +119,29 @@ test('Dial and Mail modify battle cards without changing school cards; shields b
     assert.ok(CHARMS[id].icon.every(row => row.length === 11));
   }
 });
+
+ test('three-slot inventory blocks purchases atomically but permits fish and reopens after use', () => {
+  storage(); const run = shop('capacity'); run.shells = 1000;
+  run.charms = ['coral-mail', 'coral-mail', 'spear-shell'];
+  const stock = shopOffers(run), charm = stock.find(o => o.kind === 'charm'), fish = stock.find(o => o.kind === 'fish');
+  const before = JSON.stringify(run);
+  assert.equal(buyOffer(run, charm.id), false); assert.equal(JSON.stringify(run), before);
+  assert.equal(buyOffer(run, fish.id), true);
+  const shopNode = activeNode(run); shopNode.type = 'battle';
+  assert.equal(consumeCharm(run, 'coral-mail'), true); shopNode.type = 'shop';
+  assert.equal(buyOffer(run, charm.id), true); assert.equal(run.charms.length, CHARM_CAPACITY);
+  saveRun(run); assert.deepEqual(loadRun().charms, run.charms);
+ });
+ test('Quick Match draws three distinct charms and legacy excess only exposes three at once', () => {
+  for (let i = 0; i < 100; i++) {
+   const charms = randomCharms(() => i / 100);
+   assert.equal(charms.length, 3); assert.equal(new Set(charms).size, 3);
+   assert.ok(charms.every(id => CHARM_IDS.includes(id)));
+  }
+  storage(); const run = createRun('excess'); run.charms = CHARM_IDS.slice(0, 5);
+  const next = reachable(run)[0]; run.maps[0].nodes.find(n => n.id === next).type = 'battle'; enterNode(run, next);
+  saveRun(run); const loaded = loadRun(); assert.equal(loaded.charms.length, 5);
+  assert.equal(consumeCharm(loaded, CHARM_IDS[3]), false);
+  assert.equal(consumeCharm(loaded, CHARM_IDS[0]), true);
+  assert.deepEqual(availableCharms(loaded.charms), CHARM_IDS.slice(1, 4));
+ });

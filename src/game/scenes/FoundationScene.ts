@@ -9,7 +9,7 @@ import type { RegionId } from "../run/maps";
 import { resolvePlacement, revealCard, revealTargets, type HandSlot } from "../combat";
 import { cardDescription } from "../ui/cardVisuals";
 import { pixelTextStyle, pixelPanel, pixelPearl } from "../ui/pixelTheme";
-import { CHARMS, CHARM_IDS, charmCanvas, charmCard, canCharmCard, canDrift, exchangeReserve, refillSlot, shuffleHand, canPlayFish, PLAYS_PER_BATTLE, type CharmId } from "../data/tideCharms";
+import { CHARMS, CHARM_CAPACITY, availableCharms, randomCharms, charmCanvas, charmCard, canCharmCard, canDrift, exchangeReserve, refillSlot, shuffleHand, canPlayFish, PLAYS_PER_BATTLE, type CharmId } from "../data/tideCharms";
 import { triggersRally, resolveRally, rivalRallyChoice } from "../rally";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
@@ -48,7 +48,6 @@ export class FoundationScene extends Phaser.Scene {
   private pendingReveal: "card" | "charm" | null = null;
   private pendingRally: HandSlot | null = null;
   private charms: CharmId[] = [];
-  private charmPage = 0;
   private pendingDraft = false;
   private pendingDrift = false;
   private driftFrom: number | null = null;
@@ -95,8 +94,8 @@ export class FoundationScene extends Phaser.Scene {
     this.shocked.clear();
     this.pendingReveal = null;
     this.pendingRally = null;
-    this.pendingDraft = false; this.pendingDrift = false; this.driftFrom = null; this.charmPage = 0;
-    this.charms = this.voyageBattle?.charms ?? [...CHARM_IDS];
+    this.pendingDraft = false; this.pendingDrift = false; this.driftFrom = null;
+    this.charms = this.voyageBattle?.charms ?? randomCharms();
     this.plays = { player: 0, rival: 0 };
     this.render("Drag a fish to open water, or select it and choose a tile.");
     if (!this.playerHand.length) this.advanceTurn("player");
@@ -386,9 +385,9 @@ export class FoundationScene extends Phaser.Scene {
 
   private drawCharms(x: number, y: number): void {
     this.ui?.add(this.add.text(x, y, "TIDE CHARMS", this.textStyle(16, "#eed49b")));
-    this.ui?.add(this.add.text(x, y + 24, "USE BEFORE YOUR FISH", this.textStyle(8, "#8aa8b5")));
-    CHARM_IDS.slice(this.charmPage * 4, this.charmPage * 4 + 4).forEach((id, index) => {
-      const count = this.charms.filter((entry) => entry === id).length;
+    this.ui?.add(this.add.text(x, y + 24, `${availableCharms(this.charms).length}/${CHARM_CAPACITY} · USE BEFORE YOUR FISH`, this.textStyle(8, "#8aa8b5")));
+    availableCharms(this.charms).forEach((id, index) => {
+      const count = 1;
       const active = this.canUseCharm(id);
       const key = `charm-${id}`;
       if (!this.textures.exists(key)) this.textures.addCanvas(key, charmCanvas(id, 2));
@@ -401,10 +400,10 @@ export class FoundationScene extends Phaser.Scene {
       frame.on("pointerover", () => this.events.emit("charm-hover", id));
       frame.on("pointerdown", () => this.useCharm(id));
     });
-    const page = this.add.text(x, y + 242, "NEXT " + (this.charmPage + 1) + "/" + Math.ceil(CHARM_IDS.length / 4) + " >", this.textStyle(16, "#eed49b")).setInteractive({ useHandCursor: true });
-    page.on("pointerdown", () => { this.charmPage = (this.charmPage + 1) % Math.ceil(CHARM_IDS.length / 4); this.render("Select a hand fish or hover a charm to read its effect."); });
-    this.ui?.add(page);
-
+    for (let index = availableCharms(this.charms).length; index < CHARM_CAPACITY; index++) {
+      this.ui?.add(this.add.rectangle(x + 76, y + 58 + index * 48, 152, 40, 0x102d3c).setStrokeStyle(2, 0x446270));
+      this.ui?.add(this.add.text(x + 38, y + 50 + index * 48, "EMPTY SLOT", this.textStyle(8, "#8aa8b5")));
+    }
   }
 
   private hasLegalMove(owner: "player" | "rival"): boolean {
@@ -413,7 +412,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private canUseCharm(id: CharmId): boolean {
-    if (this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player) || !this.charms.includes(id)) return false;
+    if (this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player) || !availableCharms(this.charms).includes(id)) return false;
     if (id === "spyglass-pearl") return revealTargets(this.rivalHand).length > 0;
     if (id === "current-conch") return this.playerDeck.length > 0;
     if (id === "drift-shell") return this.board.some((_, from) => this.board.some((_, to) => canDrift(this.board, from, to, this.terrain)));

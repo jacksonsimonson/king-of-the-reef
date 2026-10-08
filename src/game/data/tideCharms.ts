@@ -20,6 +20,12 @@ export const CHARMS = {
 export type CharmId = keyof typeof CHARMS;
 export const LEGACY_CHARM_IDS: CharmId[] = ["current-conch", "spyglass-pearl", "nautilus-dial", "coral-mail"];
 export const CHARM_IDS = [...LEGACY_CHARM_IDS, ...Object.keys(CHARMS).filter(id => !LEGACY_CHARM_IDS.includes(id as CharmId))] as CharmId[];
+export const CHARM_CAPACITY = 3;
+export function availableCharms(charms: readonly CharmId[]): CharmId[] { return charms.slice(0, CHARM_CAPACITY); }
+export function randomCharms(rng: () => number = Math.random): CharmId[] {
+  const pool = [...CHARM_IDS];
+  return Array.from({ length: CHARM_CAPACITY }, () => pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+}
 export function isCharm(id: unknown): id is CharmId { return typeof id === "string" && Object.hasOwn(CHARMS, id); }
 const CLOCKWISE: Direction[] = ["up", "right", "down", "left"];
 

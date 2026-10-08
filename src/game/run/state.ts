@@ -3,7 +3,7 @@ import { STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
-import { isCharm, type CharmId } from "../data/tideCharms.ts";
+import { isCharm, CHARM_CAPACITY, availableCharms, type CharmId } from "../data/tideCharms.ts";
 import { generateShop, type ShopOffer } from "./shop.ts";
 import { enabledTextures } from "../data/roster.ts";
 
@@ -107,6 +107,7 @@ export function buyOffer(run: Run, id: string): boolean {
   if (run.status !== "active") return false;
   const offer = shopOffers(run).find((entry) => entry.id === id);
   if (!offer || run.shop?.purchased.includes(id) || run.shells < offer.price) return false;
+  if (offer.kind === "charm" && run.charms.length >= CHARM_CAPACITY) return false;
   run.shop ??= { nodeId: run.pending!, purchased: [] };
   run.shells -= offer.price;
   run.shop.purchased.push(id);
@@ -116,6 +117,7 @@ export function buyOffer(run: Run, id: string): boolean {
 }
 export function consumeCharm(run: Run, id: CharmId): boolean {
   if (run.status !== "active" || !run.pending || !["battle", "boss"].includes(activeNode(run).type)) return false;
+  if (!availableCharms(run.charms).includes(id)) return false;
   const index = run.charms.indexOf(id);
   if (index < 0) return false;
   run.charms.splice(index, 1);

@@ -2,6 +2,8 @@
 
 ## 2026-10-07 — Expanded charms and reusable full-card abilities
 
+Limit available charm inventory to three items, counting duplicates separately. Quick Match randomly draws three distinct charms. Block shop charm purchases at capacity without spending shells; preserve legacy excess purchases behind the first three available items until used.
+
 Add eight charms focused on ordinary hand selection, positioning, edge upgrades and reef access, plus eight implemented abilities for later creature assignment. Preserve existing creature balance until assignments are chosen. Temporary charm grants stack with innate abilities and never alter the saved school. Targeted charms spend only after a valid selection; cancellation and ineffective upgrades cost nothing.
 
 Version the deterministic shop charm pool per voyage. Existing saves keep the four original charm types and unchanged stock; new voyages use twelve. Ability behavior and timing live in [EDGE_EFFECTS.md](EDGE_EFFECTS.md), with charm usage in [SHOPS.md](SHOPS.md).
