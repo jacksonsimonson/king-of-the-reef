@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { mountAudioControls, reefAudio } from "./game/audio/audio";
 import "./styles/main.css";
 import { createGameConfig, type GameView } from "./game/config";
 import { VoyageView, currentRun, persistRun } from "./game/run/view";
@@ -45,6 +46,7 @@ function syncView(): void {
   if (galleryView) galleryView.hidden = !showGallery;
   voyageRoot.hidden = nextView !== "voyage";
   if (activeView === nextView) return;
+  reefAudio.setTrack(showPlay ? `battle-${nextView === "voyage-battle" && run ? run.region as 0 | 1 | 2 : 0}` : `map-${nextView === "voyage" && run ? run.region as 0 | 1 | 2 : 0}`);
   activeGame?.destroy(true);
   activeGame = undefined;
   voyage?.destroy(); voyage = undefined;
@@ -84,6 +86,7 @@ function syncView(): void {
 
 // Canvas text must wait for the local typeface rather than caching a fallback.
 async function boot(): Promise<void> {
+  mountAudioControls();
   await document.fonts.load('16px "Reef Pixel"');
   window.addEventListener("hashchange", syncView);
   window.addEventListener("resize", () => { if (activeView === "menu") drawMenu(); });

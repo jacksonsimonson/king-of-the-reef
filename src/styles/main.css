@@ -187,3 +187,12 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
 .combat-feedback details { margin-top: 16px; }
 .combat-feedback ol { max-height: 192px; overflow-y: auto; font-size: 16px; line-height: 24px; padding-left: 32px; }
 .combat-feedback li { margin-bottom: 8px; }
+.audio-settings { position: relative; z-index: 20; padding: 8px 16px; color: #eed49b; background: #102d38; font: 16px "Reef Pixel", monospace; }
+.audio-settings summary { cursor: pointer; width: fit-content; }
+.audio-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 0; }
+.audio-controls p { margin: 0; }
+.audio-controls label { display: flex; align-items: center; gap: 8px; }
+.audio-controls input[type="range"] { width: 120px; accent-color: #73cbb1; }
+.audio-controls input[type="checkbox"] { appearance: auto; width: 20px; height: 20px; accent-color: #73cbb1; }
+.audio-controls button { font: inherit; color: #eed49b; background: #28545a; border: 2px solid #73cbb1; padding: 8px; cursor: pointer; }
+.audio-controls output { min-width: 4ch; }
