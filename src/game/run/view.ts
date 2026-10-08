@@ -6,8 +6,8 @@ import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/ti
 import { shopOffers, runFishDefinition } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
-import { COLUMNS, REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
-import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, type Run } from "./state.ts";
+import { REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
+import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, buyOffer, type Run } from "./state.ts";
 
 let memory: Run | null = null;
 export function currentRun(): Run | null { return memory ??= loadRun(); }
@@ -115,14 +115,15 @@ export class VoyageView {
       stage.append(btn); buttons.set(node.id, btn);
     });
     const draw = () => {
-      const width = Math.max(1320, Math.floor(viewport.clientWidth));
+      const lastColumn = Math.max(...map.nodes.map(n => n.column));
+      const width = Math.max(224 + lastColumn * 96, Math.floor(viewport.clientWidth));
       const height = Math.max(540, Math.min(740, window.innerHeight - 380));
       stage.style.width = `${width}px`; stage.style.height = `${height}px`;
       for (const canvas of [background, paths]) { canvas.width = width; canvas.height = height; }
       drawSeascape(background, region.id, displayRun.seed);
       const positions = new Map<string, { x: number; y: number }>();
       map.nodes.forEach((node) => {
-        const x = Math.round(108 + node.column * (width - 224) / (COLUMNS - 1));
+        const x = Math.round(108 + node.column * (width - 224) / lastColumn);
         const y = Math.round(110 + node.lane * (height - 224) / 4);
         positions.set(node.id, { x, y });
         const btn = buttons.get(node.id)!; btn.style.left = `${x - 24}px`; btn.style.top = `${y - 24}px`;
@@ -139,6 +140,8 @@ export class VoyageView {
       }));
     };
     draw(); this.observer = new ResizeObserver(draw); this.observer.observe(viewport);
+    const focusNode = map.nodes.find(n => n.id === (run?.pending ?? run?.current));
+    if (focusNode) viewport.scrollLeft = Math.max(0, parseInt(buttons.get(focusNode.id)!.style.left) - viewport.clientWidth / 3);
     const footer = element("div", "voyage-footer");
     const legend = element("div", "voyage-legend");
     (["battle", "fishing", "shop", "event", "hydration", "release", "boss"] as Space[]).forEach((type) => {
@@ -229,8 +232,10 @@ export class VoyageView {
   private renderEncounterActions(panel: HTMLElement, run: Run, node: MapNode): void {
     const actions = element("div", "encounter-actions");
     if (node.type === "battle" || node.type === "boss") {
+      const reward = run.voyageVersion === 2 ? (node.type === "boss" ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === "boss" ? 25 : 12;
+      panel.append(element("p", "", `Win: ${reward} shells. ${node.type === "boss" ? "Tie: rematch." : `Tie: ${run.voyageVersion === 2 ? 6 : 4} shells.`} Loss: −1 resolve.`));
       panel.append(element("p", "", run.log));
-      actions.append(button(node.type === "boss" ? "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
+      actions.append(button(run.battle ? "Resume saved battle →" : node.type === "boss" ? "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
     } else if (node.type === "shop") {
       panel.append(this.charmInventory(run));
       panel.append(element("p", "", `${run.shells} Shells · Each Offer Can Be Bought Once. Tide Charms Are Single-Use Battle Items.`));
@@ -238,7 +243,7 @@ export class VoyageView {
       for (const offer of shopOffers(run)) {
         const full = offer.kind === "charm" && run.charms.length >= CHARM_CAPACITY;
         const sold = run.shop?.purchased.includes(offer.id) ?? false;
-        const pick = button("", () => this.resolve(offer.id), "catch-choice shop-offer");
+        const pick = button("", () => full ? this.replaceCharm(offer.id) : this.resolve(offer.id), "catch-choice shop-offer");
         pick.dataset.offerId = offer.id;
         if (offer.kind === "fish") {
           const fish = runFishDefinition(run, offer.texture)!;
@@ -248,8 +253,8 @@ export class VoyageView {
           art.style.borderColor = CHARMS[offer.charm].color;
           pick.append(art, element("strong", "", CHARMS[offer.charm].name), element("span", "offer-description", CHARMS[offer.charm].description));
         }
-        pick.append(element("small", "", `${offer.price} Shells`), element("span", "offer-status", sold ? "Sold Out" : full ? "Charm Inventory Full (3/3)" : run.shells < offer.price ? `Need ${offer.price - run.shells} More` : "Buy"));
-        pick.disabled = sold || full || run.shells < offer.price;
+        pick.append(element("small", "", `${offer.price} Shells`), element("span", "offer-status", sold ? "Sold Out" : run.shells < offer.price ? `Need ${offer.price - run.shells} More` : full ? "Choose Charm to Replace (3/3)" : "Buy"));
+        pick.disabled = sold || run.shells < offer.price;
         stock.append(pick);
       }
       panel.append(stock);
@@ -310,6 +315,29 @@ export class VoyageView {
   }
   private resolve(choice: string): void {
     if (this.run && resolveVisit(this.run, choice)) { if (choice !== "leave") reefAudio.play("reward"); this.selected = null; this.save(); this.render(); }
+  }
+  private replaceCharm(offerId: string): void {
+    const run = this.run, offer = run && shopOffers(run).find(o => o.id === offerId);
+    if (!run || !offer || offer.kind !== "charm") return;
+    const dialog = element("dialog", "voyage-dialog"); dialog.setAttribute("aria-label", "Replace a held charm");
+    dialog.append(element("h3", "", `Buy ${CHARMS[offer.charm].name} · ${offer.price} Shells`), element("p", "", "Choose one held charm to discard permanently. No refund. Nothing changes until you confirm."));
+    const status = element("p", ""); status.setAttribute("role", "status");
+    let selected: number | undefined;
+    const confirm = button("Choose a charm first", () => {
+      if (selected === undefined) return;
+      if (!buyOffer(run, offerId, selected)) { status.textContent = "Purchase unavailable. Your shells and charms were kept."; return; }
+      reefAudio.play("reward"); this.save(); dialog.close(); dialog.remove(); this.render();
+    }); confirm.disabled = true;
+    const picks = availableCharms(run.charms).map((id, index) => button(`${index + 1}. ${CHARMS[id].name} — ${CHARMS[id].description}`, () => {
+      selected = index;
+      picks.forEach((pick, i) => pick.setAttribute("aria-pressed", String(i === index)));
+      status.textContent = `Discard ${CHARMS[id].name}; receive ${CHARMS[offer.charm].name}. ${run.shells} → ${run.shells - offer.price} shells.`;
+      confirm.textContent = `Confirm replacement · ${offer.price} Shells`; confirm.disabled = false;
+    }));
+    picks.forEach(pick => { pick.setAttribute("aria-pressed", "false"); dialog.append(pick); });
+    dialog.append(status, confirm, button("Cancel · Keep My Charms", () => { dialog.close(); }));
+    dialog.addEventListener("close", () => dialog.remove(), { once: true });
+    this.root.append(dialog); dialog.showModal();
   }
   private openFishing(resumed: boolean): void {
     const run = this.run, attempt = run?.fishing;

@@ -16,7 +16,7 @@ Each region ends at a **Colossal**, a giant ocean creature ruling that part of t
 
 ## Map generation
 
-Every region has a departure, eleven encounter columns and one Colossal (13 columns total). Interior columns have two to four nodes spread over five lanes. Adjacent columns connect through monotone branches and merges. Every node is reachable from departure and can reach the Colossal; paths never cross except where they join a node. Only connected successors may be entered, and a visited space cannot pay out twice.
+New voyages have a departure, seventeen encounter columns and one Colossal (19 columns total): 18 stops per region, 54 per voyage. Existing saves retain their original 13-column maps. Interior columns have two to four nodes spread over five lanes. Adjacent columns connect through monotone branches and merges. Every node is reachable from departure and can reach the Colossal; paths never cross except where they join a node. Only connected successors may be entered, and a visited space cannot pay out twice.
 
 The following percentages apply to unforced encounter columns:
 
@@ -31,22 +31,22 @@ The following percentages apply to unforced encounter columns:
 
 All regions share these rates. Fishing remains at its original Shoreline frequency; Release takes five percentage points from Unknown Waters. Existing saved charts retain their encounter types; start a new voyage to use the new distribution.
 
-Guaranteed columns override those weights: first encounter is Fishing, second is Battle, sixth is Shop, eleventh is Hydration, and twelfth is the Colossal. Consequently every route includes an early recruit opportunity, combat, a merchant and recovery before the region finale. Other columns may independently repeat a type. These are initial tuning values, not final balance.
+For new voyages, guaranteed columns are Fishing 1; Battles 2, 8 and 14; Shops 5 and 11; Hydration 6, 12 and 17; and Colossal 18. This limits recovery gaps to six steps and guarantees two merchants. Other columns retain weighted branching choices. Older voyages preserve their original schedule. Ocean species-zone bias scales with relative map progress rather than raw column number. Maps scroll at native size and reopen near your current position.
 
 ## Encounters and persistent school
 
-- Begin with eight healthy shoreline creatures, 18 shells and three resolve.
+- Begin with eight healthy shoreline creatures, 24 shells and three resolve (18 shells in older voyages).
 - **Fishing:** try one of three seeded regional catches or skip. Use Left / Right in the fishing minigame; escape ends the stop without a retry. See [FISHING.md](FISHING.md).
 - **Shop:** three seeded offers mixing regional creatures and Tide Charms, left to right in ascending price. Every new shop has fresh stock; buying leaves a sold-out slot without rerolling or restocking. Buy multiple offers if affordable, then Sail On. See [SHOPS.md](SHOPS.md).
 - **Event:** choose a creature rescue or salvage 14 shells for one resolve, with a floor of one resolve. Regional descriptions change with the surroundings. More event variants can be added later.
 - **Hydration:** select up to three killed cards to restore, then confirm. Also recover one resolve, capped at three. Healthy schools can still recover resolve without selecting cards.
 - **Release:** select and confirm one card to permanently remove, or leave. The school must retain at least five total cards and one healthy creature. Killed cards can also be released.
-- **Battle:** draws up to five healthy creatures from the actual school, then refills played slots from the shuffled reserve. Each side still has a five-placement budget; an exhausted smaller school stops earlier. Use Tide Charms before placing your fish. A win grants 12 shells, a tie grants four, and a loss costs one resolve. A loss alone no longer kills an unrelated reserve creature.
+- **Battle:** draws up to five healthy creatures from the actual school, then refills played slots from the shuffled reserve. Each side still has a five-placement budget; an exhausted smaller school stops earlier. Use Tide Charms before placing your fish. New voyage wins grant 14/16/18 shells by region, ties grant six, and losses cost one resolve. Legacy rewards remain 12/four. A loss alone no longer kills an unrelated reserve creature.
 - **Killed cards:** cards removed by Bite or pushed off the board (including Wave) are killed. Actual player casualties are saved at match completion regardless of victory, tie or defeat; AI simulations never cause deaths. Killed cards remain in the school but cannot be drawn until Hydration restores them. Older knocked-out cards migrate to this status.
-- **Colossal:** win to advance to the next region and gain 25 shells. A tie offers a rematch without penalty. A loss costs resolve and requires another attempt. Defeating the third Colossal completes the voyage.
+- **Colossal:** win to advance to the next region and gain 28/32/36 shells by region (25 in older voyages). New voyages restore up to three killed fish and one resolve when entering the next sea. A tie offers a rematch without penalty. A loss costs resolve and requires another attempt. Defeating the third Colossal completes the voyage.
 - Zero resolve ends the run. Quick Match is independent of the voyage.
 
-Map progress, school, shells, resolve, seed and pending encounter auto-save in local browser storage. The result is saved when combat ends, before leaving the result screen. Returning to the menu and reopening Voyage resumes it. Reloading an unfinished battle restarts that encounter with the same seeded hand; individual board turns are not yet saved. Unavailable storage leaves the current session playable and displays a warning. Starting another voyage asks before replacing the saved one.
+Map progress, school, shells, resolve, seed and pending encounter auto-save in local browser storage. The result is saved when combat ends, before leaving the result screen. Returning to the menu and reopening Voyage resumes it. Stable battle decisions now auto-save the board, both hands and reserves, revealed cards, Shock, casualties, placement counts, random sequence, temporary upgrades, and pending Rally/Revelation choices. Charm spending and its effect save together. Reloading during animation resumes the previous stable decision; optional unconfirmed charm targeting resets without spending. A saved rival turn resumes automatically. Result processing clears the checkpoint before rewards are saved, preventing repeat payouts. Quick Match remains unsaved. Unavailable storage leaves the current session playable and displays a warning. Starting another voyage asks before replacing the saved one.
 
 Starting a Voyage also snapshots the Gallery's enabled Battle Roster. That snapshot controls its starting school, future catches, shop creatures and rival schools through the entire run. Later roster changes affect Quick Match immediately and the next new Voyage, never the active one. Existing owned cards are never removed by roster settings.
 

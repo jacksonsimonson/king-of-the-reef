@@ -6,6 +6,7 @@ import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap 
 import { isCharm, CHARM_CAPACITY, availableCharms, type CharmId } from "../data/tideCharms.ts";
 import { generateShop, type ShopOffer } from "./shop.ts";
 import { enabledTextures } from "../data/roster.ts";
+import { validBattleSave, type BattleSave } from "./battleSave.ts";
 
 export interface Run {
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
@@ -18,6 +19,8 @@ export interface Run {
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
   charms: CharmId[];
   shop?: { nodeId: string; purchased: string[] };
+  battle?: BattleSave;
+  voyageVersion?: 2;
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export function runFishDefinition(run: Run, texture: string) {
@@ -28,11 +31,12 @@ export function recruit(run: Run, texture: string): void {
   if (!definition) throw new Error("Unknown creature");
   run.school.push({ ...definition, id: `run-${++run.serial}`, owner: "player", condition: "healthy" });
 }
-export function createRun(seed: string): Run {
-  const maps = REGIONS.map((_, i) => generateMap(seed, i));
+export function createRun(seed: string, version: 1 | 2 = 2): Run {
+  const maps = REGIONS.map((_, i) => generateMap(seed, i, version));
   const roster = enabledTextures();
   const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, oceanPoolVersion: 1, charmPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   const enabled = new Set(roster);
+  if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
   const preferred = ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"];
   const starting = [...preferred.filter((texture) => enabled.has(texture)), ...REGIONS[0].pool.filter((texture) => enabled.has(texture) && !preferred.includes(texture))].slice(0, 8);
   // A small enabled regional roster still starts an eight-card school with unique card IDs.
@@ -54,6 +58,10 @@ export function enterNode(run: Run, id: string): boolean {
 function regionPool(run: Run): readonly string[] {
   return run.region === 1 && run.oceanPoolVersion !== 1 ? LEGACY_OCEAN_POOL : REGIONS[run.region].pool;
 }
+/** Keep rarity progression proportional when a region has more encounters. */
+function encounterDepth(run: Run): number {
+  return Math.round(activeNode(run).column * 12 / Math.max(...run.maps[run.region].nodes.map(n => n.column)));
+}
 export function offers(run: Run): string[] {
   const enabled = new Set(run.roster);
   const pool: string[] = regionPool(run).filter((texture) => enabled.has(texture));
@@ -65,7 +73,7 @@ export function offers(run: Run): string[] {
   }
   if (run.region === 1 && run.oceanPoolVersion === 1) {
     const result: string[] = [];
-    while (result.length < Math.min(3, pool.length)) result.push(drawOceanCard(rng, run.roster, result, activeNode(run).column));
+    while (result.length < Math.min(3, pool.length)) result.push(drawOceanCard(rng, run.roster, result, encounterDepth(run)));
     return result;
   }
   for (let i = pool.length - 1; i > 0; i--) {
@@ -83,7 +91,7 @@ export function rivalDeckFor(run: Run): FishCard[] {
   const leader = ["octopus", "swordfish", "hypno-squid"][run.region];
   return Array.from({ length: 10 }, (_, i) => {
     const texture = activeNode(run).type === "boss" && i < 5 && enabled.has(leader)
-      ? leader : run.region === 0 ? drawReefCard(rng, excluded, run.reefPoolVersion) : run.region === 1 && run.oceanPoolVersion === 1 ? drawOceanCard(rng, run.roster, [], activeNode(run).column) : pool[Math.floor(rng() * pool.length)];
+      ? leader : run.region === 0 ? drawReefCard(rng, excluded, run.reefPoolVersion) : run.region === 1 && run.oceanPoolVersion === 1 ? drawOceanCard(rng, run.roster, [], encounterDepth(run)) : pool[Math.floor(rng() * pool.length)];
     return { ...runFishDefinition(run, texture)!, id: `rival-${i}`, owner: "rival", condition: "healthy" };
   });
 }
@@ -101,17 +109,20 @@ export function canRelease(run: Run, id: string): boolean {
 }
 export function shopOffers(run: Run): ShopOffer[] {
   if (!run.pending || activeNode(run).type !== "shop") return [];
-  return generateShop(run.seed, run.pending, run.region, offers(run), run.reefPoolVersion, run.oceanPoolVersion === 1, run.charmPoolVersion ?? 1);
+  return generateShop(run.seed, run.pending, run.region, offers(run), run.reefPoolVersion, run.oceanPoolVersion === 1, run.charmPoolVersion ?? 1, run.voyageVersion === 2);
 }
-export function buyOffer(run: Run, id: string): boolean {
+export function buyOffer(run: Run, id: string, replaceIndex?: number): boolean {
   if (run.status !== "active") return false;
   const offer = shopOffers(run).find((entry) => entry.id === id);
   if (!offer || run.shop?.purchased.includes(id) || run.shells < offer.price) return false;
-  if (offer.kind === "charm" && run.charms.length >= CHARM_CAPACITY) return false;
+  const full = offer.kind === "charm" && run.charms.length >= CHARM_CAPACITY;
+  if (full && (replaceIndex === undefined || !Number.isInteger(replaceIndex) || replaceIndex < 0 || replaceIndex >= CHARM_CAPACITY)) return false;
+  if (!full && replaceIndex !== undefined) return false;
   run.shop ??= { nodeId: run.pending!, purchased: [] };
   run.shells -= offer.price;
   run.shop.purchased.push(id);
   if (offer.kind === "fish") recruit(run, offer.texture);
+  else if (full) run.charms[replaceIndex!] = offer.charm;
   else run.charms.push(offer.charm);
   return true;
 }
@@ -181,6 +192,7 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
   if (!run.pending || run.status !== "active") return;
   const node = activeNode(run);
   if (node.type !== "battle" && node.type !== "boss") return;
+  delete run.battle;
   for (const fish of run.school) if (killedIds.includes(fish.id)) fish.condition = "killed";
   if (player < rival) {
     run.resolve--;
@@ -193,15 +205,20 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
     run.log = "The Colossal held the reef. Rematch to pass; no resolve lost.";
     return;
   }
-  run.shells += player > rival ? (node.type === "boss" ? 25 : 12) : 4;
-  finishNode(run, player > rival ? "Victory! Your school secured the reef and earned shells." : "A tied tide. Earned 4 shells and sailed onward.");
+  const reward = player > rival ? (run.voyageVersion === 2 ? (node.type === "boss" ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === "boss" ? 25 : 12) : run.voyageVersion === 2 ? 6 : 4;
+  run.shells += reward;
+  finishNode(run, player > rival ? `Victory! Earned ${reward} shells.` : `A tied tide. Earned ${reward} shells and sailed onward.`);
   if (node.type === "boss") {
     if (run.region === 2) { run.status = "won"; run.log = "You reached the heart of the Triangle. The three seas are yours."; }
     else {
       run.region++;
+      if (run.voyageVersion === 2) {
+        run.school.filter(f => f.condition === "killed").slice(0, 3).forEach(f => { f.condition = "healthy"; });
+        run.resolve = Math.min(3, run.resolve + 1);
+      }
       run.current = run.maps[run.region].nodes[0].id;
       run.visited.push(run.current);
-      run.log = `The Colossal yields. Welcome to ${REGIONS[run.region].name}.`;
+      run.log = `The Colossal yields. Welcome to ${REGIONS[run.region].name}.${run.voyageVersion === 2 ? " Passage restored up to three killed fish and one resolve." : ""}`;
     }
   }
 }
@@ -211,7 +228,8 @@ export function loadRun(): Run | null {
     if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
     // Rebuild topology, but preserve existing encounter types when rates change.
     const savedMaps = run.maps;
-    run.maps = REGIONS.map((_, i) => generateMap(run.seed, i));
+    if (run.voyageVersion !== undefined && run.voyageVersion !== 2) return null;
+    run.maps = REGIONS.map((_, i) => generateMap(run.seed, i, run.voyageVersion ?? 1));
     run.maps.forEach((map, i) => map.nodes.forEach((node) => {
       const saved = savedMaps?.[i]?.nodes?.find((n) => n.id === node.id);
       if (saved && Object.hasOwn(SPACE_INFO, saved.type)) node.type = saved.type;
@@ -237,6 +255,7 @@ export function loadRun(): Run | null {
     if (run.fishing && (run.fishing.nodeId !== run.pending || activeNode(run).type !== "fishing"
       || !offers(run).includes(run.fishing.texture) || !validSnapshot(run.fishing.snapshot)
       || run.fishing.snapshot.movement !== movementFor(run.fishing.texture) || run.fishing.snapshot.region !== REGIONS[run.region].id)) return null;
+    if (run.battle && (!run.pending || run.status !== "active" || !["battle", "boss"].includes(activeNode(run).type) || !validBattleSave(run.battle, run.pending))) return null;
     return run;
   } catch { return null; }
 }

@@ -1,5 +1,6 @@
 import { reefAudio } from "../audio/audio.ts";
 import { combatCue } from "../audio/cues.ts";
+import type { BattleSave } from "../run/battleSave.ts";
 import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
@@ -27,6 +28,9 @@ interface VoyageBattle {
   playerDeck: FishCard[]; rivalDeck: FishCard[]; rng: () => number;
   region: RegionId; seed: string;
   charms: CharmId[];
+  checkpoint?: BattleSave;
+  nodeId: string;
+  onCheckpoint: (save: BattleSave) => boolean;
   onUseCharm: (id: CharmId) => boolean;
   onResult: (player: number, rival: number, killedIds: string[]) => void;
   onComplete: () => void;
@@ -62,6 +66,8 @@ export class FoundationScene extends Phaser.Scene {
   private plays = { player: 0, rival: 0 };
   private waterColor = COLORS.water;
   private borderColor = COLORS.green;
+  private rngCalls = 0;
+  private saveStatus?: HTMLElement;
 
   constructor() { super("foundation"); }
 
@@ -93,9 +99,41 @@ export class FoundationScene extends Phaser.Scene {
     const summary = document.createElement("summary"); summary.textContent = "Combat log · latest 40 events";
     this.feedbackLog = document.createElement("ol"); this.feedbackLog.setAttribute("aria-label", "Combat log");
     details.append(summary, this.feedbackLog); this.feedbackPanel.append(toggle, details);
+    if (this.voyageBattle) {
+      this.saveStatus = document.createElement("p"); this.saveStatus.setAttribute("role", "status");
+      this.feedbackPanel.prepend(this.saveStatus);
+    }
     document.querySelector("#game")?.after(this.feedbackPanel);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedbackPanel?.remove(); });
-    this.resetMatch();
+    if (this.voyageBattle?.checkpoint) this.restoreBattle(this.voyageBattle.checkpoint);
+    else this.resetMatch();
+  }
+
+  private random(): number { this.rngCalls++; return this.voyageBattle?.rng() ?? Math.random(); }
+
+  private restoreBattle(saved: BattleSave): void {
+    const s = structuredClone(saved);
+    this.board = s.board; this.playerHand = s.playerHand; this.rivalHand = s.rivalHand;
+    this.playerDeck = s.playerDeck; this.rivalDeck = s.rivalDeck; this.plays = s.plays;
+    this.shocked = new Set(s.shocked); this.killedIds = new Set(s.killedIds); this.turn = s.turn;
+    this.pendingReveal = s.pendingReveal; this.pendingRally = s.rallySlot === null ? null : this.playerHand[s.rallySlot];
+    this.charms = this.voyageBattle!.charms;
+    for (let i = 0; i < s.rngCalls; i++) this.random();
+    this.logCombat("Battle resumed from the last saved decision.");
+    this.render(this.pendingRally ? "Rally — choose your next draw." : this.pendingReveal ? "Revelation — reveal a rival card." : this.turn === "rival" ? "Battle resumed. The rival is choosing…" : "Battle resumed. Your turn.");
+    if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
+  }
+
+  private checkpoint(): void {
+    if (!this.voyageBattle || this.resolving || this.finished) return;
+    const saved: BattleSave = structuredClone({ version: 1, nodeId: this.voyageBattle.nodeId,
+      board: this.board, playerHand: this.playerHand, rivalHand: this.rivalHand,
+      playerDeck: this.playerDeck, rivalDeck: this.rivalDeck, shocked: [...this.shocked], killedIds: [...this.killedIds],
+      plays: this.plays, turn: this.turn, rngCalls: this.rngCalls,
+      pendingReveal: this.pendingReveal === "card" ? "card" : null,
+      rallySlot: this.pendingRally ? this.playerHand.indexOf(this.pendingRally) : null });
+    const ok = this.voyageBattle.onCheckpoint(saved);
+    if (this.saveStatus) this.saveStatus.textContent = ok ? "Battle saved. Leaving during an animation resumes the previous decision." : "Battle could not be saved. Keep this page open to preserve your progress.";
   }
 
   private resetMatch(): void {
@@ -122,6 +160,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private render(message: string): void {
+    this.checkpoint();
     this.placementPreview = undefined;
     this.previewIndex = null;
     this.ui?.destroy(true);
@@ -377,7 +416,7 @@ export class FoundationScene extends Phaser.Scene {
   private dealRound(school: FishCard[]): { hand: FishCard[]; deck: FishCard[] } {
     const healthy = school.filter((card) => card.condition === "healthy");
     for (let index = healthy.length - 1; index > 0; index -= 1) {
-      const swap = Math.floor((this.voyageBattle?.rng() ?? Math.random()) * (index + 1));
+      const swap = Math.floor(this.random() * (index + 1));
       [healthy[index], healthy[swap]] = [healthy[swap], healthy[index]];
     }
     return { hand: healthy.slice(0, HAND_SIZE), deck: healthy.slice(HAND_SIZE) };
@@ -467,7 +506,7 @@ export class FoundationScene extends Phaser.Scene {
     if (id === "drift-shell") { this.pendingDrift = true; this.driftFrom = null; this.render("Drift Shell — choose a friendly board fish, then an adjacent empty tile."); return; }
     if (!this.spendCharm(id)) return;
     if (id === "current-conch") {
-      shuffleHand(this.playerHand, this.playerDeck, () => this.voyageBattle?.rng() ?? Math.random());
+      shuffleHand(this.playerHand, this.playerDeck, () => this.random());
       this.selectedId = null;
     } else {
       const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId)!;
@@ -537,7 +576,7 @@ export class FoundationScene extends Phaser.Scene {
     let best: { slot: HandSlot; index: number; score: number } | undefined;
     for (const slot of available) for (const index of open) {
       if (!canPlaceFish(this.board, index, slot.card, this.terrain)) continue;
-      const score = this.evaluateMove(index, slot.card) + (this.voyageBattle?.rng() ?? Math.random()) * 1.5;
+      const score = this.evaluateMove(index, slot.card) + this.random() * 1.5;
       if (!best || score > best.score) best = { slot, index, score };
     }
     if (!best) return this.finishMatch();
@@ -550,7 +589,7 @@ export class FoundationScene extends Phaser.Scene {
     refillSlot(best.slot, this.rivalDeck);
     if (playedCard.ability === "revelation") {
       const targets = revealTargets(this.playerHand);
-      if (targets.length) revealCard(this.playerHand, targets[Math.floor((this.voyageBattle?.rng() ?? Math.random()) * targets.length)].card.id);
+      if (targets.length) revealCard(this.playerHand, targets[Math.floor(this.random() * targets.length)].card.id);
     }
     this.advanceTurn("rival");
   }

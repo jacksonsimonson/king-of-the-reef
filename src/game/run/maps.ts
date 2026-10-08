@@ -7,9 +7,10 @@ export type RegionId = "shoreline" | "ocean" | "bermuda";
 export interface MapNode { id: string; column: number; lane: number; type: Space; next: string[] }
 export interface RegionMap { region: RegionId; nodes: MapNode[] }
 export const COLUMNS = 13;
+export const LONG_COLUMNS = 19;
 export const SPACE_INFO: Record<Space, { name: string; color: string; description: string }> = {
   start: { name: "Departure", color: "#e9d5a0", description: "Choose a current and begin your voyage." },
-  battle: { name: "Battle", color: "#ff8c79", description: "Contest three reefs. Win 12 shells; a loss costs one resolve." },
+  battle: { name: "Battle", color: "#ff8c79", description: "Contest three reefs for shells. A loss costs one resolve." },
   fishing: { name: "Fishing", color: "#73ddc6", description: "Try one local catch or skip. Use Left / Right to follow the fish. An escape uses up this stop." },
   shop: { name: "Shop", color: "#ffd582", description: "Three offers: creatures and Tide Charms, ordered from cheapest to dearest. Spend saved shells, or sail on." },
   event: { name: "Unknown Waters", color: "#c6a1ff", description: "A local discovery offers a choice with lasting consequences." },
@@ -35,13 +36,14 @@ export function random(seed: string): () => number {
   };
 }
 
-export function generateMap(seed: string, regionIndex: number): RegionMap {
+export function generateMap(seed: string, regionIndex: number, version: 1 | 2 = 1): RegionMap {
   const region = REGIONS[regionIndex];
   const rng = random(`${seed}:${region.id}:map`);
   const nodes: MapNode[] = [];
   const columns: MapNode[][] = [];
-  for (let column = 0; column < COLUMNS; column++) {
-    const count = column === 0 || column === COLUMNS - 1 ? 1 : 2 + Math.floor(rng() * 3);
+  const length = version === 2 ? LONG_COLUMNS : COLUMNS;
+  for (let column = 0; column < length; column++) {
+    const count = column === 0 || column === length - 1 ? 1 : 2 + Math.floor(rng() * 3);
     const lanes = count === 1 ? [2] : count === 2 ? [1, 3] : count === 3 ? [0, 2, 4] : [0, 1, 3, 4];
     const layer = lanes.map((lane, i): MapNode => {
       let roll = rng() * 100;
@@ -53,9 +55,15 @@ export function generateMap(seed: string, regionIndex: number): RegionMap {
       if (column === 0) type = "start";
       if (column === 1) type = "fishing";
       if (column === 2) type = "battle";
-      if (column === 6) type = "shop";
-      if (column === 11) type = "hydration";
-      if (column === 12) type = "boss";
+      if (version === 1) {
+        if (column === 6) type = "shop";
+        if (column === 11) type = "hydration";
+      } else {
+        if ([5, 11].includes(column)) type = "shop";
+        if ([6, 12, 17].includes(column)) type = "hydration";
+        if ([8, 14].includes(column)) type = "battle";
+      }
+      if (column === length - 1) type = "boss";
       return { id: `${region.id}-${column}-${i}`, column, lane, type, next: [] };
     });
     columns.push(layer);
@@ -63,7 +71,7 @@ export function generateMap(seed: string, regionIndex: number): RegionMap {
   }
   // Monotone paths connect every node without crossings, orphans, or dead ends.
   // Advancing one index creates a fork/merge; advancing both creates parallel paths.
-  for (let column = 0; column < COLUMNS - 1; column++) {
+  for (let column = 0; column < length - 1; column++) {
     const a = columns[column], b = columns[column + 1];
     let i = 0, j = 0;
     while (true) {

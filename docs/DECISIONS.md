@@ -1,5 +1,13 @@
 # Design Decisions
 
+## 2026-10-07 — Saved battles and longer voyages
+
+Save only stable battle decisions, never animation frames. Persist charm consumption and effects together; preserve random-call position, temporary cards, reserve order, revealed hands, deaths, Shock and Rally/Revelation choices. Resume rival decisions automatically. Result processing removes the checkpoint before persisting rewards. Transient selection/targeting is canceled on reload without a spend. Storage failure is visible in combat.
+
+Version new voyages separately from catalog versions: 19 columns instead of 13; guaranteed shops at 5/11, hydration at 6/12/17, and battle beats at 2/8/14. Keep old topology, stock and payouts for existing runs. Native-width scrolling avoids compressed maps. Lower single-use charm costs while keeping Reefborn/Piercing more expensive; give 24 starting shells and regional battle rewards of 14/16/18. Creature rarity still commands a premium. Next-region passage restores up to three casualties and one resolve so a longer journey does not compound attrition indefinitely. Keep school rules and five-placement budgets unchanged. Ocean zone weighting uses relative progress. A 300-seed, 54-stop scenario suite checks shopping, recovery and resource invariants with a loss every fourth ordinary battle and alternating casualties; this is not a claim of measured human win rates.
+
+Full shops allow explicit replacement of one held slot. Confirmation shows both charms and the shell balance; cancel costs nothing. Exact slot indices distinguish duplicate charms and preserve legacy queued extras.
+
 ## 2026-10-07 — Expanded charms and reusable full-card abilities
 
 Limit available charm inventory to three items, counting duplicates separately. Quick Match randomly draws three distinct charms. Block shop charm purchases at capacity without spending shells; preserve legacy excess purchases behind the first three available items until used.

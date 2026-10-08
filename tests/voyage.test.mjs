@@ -64,13 +64,13 @@ function advance(run) {
   else resolveVisit(run, node.type === 'event' ? 'rescue' : node.type === 'hydration' ? 'rest' : 'leave');
 }
 test('all three regions can be completed and final Colossal wins the run', () => {
-  const run = createRun('complete');
+  const run = createRun('complete', 1);
   for (let step = 0; step < 36; step++) advance(run);
   assert.equal(run.status, 'won'); assert.equal(run.region, 2);
   assert.deepEqual(reachable(run), []);
 });
 test('shop transaction is atomic and insufficient shells cannot purchase', () => {
-  const run = createRun('shop');
+  const run = createRun('shop', 1);
   for (let i = 0; i < 5; i++) advance(run);
   enterNode(run, reachable(run)[0]); assert.equal(activeNode(run).type, 'shop');
   const offer = shopOffers(run).find(offer => offer.kind === 'fish');
@@ -84,7 +84,7 @@ test('shop transaction is atomic and insufficient shells cannot purchase', () =>
   assert.equal(buyOffer(run, offer.id), false);
 });
 test('hydration restores only selected killed cards, with at most three per visit', () => {
-  const run = createRun('rest');
+  const run = createRun('rest', 1);
   for (let i = 0; i < 10; i++) advance(run);
   enterNode(run, reachable(run)[0]); assert.equal(activeNode(run).type, 'hydration');
   run.school.slice(0, 4).forEach(f => f.condition = 'killed'); run.resolve = 2;
@@ -135,7 +135,7 @@ test('casualty detection ignores repositioning and never mutates cards', () => {
   assert.equal(b.condition, 'healthy');
 });
 test('Colossal ties and losses do not bypass the Colossal; exhaustion ends a run', () => {
-  const run = createRun('guardian');
+  const run = createRun('guardian', 1);
   for (let i = 0; i < 11; i++) advance(run);
   enterNode(run, reachable(run)[0]); assert.equal(activeNode(run).type, 'boss');
   const id = run.pending;

@@ -6,9 +6,13 @@ Every shop generates exactly three fixed offers from the voyage seed and that sh
 
 Buying spends the displayed price once and immediately adds the creature to the school or the charm to inventory. The shop stays open. Purchased offers remain visible as Sold Out; buying, reopening or reloading never replenishes stock or changes prices. Sail On completes the stop. Each different shop has its own new stock and purchase record. Unused charms carry across shops and regions, and each charm, including duplicates, occupies one of three inventory slots. Older saves gain an empty charm inventory and retain their shells.
 
-## Initial Economy
+## Legacy Economy
 
-Rewards are unchanged: 18 starting shells, 12 for a battle win, 4 for a tie, 25 for a Colossal win and 14 for salvage. Prices replace the old flat 18-shell purchase:
+New voyages use the longer-map economy: 24 starting shells; 14/16/18 for regional wins; six for ties; and 28/32/36 for Colossals. Creature bases are 30/42/60/80 shells by rarity. Charm bases are half their catalog value (rounded), plus two; seeded 0/2/4/6 and regional 0/2/4 markups apply. Price ties still increase by two. Saved legacy voyages retain the prices below.
+
+At capacity, an affordable charm offer opens a replacement dialog. Choose an exact held slot (duplicates remain distinct), then confirm the discarded charm, incoming charm, and shell cost. Cancel/Escape changes nothing. The purchase validates affordability and stock again before atomically replacing that slot. Legacy extras remain queued behind the three available slots.
+
+Legacy rewards remain: 18 starting shells, 12 for a battle win, 4 for a tie, 25 for a Colossal win and 14 for salvage. Prices replace the old flat 18-shell purchase:
 
 | Offer | Base Shells |
 | --- | ---: |
@@ -42,11 +46,11 @@ Tide Charms replace the Powerups label. Hover for the full effect; click a valid
 | Reef Beacon | Grant Reefborn to the selected hand fish for this battle. |
 | Duelist Pearl | Grant Piercing to the selected hand fish for this battle. |
 
-The battle menu shows three inventory slots, with empty slots visible after use. Shops disable charm purchases when all three slots are filled; creature purchases remain available. Older saves keep purchased excess charms in their original order: only the first three are available, and using one makes the next extra available. New purchases cannot create excess inventory. Invalid or unchanged upgrades cannot spend a charm. Ability grants preserve the fish's innate ability and other grants; hover text lists them all. See [full-card abilities](EDGE_EFFECTS.md#full-card-abilities).
+The battle menu shows three inventory slots, with empty slots visible after use. Full shops offer a confirmed replacement of one held charm; creature purchases remain available. Older saves keep purchased excess charms in their original order: only the first three are available, and using one makes the next extra available. New purchases cannot create excess inventory. Invalid or unchanged upgrades cannot spend a charm. Ability grants preserve the fish's innate ability and other grants; hover text lists them all. See [full-card abilities](EDGE_EFFECTS.md#full-card-abilities).
 
 New charm starting prices are their catalog bases plus 8 shells: Spear Shell 50, Breaker Tooth 54, Barbed Wreath 50, Dredger Net 46, Drift Shell 58, Anchor Stone 54, Reef Beacon 66 and Duelist Pearl 66. Normal seeded and regional adjustments still apply. New voyages use all twelve charms. Older saves retain their original four-charm shop pool so existing offers and purchases never change; start a new voyage for the expanded shop stock.
 
-Inventory consumption saves immediately on successful use. As with existing combat, unfinished board turns are not saved: leaving or reloading restarts the seeded battle, and spent charms remain spent. Persistent stat upgrades are not introduced yet; the current lasting effects remain on their fish for that battle only.
+Inventory consumption and its battle effect save together at the next stable decision. Battle checkpoints preserve temporary upgrades and reserve order through reloads. Persistent stat upgrades are not introduced yet; the current lasting effects remain on their fish for that battle only.
 
 ## Replacement Draws
 

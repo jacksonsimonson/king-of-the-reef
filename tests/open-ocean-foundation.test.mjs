@@ -85,7 +85,7 @@ test("new catches and rivals honor roster; old saved ocean offers and shop price
   assert.deepEqual(new Set(offers(run)),new Set(["lanternfish","orca","viperfish"]));
   assert.ok(rivalDeckFor(run).every(c=>run.roster.includes(c.texture)));
   saveRun(run);assert.deepEqual(offers(loadRun()),offers(run));
-  const old=createRun("old-ocean");delete old.oceanPoolVersion;
+  const old=createRun("old-ocean",1);delete old.oceanPoolVersion;
   old.region=1;old.current=old.maps[1].nodes[0].id;old.pending=old.maps[1].nodes.find(n=>n.column===1).id;
   const pool=[...LEGACY_OCEAN_POOL],rng=random(old.seed+":"+old.pending+":offers");
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
