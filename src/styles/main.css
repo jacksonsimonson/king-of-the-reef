@@ -171,3 +171,14 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
   .encounter-screen .shop-stock { grid-template-columns: 1fr; padding-left: 0; padding-right: 0; }
   .encounter-screen .care-choice, .encounter-screen .catch-choice { width: 100%; }
 }
+
+.held-charms h4 { font-size: 16px; line-height: 24px; color: var(--gold); font-weight: 400; }
+.held-charms .charm-inventory { padding-top: 0; }
+.held-charms .charm-entry { box-sizing: border-box; width: 280px; max-width: 100%; padding: 12px; border: 2px solid #416b71; overflow-wrap: anywhere; }
+
+@media (max-width: 600px) {
+  body:has(.encounter-screen) { min-width: 320px; }
+  .voyage-screen:has(.encounter-screen) .voyage-title { overflow-wrap: anywhere; }
+  .encounter-content { overflow-wrap: anywhere; }
+  .encounter-screen .shop-offer { grid-template-rows: 176px minmax(48px, auto) minmax(96px, auto) auto auto; }
+}

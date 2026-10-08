@@ -15,6 +15,7 @@ Each scene inherits its sea's backdrop and palette. Art is drawn at native canva
 ## Navigation and persistence
 
 - **View chart** inspects the route without completing the visit. **Resume visit** returns to the encounter. No purchase, healing, or release happens just by navigating.
+- Shops display all three held charm slots, descriptions and empty slots before the offers. At capacity, charm offers say **Charm Inventory Full (3/3)** and are disabled; fish purchases remain available. Legacy excess is explained without deleting purchased items.
 - Reloading or reopening the voyage resumes its pending encounter. Purchased offers stay sold out and shell balances are saved. A shop stays open until **Sail On**.
 - Hydration and release require an explicit confirmation. Unconfirmed card selections are temporary and reset when leaving/reloading the screen. Hydration can restore up to three cards and one resolve, including zero cards if only resolve is needed.
 - The existing fishing activity remains a focused dialog launched from its dedicated encounter screen. Unfinished attempts reopen paused.
@@ -22,4 +23,4 @@ Each scene inherits its sea's backdrop and palette. Art is drawn at native canva
 
 ## Verification performed
 
-Browser checks used isolated local fixtures, then the real voyage entry point: one-time shop purchase and reload, chart/resume, three-card hydration cap and confirmation, release confirmation, salvage rewards, fishing launch and paused reload, and native scene artwork. Full automated verification still covers the underlying shop, voyage, fishing, and save rules. Full-route balance and narrow-device playtesting remain follow-up checks.
+Browser checks used isolated local fixtures, then the real voyage entry point: one-time shop purchase and reload, chart/resume, three-card hydration cap and confirmation, release confirmation, salvage rewards, fishing launch and paused reload, and native scene artwork. Full automated verification still covers the underlying shop, voyage, fishing, and save rules. After integration with the three-slot charm inventory, browser checks verified buying the third charm, blocking further charm purchases, buying fish at capacity, and persistence after reopening. A connected five-stop fixture route exercised shop/chart/resume, hydration, confirmed release, salvage and fishing skip. Fishing also reopened paused with unchanged progress. At 390×844, shop inventory, offers and hydration controls wrap; scene art scrolls at native size. Full three-region balance playtesting remains outside these integration checks.

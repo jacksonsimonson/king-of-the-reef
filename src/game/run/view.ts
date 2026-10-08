@@ -1,7 +1,7 @@
 import { FishingSession } from "../fishing/view.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
-import { CHARMS, CHARM_IDS, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
+import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
 import { shopOffers, runFishDefinition } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
@@ -150,16 +150,7 @@ export class VoyageView {
     if (run) {
       const bag = element("details", "voyage-school");
       bag.append(element("summary", "", `Tide Charms · ${Math.min(run.charms.length, CHARM_CAPACITY)}/${CHARM_CAPACITY}${run.charms.length > CHARM_CAPACITY ? ` · ${run.charms.length - CHARM_CAPACITY} Legacy Extras` : ""}`));
-      const contents = element("div", "charm-inventory");
-      for (const id of CHARM_IDS) {
-        const count = run.charms.filter((charm) => charm === id).length;
-        if (!count) continue;
-        const entry = element("div", "charm-entry");
-        entry.append(charmCanvas(id), element("strong", "", `${CHARMS[id].name} ×${count}`), element("p", "", CHARMS[id].description));
-        contents.append(entry);
-      }
-      if (!run.charms.length) contents.append(element("p", "", "Find Tide Charms In Shops. Use Them On Your Turn Before Playing A Fish."));
-      bag.append(contents); this.root.append(bag);
+      bag.append(this.charmInventory(run)); this.root.append(bag);
       const school = element("details", "voyage-school"); school.append(element("summary", "", `Your School · ${run.school.length} Cards`));
       const cards = element("div", "school-cards");
       run.school.forEach((fish) => {
@@ -169,6 +160,23 @@ export class VoyageView {
       school.append(cards); this.root.append(school);
     }
     if (run?.fishing) this.openFishing(true);
+  }
+  private charmInventory(run: Run): HTMLElement {
+    const section = element("section", "held-charms");
+    section.setAttribute("aria-label", "Your Tide Charms");
+    section.append(element("h4", "", `Your Tide Charms · ${Math.min(run.charms.length, CHARM_CAPACITY)}/${CHARM_CAPACITY}`));
+    const slots = element("div", "charm-inventory");
+    const available = availableCharms(run.charms);
+    for (let index = 0; index < CHARM_CAPACITY; index++) {
+      const entry = element("div", "charm-entry");
+      const id = available[index];
+      if (id) entry.append(charmCanvas(id), element("strong", "", CHARMS[id].name), element("p", "", CHARMS[id].description));
+      else entry.append(element("strong", "", "Empty Slot"), element("p", "", "Room for one Tide Charm."));
+      slots.append(entry);
+    }
+    section.append(slots);
+    if (run.charms.length > CHARM_CAPACITY) section.append(element("p", "", `${run.charms.length - CHARM_CAPACITY} charms from an older save are waiting. Using a held charm makes the next one available.`));
+    return section;
   }
   private renderDetail(): void {
     const panel = this.root.querySelector<HTMLElement>("#voyage-detail")!;
@@ -222,6 +230,7 @@ export class VoyageView {
       panel.append(element("p", "", run.log));
       actions.append(button(node.type === "boss" ? "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
     } else if (node.type === "shop") {
+      panel.append(this.charmInventory(run));
       panel.append(element("p", "", `${run.shells} Shells · Each Offer Can Be Bought Once. Tide Charms Are Single-Use Battle Items.`));
       const stock = element("div", "shop-stock");
       for (const offer of shopOffers(run)) {
