@@ -182,3 +182,8 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
   .encounter-content { overflow-wrap: anywhere; }
   .encounter-screen .shop-offer { grid-template-rows: 176px minmax(48px, auto) minmax(96px, auto) auto auto; }
 }
+
+.combat-feedback { padding: 16px; border: 4px solid #719e99; background: #0b2735; }
+.combat-feedback details { margin-top: 16px; }
+.combat-feedback ol { max-height: 192px; overflow-y: auto; font-size: 16px; line-height: 24px; padding-left: 32px; }
+.combat-feedback li { margin-bottom: 8px; }

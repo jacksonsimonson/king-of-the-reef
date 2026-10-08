@@ -61,3 +61,9 @@ Eight additional abilities are implemented for future creature assignments. Exis
 | Sovereign | Scores two points instead of one while on a scoring reef. |
 
 Shock disables edges, not full-card abilities. Placement terrain applies first, followed by Escort/Ambush, the card's ordered edges, and Wake from the survivor's current position. Whirlpool teleportation remains last. These effects do not retrigger when a card is moved. All new abilities have distinct pixel patterns and hover descriptions; assignment is through the typed `ability` field in creature data.
+
+## Combat feedback
+
+Real placements record ordered board snapshots; rival evaluation uses the same resolver without recording. Cards slide for movement, fade out when removed, and fade in at whirlpool exits. Placement and status/ability changes pulse in opacity without scaling sprites. The resolution banner names the current effect, and inputs stay locked until playback completes. Reef scoring, replacement draws and follow-up choices then continue normally.
+
+A collapsible combat log below the board keeps the latest 40 events, including named cards, labeled board coordinates, defensive blocks, terrain, Spines retaliation, Shock, and reef score changes. No log is persisted between matches. The Motion toggle skips animation delays; it defaults to reduced motion when requested by the operating system. Art retains integer coordinates and native size.

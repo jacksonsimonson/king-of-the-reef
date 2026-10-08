@@ -154,3 +154,7 @@ This log records important choices and their reasoning.
 ## 2026-10-07: Regional battle terrain
 
 Add rocks and linked whirlpools plus two terrain types per sea. Use fixed layouts initially so rivals and rematches share readable rules. Terrain affects both players through the same combat resolver. See [terrain rules](TERRAIN.md). Favor effects that matter to everyday placement and reef control; replaced niche shock cleansing with a thermal vent eruption that moves neighboring cards. No save migration.
+
+## 2026-10-08 — Combat feedback from resolver snapshots
+
+Record optional snapshots from the existing combat resolver instead of recomputing visual outcomes. Only actual placements request them; rival simulations remain silent. Play each terrain/ability/edge stage before continuing the turn, with input locked during playback. Keep a bounded DOM combat log and a reduced-motion toggle. Movement within an individual multi-target edge is shown together; separate edge and terrain stages remain ordered. Audio integration can later use these same stages, but this change adds no sounds.

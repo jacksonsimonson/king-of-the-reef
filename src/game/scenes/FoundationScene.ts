@@ -1,3 +1,4 @@
+import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
 import { battleTerrain, blocksPlacement, placementCard, placementDestination, terrainLegend, TERRAIN_INFO } from "../terrain";
@@ -51,6 +52,11 @@ export class FoundationScene extends Phaser.Scene {
   private pendingDraft = false;
   private pendingDrift = false;
   private driftFrom: number | null = null;
+  private resolving = false;
+  private motionReduced = false;
+  private feedbackPanel?: HTMLElement;
+  private feedbackLog?: HTMLOListElement;
+  private boardDrawings = new Map<string, Phaser.GameObjects.Container>();
   private plays = { player: 0, rival: 0 };
   private waterColor = COLORS.water;
   private borderColor = COLORS.green;
@@ -76,10 +82,22 @@ export class FoundationScene extends Phaser.Scene {
       [this.waterColor, this.borderColor] = palette;
     }
     this.terrain = battleTerrain(this.voyageBattle?.region);
+    this.motionReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.feedbackPanel = document.createElement("section"); this.feedbackPanel.className = "combat-feedback";
+    const toggle = document.createElement("button"); toggle.className = "voyage-button";
+    const setLabel = () => { toggle.textContent = this.motionReduced ? "Motion: Reduced" : "Motion: Animated"; toggle.setAttribute("aria-pressed", String(this.motionReduced)); };
+    setLabel(); toggle.onclick = () => { this.motionReduced = !this.motionReduced; setLabel(); };
+    const details = document.createElement("details"); details.open = true;
+    const summary = document.createElement("summary"); summary.textContent = "Combat log · latest 40 events";
+    this.feedbackLog = document.createElement("ol"); this.feedbackLog.setAttribute("aria-label", "Combat log");
+    details.append(summary, this.feedbackLog); this.feedbackPanel.append(toggle, details);
+    document.querySelector("#game")?.after(this.feedbackPanel);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedbackPanel?.remove(); });
     this.resetMatch();
   }
 
   private resetMatch(): void {
+    this.resolving = false; this.feedbackLog?.replaceChildren();
     this.board = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
     const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createEnabledDeck("player"));
     const rivalRound = this.dealRound(this.voyageBattle?.rivalDeck ?? createEnabledDeck("rival"));
@@ -105,6 +123,7 @@ export class FoundationScene extends Phaser.Scene {
     this.placementPreview = undefined;
     this.previewIndex = null;
     this.ui?.destroy(true);
+    this.boardDrawings.clear();
     this.events.removeAllListeners("card-hover");
     this.events.removeAllListeners("charm-hover");
     this.ui = this.add.container(0, 0);
@@ -166,6 +185,7 @@ export class FoundationScene extends Phaser.Scene {
       const cell = this.add.rectangle(x + CELL / 2, y + CELL / 2, CELL, CELL, this.waterColor)
         .setStrokeStyle(3, reef ? COLORS.pink : this.borderColor, reef ? 1 : 0.72);
       add(cell);
+      add(this.add.text(x + 4, y + 3, tileName(index), this.textStyle(8, "#86a9b3")));
       if (!this.board[index]) this.drawTerrain(index, x, y);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
@@ -245,7 +265,7 @@ export class FoundationScene extends Phaser.Scene {
     if (slot.played) return;
     const card = this.drawFishCard(slot.card, x, y, HAND_CARD_SIZE, selected);
     if (slot.revealed) this.ui?.add(this.add.text(x, y + 90, "REVEALED", this.textStyle(16, "#81e8ed")).setOrigin(0.5));
-    if (this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
+    if (this.turn !== "player" || this.resolving || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
 
     card.setInteractive({ useHandCursor: true });
     this.input.setDraggable(card);
@@ -309,6 +329,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private drawBoardFish(fish: FishCard, x: number, y: number): void {
     const drawing = this.drawFishCard(fish, x + CELL / 2, y + CELL / 2, BOARD_CARD_SIZE, false);
+    this.boardDrawings.set(fish.id, drawing);
     if (this.pendingDrift && fish.owner === "player") drawing.on("pointerdown", () => {
       this.driftFrom = this.board.findIndex(card => card?.id === fish.id);
       this.render("Choose an adjacent gold-bordered tile, or another friendly fish.");
@@ -412,7 +433,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private canUseCharm(id: CharmId): boolean {
-    if (this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player) || !availableCharms(this.charms).includes(id)) return false;
+    if (this.resolving || this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player) || !availableCharms(this.charms).includes(id)) return false;
     if (id === "spyglass-pearl") return revealTargets(this.rivalHand).length > 0;
     if (id === "current-conch") return this.playerDeck.length > 0;
     if (id === "drift-shell") return this.board.some((_, from) => this.board.some((_, to) => canDrift(this.board, from, to, this.terrain)));
@@ -446,6 +467,7 @@ export class FoundationScene extends Phaser.Scene {
       const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId)!;
       slot.card = charmCard(slot.card, id);
     }
+    this.logCombat(CHARMS[id].name + " used.");
     this.render(`${CHARMS[id].name} used. Play your fish when ready.`);
   }
 
@@ -474,24 +496,27 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private isLegalPlayerPlacement(index: number): boolean {
-    return Boolean(this.selectedId && this.turn === "player" && !this.finished && !this.pendingReveal && !this.pendingRally && !this.pendingDraft && !this.pendingDrift && canPlaceFish(this.board, index, this.getSelectedPlayerCard(), this.terrain));
+    return Boolean(this.selectedId && this.turn === "player" && !this.resolving && !this.finished && !this.pendingReveal && !this.pendingRally && !this.pendingDraft && !this.pendingDrift && canPlaceFish(this.board, index, this.getSelectedPlayerCard(), this.terrain));
   }
 
-  private playPlayerCard(index: number): void {
+  private async playPlayerCard(index: number): Promise<void> {
     const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId);
-    if (!slot || !canPlaceFish(this.board, index, slot.card, this.terrain) || this.turn !== "player" || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
+    if (!slot || !canPlaceFish(this.board, index, slot.card, this.terrain) || this.turn !== "player" || this.resolving || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
     slot.played = true;
     this.selectedId = null;
     const playedCard = slot.card;
-    const result = this.placeCard(index, playedCard);
+    const result = await this.placeCard(index, playedCard);
+    if (!this.sys.isActive()) return;
     this.plays.player++;
     if (triggersRally(playedCard, result.pushedEnemyIds, this.playerDeck)) {
+      this.logCombat(playedCard.name + ": Rally triggered — choose your next draw.");
       this.pendingRally = slot;
       this.render("Rally — inspect your next card before drawing your replacement.");
       return;
     }
     refillSlot(slot, this.playerDeck);
     if (playedCard.ability === "revelation" && revealTargets(this.rivalHand).length) {
+      this.logCombat(playedCard.name + ": Revelation triggered — reveal a rival card.");
       this.pendingReveal = "card";
       this.render("Revelation — choose an unrevealed card in the rival hand.");
       return;
@@ -499,7 +524,7 @@ export class FoundationScene extends Phaser.Scene {
     this.advanceTurn("player");
   }
 
-  private playRivalTurn(): void {
+  private async playRivalTurn(): Promise<void> {
     const open = this.board.map((card, index) => (!card && !blocksPlacement(this.terrain, index) ? index : -1)).filter((index) => index >= 0);
     const available = this.rivalHand.filter((slot) => !slot.played);
     if (!open.length || !available.length) return this.finishMatch();
@@ -512,7 +537,8 @@ export class FoundationScene extends Phaser.Scene {
     if (!best) return this.finishMatch();
     best.slot.played = true;
     const playedCard = best.slot.card;
-    const result = this.placeCard(best.index, playedCard);
+    const result = await this.placeCard(best.index, playedCard);
+    if (!this.sys.isActive()) return;
     this.plays.rival++;
     if (triggersRally(playedCard, result.pushedEnemyIds, this.rivalDeck)) resolveRally(this.rivalDeck, rivalRallyChoice(this.rivalDeck[0]));
     refillSlot(best.slot, this.rivalDeck);
@@ -550,15 +576,66 @@ export class FoundationScene extends Phaser.Scene {
     return ownScoreChange * 9 - opposingScoreChange * 7 + (opposingBefore - opposingAfter) * 6 - (ownBefore - ownAfter) * 6 + shockValue;
   }
 
-  private placeCard(index: number, card: FishCard): ReturnType<typeof resolvePlacement> {
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card);
-    this.board = result.board;
-    this.shocked = result.shocked;
+  private logCombat(message: string): void {
+    const line = document.createElement("li"); line.textContent = message;
+    this.feedbackLog?.append(line);
+    while (this.feedbackLog && this.feedbackLog.children.length > 40) this.feedbackLog.firstElementChild?.remove();
+    if (this.feedbackLog) this.feedbackLog.scrollTop = this.feedbackLog.scrollHeight;
+  }
+
+  private async showCombatFrame(frame: CombatFrame): Promise<void> {
+    const before = this.board;
+    for (const line of describeFrame(before, this.shocked, frame)) this.logCombat(line);
+    this.board = frame.board; this.shocked = frame.shocked;
+    this.render("Resolving: " + frame.label);
+    if (this.motionReduced || !this.sys.isActive()) return;
+    const origin = this.boardOrigin();
+    const position = (index: number) => ({ x: origin.x + (index % BOARD_SIZE) * (CELL + GAP) + CELL / 2, y: origin.y + Math.floor(index / BOARD_SIZE) * (CELL + GAP) + CELL / 2 });
+    const animations: Promise<void>[] = [];
+    const animate = (drawing: Phaser.GameObjects.Container, values: object) => animations.push(new Promise(resolve => {
+      this.tweens.add({ targets: drawing, ...values, duration: 260, ease: "Sine.easeInOut", onUpdate: () => { drawing.x = Math.round(drawing.x); drawing.y = Math.round(drawing.y); }, onComplete: () => resolve() });
+    }));
+    for (const [from, fish] of before.entries()) {
+      if (!fish) continue;
+      const to = frame.board.findIndex(card => card?.id === fish.id);
+      if (to < 0) {
+        const point = position(from);
+        const ghost = this.drawFishCard(fish, point.x, point.y, BOARD_CARD_SIZE, false).disableInteractive();
+        animate(ghost, { alpha: 0 });
+      } else if (to !== from) {
+        const drawing = this.boardDrawings.get(fish.id)!;
+        if (frame.label === "Whirlpool") { drawing.setAlpha(0); animate(drawing, { alpha: 1 }); }
+        else { const start = position(from); drawing.setPosition(start.x, start.y); animate(drawing, position(to)); }
+      }
+    }
+    for (const fish of frame.board) {
+      if (!fish) continue;
+      const prior = before.find(card => card?.id === fish.id);
+      if (!prior || prior.edges.length !== fish.edges.length || frame.label.includes("shock") || frame.label === "Full-card ability" || frame.label === "Storm field") {
+        const drawing = this.boardDrawings.get(fish.id)!; drawing.setAlpha(0.4); animate(drawing, { alpha: 1 });
+      }
+    }
+    if (!animations.length) animations.push(new Promise(resolve => { this.time.delayedCall(260, () => resolve()); }));
+    await Promise.all(animations);
+  }
+
+  private async placeCard(index: number, card: FishCard): Promise<ReturnType<typeof resolvePlacement>> {
+    this.resolving = true;
+    const beforeScore = this.getScores();
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card, BOARD_SIZE, true);
+    for (const frame of result.frames) {
+      if (!this.sys.isActive()) break;
+      await this.showCombatFrame(frame);
+    }
+    this.board = result.board; this.shocked = result.shocked;
     for (const id of result.killedIds) this.killedIds.add(id);
+    const afterScore = this.getScores();
+    if (beforeScore.player !== afterScore.player || beforeScore.rival !== afterScore.rival) this.logCombat(`Reef control: you ${afterScore.player} · rival ${afterScore.rival}.`);
+    this.resolving = false;
     return result;
   }
   private finishRally(choice: "keep" | "bottom"): void {
-    if (!this.pendingRally || this.finished || this.turn !== "player") return;
+    if (!this.pendingRally || this.resolving || this.finished || this.turn !== "player") return;
     resolveRally(this.playerDeck, choice);
     refillSlot(this.pendingRally, this.playerDeck);
     this.pendingRally = null;
