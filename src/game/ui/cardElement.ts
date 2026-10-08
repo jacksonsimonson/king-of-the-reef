@@ -23,13 +23,14 @@ export function cardElement(fish: FishCard): HTMLElement {
   sprite.src = `${import.meta.env.BASE_URL}assets/fish/${fish.texture}.png`;
   sprite.alt = ""; sprite.width = 128; sprite.height = 128;
   if (fish.condition === "killed") sprite.className = "killed-sprite";
-  if (fish.ability) {
+  const visibleAbility = fish.battleAbilities?.at(-1) ?? fish.ability;
+  if (visibleAbility) {
     const background = document.createElement("canvas");
     background.width = 128; background.height = 128;
     background.className = "card-ability-background";
     const ctx = background.getContext("2d")!;
-    ctx.fillStyle = "#" + abilityBackgroundColor(fish.ability).toString(16).padStart(6, "0"); ctx.fillRect(0, 0, 128, 128);
-    for (const p of abilityPixels(fish.ability)) {
+    ctx.fillStyle = "#" + abilityBackgroundColor(visibleAbility).toString(16).padStart(6, "0"); ctx.fillRect(0, 0, 128, 128);
+    for (const p of abilityPixels(visibleAbility)) {
       ctx.fillStyle = "#" + p.color.toString(16).padStart(6, "0");
       ctx.fillRect(p.x * 2, p.y * 2, 2, 2);
     }

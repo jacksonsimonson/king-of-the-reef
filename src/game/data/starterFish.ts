@@ -1,4 +1,5 @@
 import { REEF_ART_CARDS } from "./reefArtCards.ts";
+import type { CardAbility } from "../abilities.ts";
 import { REEF_DESIGNS } from "./reefDesigns.ts";
 
 import { OPEN_OCEAN_CARDS } from "./openOceanCards.ts";
@@ -24,7 +25,9 @@ export interface FishCard {
   edges: CardEdge[];
   owner: Owner;
   condition: "healthy" | "killed";
-  ability?: "revelation" | "rally";
+  ability?: CardAbility;
+  /** Temporary charm grants; never written back to the permanent school. */
+  battleAbilities?: CardAbility[];
 }
 
 export const LEGACY_STARTERS: Omit<FishCard, "owner" | "condition">[] = [

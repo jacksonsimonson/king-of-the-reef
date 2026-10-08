@@ -18,7 +18,7 @@ Effects resolve in the order listed on the card after it is placed.
 - **Shock:** Disables all edges of an adjacent card for the rest of the battle. Only an active Shield on the facing side blocks it. It affects either owner, does not push, and does not defend. Disabled status follows the card through movement and swaps; removing the Eel does not cure it. Crossed-out edge badges identify disabled cards. Card-wide abilities are unaffected.
 - **Spines:** Does not defend or push. After a successful enemy Standard or Double push against this side, kills the attacker. Movement resolves first, including an off-board death of the spined card; the attacker then dies and stops resolving remaining edges. Failed pushes, friendly pushes, Hook, Swap, Wave and Bite do not trigger retaliation. Shock disables Spines.
 
-Pushes and pulls fail when their destination is occupied. Fish may be moved onto reef spaces, but cards still cannot be placed directly on reefs.
+Pushes and pulls fail when their destination is occupied. Fish may be moved onto reef spaces; direct placement requires Reefborn.
 
 ## Open Ocean additions
 
@@ -44,3 +44,20 @@ In Voyage, removal by Bite, Spines or being pushed beyond the board marks that s
 | Ocean Sunfish | Wave down |
 
 The data model supports mixtures of these effects on the four card sides. The first card-wide ability, Revelation, is documented with the [Reef roster](REEF_CARDS.md).
+
+## Full-card abilities
+
+Eight additional abilities are implemented for future creature assignments. Existing creatures retain their current abilities. Anchor Stone, Reef Beacon and Duelist Pearl can grant the corresponding abilities temporarily; all grants are battle-only and preserve innate abilities.
+
+| Ability | Effect |
+| --- | --- |
+| Anchor | Prevents forced pushes, hooks and swaps. Own movement and direct-play terrain still work; predation can still kill it. |
+| Reefborn | Allows direct placement on an empty scoring reef, subject to terrain. |
+| Bulwark | Defends every side against incoming edge effects, even while shocked. Dive, terrain and Piercing bypass it. |
+| Piercing | Offensive edges ignore edge defenses and Bulwark. Does not bypass occupied destinations, rocks, kelp or Anchor. |
+| Escort | Before edges, add Shields to empty sides of orthogonally adjacent allies for this battle. |
+| Ambush | Before edges, shock orthogonally adjacent enemies, ignoring their defenses. |
+| Wake | After edges, a surviving fish pushes adjacent enemies outward once, ignoring defenses. Occupancy, rocks, kelp and Anchor still block; off-board and trench movement kill. |
+| Sovereign | Scores two points instead of one while on a scoring reef. |
+
+Shock disables edges, not full-card abilities. Placement terrain applies first, followed by Escort/Ambush, the card's ordered edges, and Wake from the survivor's current position. Whirlpool teleportation remains last. These effects do not retrigger when a card is moved. All new abilities have distinct pixel patterns and hover descriptions; assignment is through the typed `ability` field in creature data.
