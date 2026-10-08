@@ -64,11 +64,13 @@ function syncView(): void {
       const rivalDeck = rivalDeckFor(run);
       config.callbacks = { preBoot: (game) => {
         game.registry.set("voyageBattle", {
+          nodeId: run.pending!, checkpoint: run.battle,
+          onCheckpoint: (checkpoint: import("./game/run/battleSave").BattleSave) => { run.battle = checkpoint; return persistRun(run); },
           playerDeck: run.school, rivalDeck,
           charms: run.charms,
           onUseCharm: (id: CharmId) => {
             if (!consumeCharm(run, id)) return false;
-            persistRun(run); return true;
+            return true; // The next stable checkpoint saves the spent charm and its effect together.
           },
           region: REGIONS[run.region].id, seed: run.seed,
           rng: random(`${run.seed}:${run.pending}:deal`),

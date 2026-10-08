@@ -5,7 +5,7 @@ import { CHARMS, CHARM_IDS, CHARM_CAPACITY, availableCharms, randomCharms, charm
 import { resolvePlacement } from '../src/game/combat.ts';
 
 function shop(seed = 'shop') {
-  const run = createRun(seed);
+  const run = createRun(seed, 1);
   for (let i = 0; i < 5; i++) {
     enterNode(run, reachable(run)[0]);
     const type = activeNode(run).type;
@@ -20,7 +20,7 @@ function storage() {
   globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
 }
 
-test('shops have three fixed, distinct ascending offers with both fish and charms', () => {
+test('legacy shops have three fixed, distinct ascending offers with both fish and charms', () => {
   for (let i = 0; i < 200; i++) {
     const run = shop(String(i)), stock = shopOffers(run);
     assert.equal(stock.length, 3);
