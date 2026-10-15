@@ -105,7 +105,12 @@ export function createStarterDeck(owner: Owner): FishCard[] {
 }
 
 // Pre-batch layouts preserve future recruits in existing voyages.
-export const PRE_BALANCE_STARTERS = STARTERS.map((fish) => {
+export const BATCH_ONE_STARTERS = STARTERS.map((fish) => {
+  if (fish.texture === "void-angler") return { ...fish, edges: [...fish.edges, { direction: "left", effect: "shock" }] as CardEdge[] };
+  if (fish.texture === "buoy-jelly") return { ...fish, edges: [{ direction: "up", effect: "wave" }, { direction: "right", effect: "shock" }, { direction: "down", effect: "hook" }, { direction: "left", effect: "bounce" }] as CardEdge[] };
+  return fish;
+});
+export const PRE_BALANCE_STARTERS = BATCH_ONE_STARTERS.map((fish) => {
   if (fish.texture === "sea-urchin") return { ...fish, edges: ["up", "right", "down", "left"].map(direction => ({ direction: direction as Direction, effect: "spines" as EdgeEffect })) };
   if (fish.texture === "phantom-shark") return { ...fish, edges: [{ direction: "up", effect: "bounce" }, { direction: "right", effect: "bigger-fish" }, { direction: "down", effect: "ram" }, { direction: "left", effect: "dive" }] as FishCard["edges"] };
   return fish;
