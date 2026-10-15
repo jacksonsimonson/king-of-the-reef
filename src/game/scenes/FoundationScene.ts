@@ -46,7 +46,7 @@ export class FoundationScene extends Phaser.Scene {
   private opening?: {playerHand: HandSlot[]; rivalHand: HandSlot[]; playerDeck: FishCard[]; rivalDeck: FishCard[]; charms: CharmId[]};
   private tideSeed = '';
   private tideRandom?: () => number;
-  private get playLimit(): number { return this.twoTide ? tidePlayLimit(this.rules.plays) : this.rules.plays; }
+  private get playLimit(): number { return this.twoTide ? tidePlayLimit(this.rules.region) : this.rules.plays; }
   private get intermission(): boolean { return this.twoTide && this.finished && this.tideScores.length === 1; }
   private board: Array<FishCard | null> = [];
   private terrain = battleTerrain();

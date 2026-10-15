@@ -8,13 +8,13 @@ test('a second tide restores resources without sharing combat mutations',()=>{
  assert.deepEqual(freshTide(opening),opening);assert.equal(opening.hand[0].card.edges.up,'bite');
 });
 test('each starter gets a short tide; totals award neither ties nor a final-tide bonus',()=>{
- assert.deepEqual([5,6,7].map(tidePlayLimit),[4,4,4]);
+ assert.deepEqual(['shoreline','ocean','bermuda'].map(tidePlayLimit),[4,5,6]);
  assert.deepEqual(combinedScore([{player:4,rival:1},{player:0,rival:3}]),{player:4,rival:4});
  assert.deepEqual(combinedScore([]),{player:0,rival:0});
 });
 test('current mixed schools complete short tides in both orders with refreshed charms',()=>{
  for(const region of [0,1,2]){
-  const args={region,seed:'TWO-TIDE-REGRESSION',current:true,playLimit:tidePlayLimit(5+region),loadout:['anchor-stone','drift-shell','coral-mail']};
+  const args={region,seed:'TWO-TIDE-REGRESSION',current:true,playLimit:tidePlayLimit(['shoreline','ocean','bermuda'][region]),loadout:['anchor-stone','drift-shell','coral-mail']};
   const a=match({...args,first:'player'}),b=match({...args,first:'rival'});
   for(const leg of [a,b])assert.deepEqual(leg.plays,{player:args.playLimit,rival:args.playLimit});
   assert.equal(a.trace[0].owner,'player');assert.equal(b.trace[0].owner,'rival');

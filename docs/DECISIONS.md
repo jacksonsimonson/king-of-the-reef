@@ -208,4 +208,4 @@ Adopt Void Angler without Left Shock and Buoy Jelly without Down Hook after fres
 
 ## 2026-10-15 — Optional two-tide prototype
 
-Trial two four-play tides in Quick Match with equivalent opening resources, swapped starters and additive scores. Three-play Shoreline produced too many draws in the fresh-seed study; four is the compromise. Keep Classic default and Voyage unchanged. [Evidence and pacing limits](TWO_TIDE_PROTOTYPE.md) distinguish equal access to second move from proven human balance.
+Trial two tides in Quick Match, with 4/5/6 plays per side per tide by region with equivalent opening resources, swapped starters and additive scores. Three-play Shoreline produced too many draws in the fresh-seed study; four remains the Shoreline minimum; the requested regional progression adds one play per tide in each later map. Keep Classic default and Voyage unchanged. [Evidence and pacing limits](TWO_TIDE_PROTOTYPE.md) distinguish equal access to second move from proven human balance.
