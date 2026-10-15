@@ -1,3 +1,4 @@
+import { voyageEvent, eventChoiceAvailable } from '../src/game/run/events.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRun, activeNode, enterNode, reachable, resolveVisit, battleResult, buyOffer, shopOffers, saveRun, loadRun, rivalDeckFor } from '../src/game/run/state.ts';
@@ -102,7 +103,7 @@ test('300 full voyages support early shopping and recover from ordinary attritio
         if (run.shells >= offer.price) { assert.ok(buyOffer(run, offer.id, run.charms.length === 3 ? 0 : undefined)); purchases++; }
         resolveVisit(run, 'leave');
       } else if (node.type === 'hydration') resolveVisit(run, 'rest', run.school.filter(f => f.condition === 'killed').slice(0, 3).map(f => f.id));
-      else resolveVisit(run, node.type === 'event' ? 'rescue' : 'leave');
+      else resolveVisit(run, node.type === 'event' ? voyageEvent(run, 'offered fish').choices.find(c => (c.shells ?? 0) >= 0 && eventChoiceAvailable(run, c)).id : 'leave');
       assert.ok(run.school.some(f => f.condition === 'healthy')); assert.ok(run.shells >= 0); assert.ok(run.charms.length <= 3);
     }
     assert.equal(run.status, 'won'); assert.equal(stops, 54); assert.ok(purchases >= 3);

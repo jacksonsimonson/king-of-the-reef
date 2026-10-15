@@ -48,6 +48,8 @@ export class FoundationScene extends Phaser.Scene {
   private playerDeck: FishCard[] = [];
   private rivalDeck: FishCard[] = [];
   private selectedId: string | null = null;
+  private controls?: HTMLDetailsElement;
+  private targetIndex = 0;
   private turn: "player" | "rival" = "player";
   private finished = false;
   private ui?: Phaser.GameObjects.Container;
@@ -109,6 +111,10 @@ export class FoundationScene extends Phaser.Scene {
       this.feedbackPanel.prepend(this.saveStatus);
     }
     document.querySelector("#game")?.after(this.feedbackPanel);
+    this.controls = document.createElement('details'); this.controls.className = 'battle-controls'; this.controls.setAttribute('aria-label', 'Battle controls');
+    document.querySelector('#game')?.before(this.controls);
+    const cleanup = () => this.controls?.remove();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup); this.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedbackPanel?.remove(); });
     this.events.once(Phaser.Scenes.Events.DESTROY, () => { this.feedbackPanel?.remove(); });
     if (this.voyageBattle?.checkpoint) this.restoreBattle(this.voyageBattle.checkpoint);
@@ -210,15 +216,7 @@ export class FoundationScene extends Phaser.Scene {
         : this.drawCardBack(position.x, position.y, HAND_CARD_SIZE, "rival", undefined, slot.played ? 0.22 : 1);
       if (this.pendingReveal && !slot.played && !slot.revealed) {
         card.setSize(HAND_CARD_SIZE, HAND_CARD_SIZE).setInteractive({ useHandCursor: true });
-        card.on("pointerdown", () => {
-          if (!this.pendingReveal || !revealCard(this.rivalHand, slot.card.id)) return;
-          const source = this.pendingReveal;
-          this.pendingReveal = null;
-          if (source === "charm") {
-            if (!this.spendCharm("spyglass-pearl")) { slot.revealed = false; this.render("No Spyglass Pearl available."); return; }
-            this.render("Rival card revealed. Play your fish when ready.");
-          } else this.advanceTurn("player");
-        });
+        card.on("pointerdown", () => this.chooseReveal(slot));
         add(this.add.text(position.x, position.y + 90, "REVEAL", this.textStyle(16, "#81e8ed")).setOrigin(0.5));
       }
     });
@@ -240,9 +238,7 @@ export class FoundationScene extends Phaser.Scene {
       if (feature && this.board[index]) add(this.add.text(x + CELL / 2, y + CELL - 4, TERRAIN_INFO[feature].name, { ...this.textStyle(8, "#c4ece1"), backgroundColor: "#00233a" }).setOrigin(0.5, 1));
       if (this.pendingDrift && this.driftFrom !== null && canDrift(this.board, this.driftFrom, index, this.terrain)) {
         cell.setStrokeStyle(4, 0xffdd88).setInteractive({ useHandCursor: true }).on("pointerdown", () => {
-          if (this.driftFrom === null || !canDrift(this.board, this.driftFrom, index, this.terrain) || !this.spendCharm("drift-shell")) return;
-          this.board[index] = this.board[this.driftFrom]; this.board[this.driftFrom] = null;
-          this.pendingDrift = false; this.driftFrom = null; this.render("Fish repositioned. Play your fish when ready.");
+          this.finishDrift(index);
         });
       }
       if (this.isLegalPlayerPlacement(index)) {
@@ -270,6 +266,7 @@ export class FoundationScene extends Phaser.Scene {
       const cancel = this.add.text(38, board.y + 500, "CANCEL DRIFT", this.textStyle(8, "#eed49b")).setInteractive({ useHandCursor: true });
       cancel.on("pointerdown", () => { this.pendingDrift = false; this.driftFrom = null; this.render("Drift canceled. Charm kept."); }); add(cancel);
     }
+    this.renderControls(message);
     if (this.finished) this.drawResult(scores.player, scores.rival);
     else {
       const detail = this.add.text(40, this.scale.height - 68, "Hover a card to read its edges and ability.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 80);
@@ -531,15 +528,96 @@ export class FoundationScene extends Phaser.Scene {
       const cx = x + (index - 1) * 216;
       const pick = drawFishCard({ scene: this, container: modal, fish, x: cx, y: y - 12, size: HAND_CARD_SIZE });
       pick.setInteractive({ useHandCursor: true }).on("pointerover", () => this.events.emit("card-hover", fish)).on("pointerdown", () => {
-        const slot = this.playerHand.find(entry => !entry.played && entry.card.id === this.selectedId);
-        if (!slot || !this.playerDeck[index] || !this.spendCharm("dredger-net")) return;
-        exchangeReserve(slot, this.playerDeck, index); this.selectedId = slot.card.id; this.pendingDraft = false;
-        this.render("Replacement chosen. Your old fish is at the bottom of the reserve.");
+        this.chooseDraft(index);
       });
       modal.add(this.add.text(cx, y + 84, fish.name, this.textStyle(8, "#b8d7dc")).setOrigin(0.5).setWordWrapWidth(192));
     });
     const cancel = this.add.text(x, y + 148, "CANCEL · KEEP CHARM", this.textStyle(16, "#eed49b")).setOrigin(0.5).setInteractive({ useHandCursor: true });
     cancel.on("pointerdown", () => { this.pendingDraft = false; this.render("Draft canceled. Charm kept."); }); modal.add(cancel);
+  }
+
+
+  private chooseReveal(slot: HandSlot): void {
+    if (!this.pendingReveal || this.resolving || this.finished || !revealCard(this.rivalHand, slot.card.id)) return;
+    const source = this.pendingReveal; this.pendingReveal = null;
+    if (source === 'charm') {
+      if (!this.spendCharm('spyglass-pearl')) { slot.revealed = false; this.render('No Spyglass Pearl available.'); return; }
+      this.render('Rival card revealed. Play your fish when ready.');
+    } else this.advanceTurn('player');
+  }
+  private finishDrift(index: number): void {
+    if (!this.pendingDrift || this.driftFrom === null || !canDrift(this.board, this.driftFrom, index, this.terrain) || !this.spendCharm('drift-shell')) return;
+    this.board[index] = this.board[this.driftFrom]; this.board[this.driftFrom] = null;
+    this.pendingDrift = false; this.driftFrom = null; this.render('Fish repositioned. Play your fish when ready.');
+  }
+  private chooseDraft(index: number): void {
+    const slot = this.playerHand.find(entry => !entry.played && entry.card.id === this.selectedId);
+    if (!this.pendingDraft || !slot || !this.playerDeck[index] || !this.spendCharm('dredger-net')) return;
+    exchangeReserve(slot, this.playerDeck, index); this.selectedId = slot.card.id; this.pendingDraft = false;
+    this.render('Replacement chosen. Your old fish is at the bottom of the reserve.');
+  }
+  private renderControls(message: string): void {
+    const root = this.controls; if (!root) return;
+    const focused = root.contains(document.activeElement) ? (document.activeElement as HTMLElement).dataset.control : undefined;
+    root.replaceChildren();
+    const summaryControl = document.createElement('summary'); summaryControl.textContent = 'Battle controls · keyboard and text'; root.append(summaryControl);
+    const text = (value: string) => { const p = document.createElement('p'); p.textContent = value; root.append(p); return p; };
+    const heading = document.createElement('h3'); heading.textContent = 'Battle controls'; root.append(heading);
+    const scores = this.getScores();
+    const status = text(message + ` Reef points: you ${scores.player}, rival ${scores.rival}. Plays: you ${this.plays.player}/${this.rules.plays}, rival ${this.plays.rival}/${this.rules.plays}.`); status.setAttribute('role', 'status'); status.tabIndex = -1; status.dataset.control = 'status';
+    const button = (id: string, label: string, action: () => void, disabled = false) => {
+      const b = document.createElement('button'); b.className = 'voyage-button'; b.dataset.control = id; b.textContent = label; b.disabled = disabled; b.onclick = action; root.append(b); return b;
+    };
+    const select = (id: string, title: string, options: Array<[string,string]>, current: string, change: (value: string) => void) => {
+      const label = document.createElement('label'); label.textContent = title + ' ';
+      const input = document.createElement('select'); input.dataset.control = id;
+      options.forEach(([value,name]) => input.append(new Option(name,value))); input.value = current;
+      input.onchange = () => change(input.value); label.append(input); root.append(label); return input;
+    };
+    const tile = (i: number) => {
+      const f = this.board[i], feature = this.terrain.features?.get(i);
+      return tileName(i,this.rules.size) + ': ' + (scoringReefs(this.rules.size).has(i) ? 'scoring reef; ' : '')
+        + (this.terrain.rocks.has(i) ? 'rock; ' : '') + (this.terrain.whirlpools.includes(i) ? 'whirlpool; ' : '')
+        + (feature ? TERRAIN_INFO[feature].name + ': ' + TERRAIN_INFO[feature].rule + ' ' : '') + (f ? f.owner + ' ' + cardDescription(f) + (this.shocked.has(f.id) ? ' Shocked.' : '') : 'empty');
+    };
+    const busy = this.resolving || this.turn !== 'player';
+    if (this.finished) button('result', this.voyageBattle ? 'Return to map' : 'Play again', () => this.voyageBattle ? this.voyageBattle.onComplete() : this.resetMatch());
+    else if (!busy) {
+      if (this.pendingRally) {
+        text('Next reserve: ' + (this.playerDeck[0] ? cardDescription(this.playerDeck[0]) : 'empty'));
+        button('rally-keep','Keep and draw', () => this.finishRally('keep')); button('rally-bottom','Send to bottom', () => this.finishRally('bottom'));
+      } else if (this.pendingReveal) {
+        this.rivalHand.forEach((slot,i) => { if (!slot.played && !slot.revealed) button('reveal-'+i, 'Reveal rival card '+(i+1), () => this.chooseReveal(slot)); });
+      } else if (this.pendingDraft) {
+        this.playerDeck.slice(0,3).forEach((fish,i) => button('draft-'+i, cardDescription(fish), () => this.chooseDraft(i)));
+      } else if (this.pendingDrift) {
+        const friends = this.board.flatMap((f,i) => f?.owner === 'player' ? [[String(i),tile(i)] as [string,string]] : []);
+        select('drift-from', 'Fish to move', [['','Choose a fish'],...friends], this.driftFrom === null ? '' : String(this.driftFrom), value => { this.driftFrom = value === '' ? null : Number(value); this.render('Choose an adjacent empty destination.'); });
+        if (this.driftFrom !== null) this.board.forEach((_,i) => { if (canDrift(this.board,this.driftFrom!,i,this.terrain)) button('drift-'+i, 'Move to '+tile(i), () => this.finishDrift(i)); });
+      } else {
+        select('hand','Hand card', [['','Choose a fish'], ...this.playerHand.filter(s => !s.played).map(s => [s.card.id,s.card.name] as [string,string])], this.selectedId ?? '', id => { this.selectedId = id || null; this.render('Inspect a target, then choose Place.'); });
+        const card = this.getSelectedPlayerCard();
+        if (card) {
+          text(cardDescription(card));
+          const legal = this.board.flatMap((_,i) => this.isLegalPlayerPlacement(i) ? [[String(i),tile(i)] as [string,string]] : []);
+          if (!legal.some(([i]) => Number(i) === this.targetIndex)) this.targetIndex = Number(legal[0]?.[0] ?? 0);
+          if (legal.length) {
+            select('target','Placement target', legal, String(this.targetIndex), value => { this.targetIndex = Number(value); this.render('Target selected. Choose Place to commit.'); });
+            const destination = placementDestination(this.board,this.targetIndex,this.terrain);
+            text('Target: '+tile(this.targetIndex)+(destination !== this.targetIndex ? ' Channel moves to '+tileName(destination,this.rules.size)+' before edges.' : '')+' Effects resolve before any whirlpool travel.');
+            button('place','Place at '+tileName(this.targetIndex,this.rules.size), () => { void this.playPlayerCard(this.targetIndex); });
+            this.showPlacementPreview(this.targetIndex,card);
+          } else text('This fish has no legal placement. Choose another card or use a charm.');
+        }
+        availableCharms(this.charms).forEach((id,i) => button('charm-'+i, CHARMS[id].name+': '+CHARMS[id].description, () => this.useCharm(id), !this.canUseCharm(id)));
+      }
+      if (this.pendingReveal === 'charm' || this.pendingDraft || this.pendingDrift) button('cancel','Cancel choice · keep charm', () => { this.pendingReveal = null; this.pendingDraft = false; this.pendingDrift = false; this.driftFrom = null; this.render('Choice canceled. Charm kept.'); });
+    }
+    const inspect = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Inspect board and revealed rival cards'; inspect.append(summary);
+    this.board.forEach((_,i) => { const p = document.createElement('p'); p.textContent = tile(i); inspect.append(p); });
+    this.rivalHand.forEach((slot,i) => { if (slot.revealed && !slot.played) { const p = document.createElement('p'); p.textContent = 'Rival card '+(i+1)+': '+cardDescription(slot.card); inspect.append(p); } });
+    root.append(inspect);
+    if (focused) { const replacement = [...root.querySelectorAll<HTMLElement>('[data-control]')].find(el => el.dataset.control === focused && !(el as HTMLButtonElement).disabled); (replacement ?? status).focus({preventScroll:true}); }
   }
 
   private getSelectedPlayerCard(): FishCard | undefined {

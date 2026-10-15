@@ -7,6 +7,7 @@ import { isCharm, CHARM_CAPACITY, availableCharms, type CharmId } from "../data/
 import { generateShop, type ShopOffer } from "./shop.ts";
 import { enabledTextures } from "../data/roster.ts";
 import { validBattleSave, type BattleSave } from "./battleSave.ts";
+import { voyageEvent, eventChoiceAvailable } from './events.ts';
 
 export interface Run {
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
@@ -21,6 +22,7 @@ export interface Run {
   shop?: { nodeId: string; purchased: string[] };
   battle?: BattleSave;
   voyageVersion?: 2;
+  eventVersion?: 1;
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export function runFishDefinition(run: Run, texture: string) {
@@ -36,6 +38,7 @@ export function createRun(seed: string, version: 1 | 2 = 2): Run {
   const roster = enabledTextures();
   const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, oceanPoolVersion: 1, charmPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   const enabled = new Set(roster);
+  run.eventVersion = 1;
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
   const preferred = ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"];
   const starting = [...preferred.filter((texture) => enabled.has(texture)), ...REGIONS[0].pool.filter((texture) => enabled.has(texture) && !preferred.includes(texture))].slice(0, 8);
@@ -177,7 +180,19 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
       finishNode(run, `${fish.name} was released back into the ocean.`);
     }
   } else if (node.type === "event") {
-    if (choice === "salvage") {
+    if (run.eventVersion === 1) {
+      const texture = offers(run)[0], definition = runFishDefinition(run, texture);
+      if (!definition) return false;
+      const event = voyageEvent(run, definition.name);
+      const option = event.choices.find(o => o.id === choice);
+      if (!option || !eventChoiceAvailable(run, option, selected)) return false;
+      if (option.trade) run.school = run.school.filter(f => f.id !== selected[0]);
+      if (option.heal) run.school.find(f => f.id === selected[0])!.condition = 'healthy';
+      if (option.recruit) recruit(run, texture);
+      run.shells += option.shells ?? 0;
+      run.resolve = Math.min(3, run.resolve + (option.resolve ?? 0));
+      finishNode(run, `${event.title}: ${option.label}.`);
+    } else if (choice === "salvage") {
       run.shells += 14;
       if (run.resolve > 1) run.resolve--;
       finishNode(run, "Recovered 14 shells from the wreck. The dangerous dive cost one resolve (minimum one).");
@@ -228,6 +243,7 @@ export function loadRun(): Run | null {
     if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
     // Rebuild topology, but preserve existing encounter types when rates change.
     const savedMaps = run.maps;
+    if (run.eventVersion !== undefined && run.eventVersion !== 1) return null;
     if (run.voyageVersion !== undefined && run.voyageVersion !== 2) return null;
     run.maps = REGIONS.map((_, i) => generateMap(run.seed, i, run.voyageVersion ?? 1));
     run.maps.forEach((map, i) => map.nodes.forEach((node) => {
