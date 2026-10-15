@@ -50,7 +50,7 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 - Add knockout and hydration recovery
 - Add a basic run win/loss flow
 
-The first playable version of the above loop is implemented in Voyage; see [generation rules and current encounter scope](VOYAGE.md). Next: fishing timing gameplay, richer events, exact knockout rules, custom Colossal creatures and encounter mechanics, and saving individual combat turns.
+The first playable version of the above loop is implemented in Voyage; see [generation rules and current encounter scope](VOYAGE.md). Fishing gameplay, casualty rules, regional events, and stable combat saves are implemented. Next: custom Colossal creatures and encounter mechanics.
 
 ## Fishing prototype
 
@@ -60,6 +60,8 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 - Award fish cards through catches
 
 ## Later development
+
+Implemented: twelve regional event presentations across rescue, salvage, recovery, and trading choices; an optional eight-page How to Play menu; keyboard/text battle and gallery controls. Further accessibility testing with assistive technologies remains useful.
 
 Implemented: three regional rival difficulty levels, 5×5/6×6/7×7 boards with five/six/seven plays per side, sparse seeded terrain, and a Quick Match setup popup with independent choices. Rival strength still needs human playtesting; Expert uses bounded public-information counterplay forecasts.
 

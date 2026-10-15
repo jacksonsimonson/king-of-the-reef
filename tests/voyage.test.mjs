@@ -1,3 +1,4 @@
+import { voyageEvent, eventChoiceAvailable } from '../src/game/run/events.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateMap, REGIONS } from '../src/game/run/maps.ts';
@@ -61,7 +62,7 @@ function advance(run) {
   assert.ok(enterNode(run, reachable(run)[0]));
   const node = activeNode(run);
   if (node.type === 'battle' || node.type === 'boss') battleResult(run, 2, 1);
-  else resolveVisit(run, node.type === 'event' ? 'rescue' : node.type === 'hydration' ? 'rest' : 'leave');
+  else resolveVisit(run, node.type === 'event' ? voyageEvent(run, 'offered fish').choices.find(c => eventChoiceAvailable(run, c)).id : node.type === 'hydration' ? 'rest' : 'leave');
 }
 test('all three regions can be completed and final Colossal wins the run', () => {
   const run = createRun('complete', 1);

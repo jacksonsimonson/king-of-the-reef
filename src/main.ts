@@ -9,6 +9,7 @@ import { random, REGIONS } from "./game/run/maps";
 import { drawSeascape } from "./game/run/art";
 import { regionalRules, type BattleRules } from './game/battleRules';
 import { quickMatchSetup } from './game/ui/quickMatchSetup';
+import { openTutorial } from './game/ui/tutorial';
 
 const playView = document.querySelector<HTMLElement>("#play");
 const galleryView = document.querySelector<HTMLElement>("#gallery");
@@ -108,6 +109,7 @@ function syncView(): void {
 // Canvas text must wait for the local typeface rather than caching a fallback.
 async function boot(): Promise<void> {
   mountAudioControls();
+  document.querySelector<HTMLButtonElement>('#tutorial-button')!.onclick = openTutorial;
   const setup = document.createElement('button'); setup.className = 'voyage-button'; setup.textContent = 'Quick Match Setup';
   setup.onclick = () => { activeGame?.scene.pause('foundation'); activeView = undefined; quickRules = undefined; syncView(); };
   playView?.querySelector('nav')?.append(setup);

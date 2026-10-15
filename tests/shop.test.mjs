@@ -1,3 +1,4 @@
+import { voyageEvent, eventChoiceAvailable } from '../src/game/run/events.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRun, enterNode, reachable, activeNode, resolveVisit, battleResult, shopOffers, buyOffer, consumeCharm, saveRun, loadRun, SAVE_KEY } from '../src/game/run/state.ts';
@@ -10,7 +11,7 @@ function shop(seed = 'shop') {
     enterNode(run, reachable(run)[0]);
     const type = activeNode(run).type;
     if (type === 'battle') battleResult(run, 2, 1);
-    else resolveVisit(run, type === 'event' ? 'rescue' : type === 'hydration' ? 'rest' : 'leave');
+    else resolveVisit(run, type === 'event' ? voyageEvent(run, 'offered fish').choices.find(c => (c.shells ?? 0) >= 0 && eventChoiceAvailable(run, c)).id : type === 'hydration' ? 'rest' : 'leave');
   }
   enterNode(run, reachable(run)[0]);
   return run;

@@ -198,3 +198,12 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
 .audio-controls output { min-width: 4ch; }
 .quick-match-setup label { display: flex; justify-content: space-between; gap: 16px; margin: 16px 0; align-items: center; }
 .quick-match-setup select { font: inherit; padding: 8px; background: #102d38; color: #eed49b; max-width: 65%; }
+
+.tutorial-dialog { width: min(680px, calc(100vw - 48px)); }
+.tutorial-copy { font-family: system-ui, sans-serif; font-size: 18px; line-height: 1.7; min-height: 180px; }
+.battle-controls { margin: 16px; padding: 16px; border: 2px solid #77b9b7; background: #092e40; }
+.battle-controls label { display: block; margin: 12px 0; }
+.battle-controls select, .encounter-screen select { max-width: 100%; padding: 8px; font: inherit; }
+.battle-controls p { line-height: 1.5; }
+.battle-controls details { margin-top: 12px; }
+button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #ffdd88; outline-offset: 4px; }

@@ -50,12 +50,40 @@ export class GalleryScene extends Phaser.Scene {
     }
   }
 
+  private inspectedTexture = '';
+  private keyboardOpen = false;
+  private restoreControlFocus = false;
   create(): void {
     const rosterMode = window.location.hash === "#gallery-roster";
     const definitions = rosterMode ? STARTERS : GALLERY_CARDS;
     this.add.existing(pixelPanel(this, this.scale.width / 2, 48, this.scale.width - 32, 80));
     const cards = this.add.container(0, 0);
     const enabled = new Set(enabledTextures());
+    const controls = document.createElement('details'); controls.className = 'battle-controls'; controls.open = this.keyboardOpen;
+    controls.ontoggle = () => { this.keyboardOpen = controls.open; };
+    const summary = document.createElement('summary'); summary.textContent = 'Browse cards with keyboard and text';
+    const label = document.createElement('label'); label.textContent = 'Creature ';
+    const select = document.createElement('select'); definitions.forEach(f => select.append(new Option(f.name,f.texture)));
+    if (definitions.some(f => f.texture === this.inspectedTexture)) select.value = this.inspectedTexture;
+    const description = document.createElement('p'); description.setAttribute('role','status');
+    const toggle = document.createElement('button'); toggle.className = 'voyage-button';
+    const update = () => {
+      this.inspectedTexture = select.value;
+      const f = definitions.find(f => f.texture === select.value)!;
+      description.textContent = cardDescription({...f,id:'inspect',owner:'player',condition:'healthy'});
+      toggle.textContent = enabled.has(f.texture) ? 'Disable in new games' : 'Enable in new games';
+    };
+    select.onchange = update; update();
+    toggle.onclick = () => {
+      const result = toggleFish(select.value,REGIONS.map(r=>r.pool));
+      if (!result.changed) { description.textContent = result.reason ?? 'Roster unchanged.'; return; }
+      this.restoreControlFocus = true; this.scene.restart();
+    };
+    label.append(select); controls.append(summary,label,description); if (rosterMode) controls.append(toggle);
+    document.querySelector('#gallery-game')?.before(controls);
+    const cleanup = () => { controls.ontoggle = null; controls.remove(); };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN,cleanup); this.events.once(Phaser.Scenes.Events.DESTROY,cleanup);
+    if (this.restoreControlFocus) { select.focus({preventScroll:true}); this.restoreControlFocus = false; }
     this.add.text(32, 26, rosterMode ? "BATTLE ROSTER" : "CREATURE GALLERY", this.textStyle(26, "#39ff14", true));
     this.add.text(32, 62, rosterMode
       ? `${enabled.size}/${STARTERS.length} enabled · Click to toggle for Quick Match and your next Voyage.`

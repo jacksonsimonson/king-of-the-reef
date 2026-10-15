@@ -1,4 +1,5 @@
 import { FishingSession } from "../fishing/view.ts";
+import { voyageEvent, eventChoiceAvailable } from './events.ts';
 import { reefAudio } from "../audio/audio.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
@@ -216,7 +217,7 @@ export class VoyageView {
     const artFrame = element("div", "encounter-art");
     const art = element("canvas"); art.setAttribute("aria-hidden", "true"); artFrame.append(art);
     const panel = element("div", "encounter-content");
-    const heading = element("h3", "", encounterTitle(node.type)); heading.tabIndex = -1;
+    const heading = element("h3", "", node.type === 'event' && run.eventVersion === 1 ? voyageEvent(run, '').title : encounterTitle(node.type)); heading.tabIndex = -1;
     panel.append(heading, element("p", "encounter-description", SPACE_INFO[node.type].description));
     const resources = element("p", "encounter-resources", run.shells + " Shells · " + run.resolve + "/3 Resolve · " + run.school.filter(f => f.condition === "healthy").length + "/" + run.school.length + " Ready");
     const status = element("p", "encounter-status", node.type === "shop" ? `${run.shop?.purchased.length ?? 0} / 3 Offers Purchased · ${this.storageOk ? "Auto-saved" : "Save unavailable"}` : "Choose when you are ready. Viewing the chart keeps this visit open."); status.setAttribute("role", "status");
@@ -306,6 +307,29 @@ export class VoyageView {
       const controls = element("div", "care-controls"); controls.append(confirm);
       if (!hydration) controls.append(button("Keep My School", () => this.resolve("leave")));
       actions.append(controls);
+    }
+    else if (node.type === "event" && run.eventVersion === 1) {
+      const offered = runFishDefinition(run, offers(run)[0])!;
+      const event = voyageEvent(run, offered.name);
+      panel.append(element('p', '', event.text));
+      if (event.choices.some(c => c.recruit)) panel.append(cardElement({...offered, id:'event-offer', owner:'player', condition:'healthy'}));
+      let selected: string[] = [];
+      const buttons: HTMLButtonElement[] = [];
+      const update = () => event.choices.forEach((choice,i) => { buttons[i].disabled = !eventChoiceAvailable(run, choice, choice.trade || choice.heal ? selected : []); });
+      if (event.choices.some(c => c.trade || c.heal)) {
+        const label = element('label', '', event.choices.some(c => c.trade) ? 'Creature to exchange (removed permanently): ' : 'Killed creature to restore: ');
+        const select = element('select'); select.append(new Option('Choose a creature', ''));
+        run.school.filter(f => event.choices.some(c => c.trade) || f.condition === 'killed').forEach(f => select.append(new Option(`${f.name} · ${f.condition}`, f.id)));
+        select.onchange = () => { selected = select.value ? [select.value] : []; update(); };
+        label.append(select); panel.append(label);
+      }
+      for (const choice of event.choices) {
+        const pick = button(choice.label, () => {
+          if (resolveVisit(run, choice.id, choice.trade || choice.heal ? selected : [])) { reefAudio.play('reward'); this.selected = null; this.save(); this.render(); }
+        }); buttons.push(pick); actions.append(pick);
+      }
+      panel.append(element('p', '', 'Choose one outcome. Unavailable options need more shells, resolve, or an eligible selected creature.'));
+      update();
     }
     else if (node.type === "event") {
       panel.append(element("p", "", ["A tide-stranded skiff carries a shell chest and a tangled fishing net.", "Beneath the ice, a wreck holds a chest and a creature caught in its rigging.", "Lightning exposes a ghost ship. A trapped creature calls from beside its treasure."][run.region]));
