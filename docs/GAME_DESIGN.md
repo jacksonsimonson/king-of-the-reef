@@ -71,7 +71,7 @@ The [Creature Balancing Guidelines](CREATURE_BALANCE.md) are the detailed balanc
 
 Give each creature a primary role, a useful baseline without rare support, and a meaningful weakness. Compare access, disruption, staying power, coverage, independence, and future value separately. Equal edge counts do not imply equal power; rarity and later-region availability do not excuse universal upgrades. Evaluate effect order, friendly movement, final-turn access, terrain, charm combinations, and persistent casualties.
 
-Existing regional edge-count budgets describe prior assignments; this framework governs future balance reviews. Its ratings and numerical investigation targets are provisional, not measured balance results. No creature definitions change with this documentation. Next, inventory the roster by role and pilot a small comparison batch before a full reshuffle.
+Existing regional edge-count budgets describe prior assignments; this framework governs future balance reviews. Its ratings and numerical investigation targets are provisional, not measured balance results. No creature definitions change with this documentation. The first [role inventory and small comparison pilot](BALANCE_PILOT.md) are complete as provisional analysis. Use relative, revisable mechanic weights; require a clear primary role; and allow friendly harm when it creates a real positional tradeoff. Introduce unfamiliar mechanics progressively by region while keeping early tools useful. Follow-up role-specific testing precedes any live reshuffle.
 
 Bespoke Colossal design is deferred until last, after the other intended main systems and ordinary creature roster are established.
 
