@@ -17,6 +17,7 @@ export function classify(card) {
   else if(has('follow-current','bounce','dive','swap')) {role='Flexible mover';purpose='Enter or escape scoring lanes through self-movement';}
   else if(has('wave','ram','shock')) {role='Displacer';purpose=has('shock')?'Disable opposing edge control; needs allied displacement':'Clear scoring approaches with directional area pressure';}
   else if(effects.every(e=>['weak','spines'].includes(e))) {role='Holder';purpose=has('weak')?'Resist contesting after an ally supplies reef access':'Threaten retaliation after an ally supplies reef access';}
+  else if(card.texture==='sea-urchin' && has('standard')) {role='Reef setter';purpose='Push an ally into position while spiny sides threaten retaliation';}
   else if(has('hook') || effects.every(e=>e==='standard')) {role='Reef setter';purpose='Set up allied reef entry through the marked approach';}
   else {role='Displacer';purpose='Contest an occupied approach with directional pushes';}
   const distinct=new Set(effects).size;

@@ -21,7 +21,7 @@ export const BERMUDA_DESIGNS: Record<string, { edges: CardEdge[]; movement: Move
   "lighthouse-hermit": { edges: [{ direction: "up", effect: "shock" }, { direction: "right", effect: "ram" }, { direction: "down", effect: "spines" }, { direction: "left", effect: "hook" }], movement: "lurker" },
   "bottomless-maw": { edges: [{ direction: "up", effect: "hook" }, { direction: "right", effect: "bigger-fish" }, { direction: "down", effect: "hook" }, { direction: "left", effect: "bigger-fish" }], movement: "lurker" },
   "void-angler": { edges: [{ direction: "up", effect: "dive" }, { direction: "right", effect: "hook" }, { direction: "down", effect: "bigger-fish" }, { direction: "left", effect: "shock" }], movement: "lurker" },
-  "phantom-shark": { edges: [{ direction: "up", effect: "bounce" }, { direction: "right", effect: "bigger-fish" }, { direction: "down", effect: "ram" }, { direction: "left", effect: "dive" }], movement: "runner" },
+  "phantom-shark": { edges: [{ direction: "up", effect: "bounce" }, { direction: "right", effect: "bigger-fish" }], movement: "runner" },
   "living-whirlpool": { edges: [{ direction: "up", effect: "swap" }, { direction: "right", effect: "wave" }, { direction: "down", effect: "swap" }, { direction: "left", effect: "wave" }], movement: "drifter" },
   "abyssal-spadefish": { edges: [{ direction: "up", effect: "shock" }, { direction: "right", effect: "double" }, { direction: "down", effect: "bounce" }, { direction: "left", effect: "dive" }], movement: "darter" },
   "mobius-eel": { edges: [{ direction: "up", effect: "follow-current" }, { direction: "right", effect: "dive" }, { direction: "down", effect: "bounce" }, { direction: "left", effect: "follow-current" }], movement: "runner" },

@@ -1,4 +1,4 @@
-import {STARTERS} from '../../src/game/data/starterFish.ts';
+import {PRE_BALANCE_STARTERS as STARTERS} from '../../src/game/data/starterFish.ts';
 import {canPlaceFish,scoreBoard} from '../../src/game/abilities.ts';
 import {resolvePlacement} from '../../src/game/combat.ts';
 import {scoringReefs,regionalRules} from '../../src/game/battleRules.ts';

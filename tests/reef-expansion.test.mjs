@@ -25,7 +25,7 @@ test('all 167 cards have unique directional layouts, independent of full-card ab
 test('Reef special edges stay within the approved limits and named gimmicks', () => {
   assert.equal(REEF_POOL.length, 77);
   assert.equal(new Set(REEF_POOL).size, 77);
-  const gimmicks = { boxfish: ['weak', 4], 'electric-eel': ['shock', 4], 'sea-urchin': ['spines', 4], 'giant-clam': ['weak', 3] };
+  const gimmicks = { boxfish: ['weak', 4], 'electric-eel': ['shock', 4], 'giant-clam': ['weak', 3] };
   const normal = new Set(['minnow','anchovy','sardine','goby','blenny','flounder','clownfish','cleaner-wrasse','blue-tang','yellow-tang','butterflyfish','moorish-idol','queen-angelfish','coral-grouper','parrotfish']);
   for (const id of REEF_POOL) {
     const card = STARTERS.find(c => c.texture === id);
@@ -34,7 +34,9 @@ test('Reef special edges stay within the approved limits and named gimmicks', ()
     assert.ok(movementFor(id));
     assert.ok(card.edges.every(e => !['swap', 'wave'].includes(e.effect)), id);
     const specials = card.edges.filter(e => e.effect !== 'standard');
-    if (gimmicks[id]) {
+    if (id === "sea-urchin") {
+      assert.equal(layout(card), "spines/spines/standard/spines");
+    } else if (gimmicks[id]) {
       const [effect, count] = gimmicks[id];
       assert.equal(card.edges.length, count); assert.ok(card.edges.every(e => e.effect === effect));
     } else {

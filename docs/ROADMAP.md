@@ -62,7 +62,7 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 ## Next design work
 
 - Use [Creature Balancing Guidelines](CREATURE_BALANCE.md), now part of the game design, to inventory tactical roles, redundant upgrades, and missing ordinary counters.
-- Initial [167-creature inventory and ten-creature pilot](BALANCE_PILOT.md) complete, including three simulation-only proposals. Next: role-specific follow-up and a small content pass before a catalog-wide reshuffle.
+- Initial [167-creature inventory and ten-creature pilot](BALANCE_PILOT.md) complete, including three simulation-only proposals. The [first role-specific content batch](BALANCE_BATCH_1.md) follows with two changes and a preserved Eel gimmick. Next: human mixed-school playtesting and the next small thematic cluster; no catalog-wide reshuffle yet.
 - Establish the remaining intended main systems and ordinary roster before bespoke Colossals. Colossals are last.
 
 ## Later development
