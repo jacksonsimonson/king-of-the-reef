@@ -1,6 +1,7 @@
 import { ABILITIES } from '../abilities.ts';
 import { STARTERS, type FishCard } from '../data/starterFish.ts';
 import type { HandSlot } from '../combat.ts';
+import { validRules, type BattleRules } from '../battleRules.ts';
 
 /** Only stable decision points are saved. Animation frames are never checkpoints. */
 export interface BattleSave {
@@ -9,10 +10,13 @@ export interface BattleSave {
   shocked: string[]; killedIds: string[]; plays: { player: number; rival: number };
   turn: 'player' | 'rival'; rngCalls: number;
   pendingReveal: 'card' | null; rallySlot: number | null;
+  rules?: BattleRules;
 }
 export function validBattleSave(value: unknown, nodeId: string): value is BattleSave {
   if (!value || typeof value !== 'object') return false;
   const s = value as BattleSave;
+  if (s.rules !== undefined && !validRules(s.rules)) return false;
+  const size = s.rules?.size ?? 5, limit = s.rules?.plays ?? 5;
   const integer = (n: number, max: number) => Number.isInteger(n) && n >= 0 && n <= max;
   const card = (f: FishCard) => f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.species === 'string'
     && STARTERS.some(base => base.texture === f.texture) && ['player', 'rival'].includes(f.owner) && f.condition === 'healthy'
@@ -23,9 +27,9 @@ export function validBattleSave(value: unknown, nodeId: string): value is Battle
   const hand = (slots: HandSlot[], owner: string) => Array.isArray(slots) && slots.length <= 5 && slots.every(slot => slot && typeof slot.played === 'boolean' && (slot.revealed === undefined || typeof slot.revealed === 'boolean') && card(slot.card) && slot.card.owner === owner);
   const deck = (cards: FishCard[], owner: string) => Array.isArray(cards) && cards.every(f => card(f) && f.owner === owner);
   if (s.version !== 1 || s.nodeId !== nodeId || !['player', 'rival'].includes(s.turn) || !integer(s.rngCalls, 100000)
-    || !Array.isArray(s.board) || s.board.length !== 25 || !s.board.every(f => f === null || card(f))
+    || !Array.isArray(s.board) || s.board.length !== size * size || !s.board.every(f => f === null || card(f))
     || !hand(s.playerHand, 'player') || !hand(s.rivalHand, 'rival') || !deck(s.playerDeck, 'player') || !deck(s.rivalDeck, 'rival')
-    || !s.plays || !integer(s.plays.player, 5) || !integer(s.plays.rival, 5)
+    || !s.plays || !integer(s.plays.player, limit) || !integer(s.plays.rival, limit)
     || ![null, 'card'].includes(s.pendingReveal) || !(s.rallySlot === null || integer(s.rallySlot, s.playerHand.length - 1))) return false;
   const live = [...s.board.filter(f => f !== null), ...s.playerHand.filter(h => !h.played).map(h => h.card), ...s.rivalHand.filter(h => !h.played).map(h => h.card), ...s.playerDeck, ...s.rivalDeck];
   if (new Set(live.map(f => f.id)).size !== live.length) return false;

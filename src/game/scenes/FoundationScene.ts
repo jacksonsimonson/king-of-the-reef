@@ -1,10 +1,13 @@
 import { reefAudio } from "../audio/audio.ts";
 import { combatCue } from "../audio/cues.ts";
 import type { BattleSave } from "../run/battleSave.ts";
+import { regionalRules, scoringReefs, type BattleRules } from '../battleRules.ts';
+import { chooseRivalMove } from '../rivalAI.ts';
+import { REGIONS } from '../run/maps.ts';
 import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
-import { battleTerrain, blocksPlacement, placementCard, placementDestination, terrainLegend, TERRAIN_INFO } from "../terrain";
+import { battleTerrain, terrainForRules, placementCard, placementDestination, terrainLegend, TERRAIN_INFO } from "../terrain";
 import { STARTERS, type FishCard } from "../data/starterFish";
 import { createEnabledDeck } from "../data/roster";
 import { drawFishCard } from "../ui/drawFishCard";
@@ -13,17 +16,17 @@ import type { RegionId } from "../run/maps";
 import { resolvePlacement, revealCard, revealTargets, type HandSlot } from "../combat";
 import { cardDescription } from "../ui/cardVisuals";
 import { pixelTextStyle, pixelPanel, pixelPearl } from "../ui/pixelTheme";
-import { CHARMS, CHARM_CAPACITY, availableCharms, randomCharms, charmCanvas, charmCard, canCharmCard, canDrift, exchangeReserve, refillSlot, shuffleHand, canPlayFish, PLAYS_PER_BATTLE, type CharmId } from "../data/tideCharms";
+import { CHARMS, CHARM_CAPACITY, availableCharms, randomCharms, charmCanvas, charmCard, canCharmCard, canDrift, exchangeReserve, refillSlot, shuffleHand, canPlayFish, type CharmId } from "../data/tideCharms";
 import { triggersRally, resolveRally, rivalRallyChoice } from "../rally";
 
 const COLORS = { deep: 0x00233a, water: 0x063d58, hover: 0x0b5267, green: 0x39ff14, pink: 0xff5ca8 };
-const BOARD_SIZE = 5;
+
 const CELL = 96;
 const GAP = 6;
 const HAND_SIZE = 5;
 const HAND_CARD_SIZE = 144;
 const BOARD_CARD_SIZE = 88;
-const REEFS = new Set([2, 11, 18]);
+
 interface VoyageBattle {
   playerDeck: FishCard[]; rivalDeck: FishCard[]; rng: () => number;
   region: RegionId; seed: string;
@@ -39,6 +42,7 @@ interface VoyageBattle {
 export class FoundationScene extends Phaser.Scene {
   private board: Array<FishCard | null> = [];
   private terrain = battleTerrain();
+  private rules: BattleRules = regionalRules(0, 'quick');
   private playerHand: HandSlot[] = [];
   private rivalHand: HandSlot[] = [];
   private playerDeck: FishCard[] = [];
@@ -81,15 +85,16 @@ export class FoundationScene extends Phaser.Scene {
   create(): void {
     this.input.dragDistanceThreshold = 6;
     this.voyageBattle = this.registry.get("voyageBattle") as VoyageBattle | undefined;
-    if (this.voyageBattle) {
+    this.rules = this.registry.get('battleRules') ?? this.rules;
+    {
       const canvas = document.createElement("canvas");
       canvas.width = this.scale.width; canvas.height = this.scale.height;
-      drawSeascape(canvas, this.voyageBattle.region, this.voyageBattle.seed);
+      drawSeascape(canvas, this.rules.region, this.rules.seed);
       this.textures.addCanvas("battle-seascape", canvas);
-      const palette = { shoreline: [0x164d59, 0x73cbb1], ocean: [0x112f49, 0x80b9d2], bermuda: [0x302343, 0xa385c6] }[this.voyageBattle.region];
+      const palette = { shoreline: [0x164d59, 0x73cbb1], ocean: [0x112f49, 0x80b9d2], bermuda: [0x302343, 0xa385c6] }[this.rules.region];
       [this.waterColor, this.borderColor] = palette;
     }
-    this.terrain = battleTerrain(this.voyageBattle?.region);
+    this.terrain = terrainForRules(this.rules);
     this.motionReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.feedbackPanel = document.createElement("section"); this.feedbackPanel.className = "combat-feedback";
     const toggle = document.createElement("button"); toggle.className = "voyage-button";
@@ -105,6 +110,7 @@ export class FoundationScene extends Phaser.Scene {
     }
     document.querySelector("#game")?.after(this.feedbackPanel);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedbackPanel?.remove(); });
+    this.events.once(Phaser.Scenes.Events.DESTROY, () => { this.feedbackPanel?.remove(); });
     if (this.voyageBattle?.checkpoint) this.restoreBattle(this.voyageBattle.checkpoint);
     else this.resetMatch();
   }
@@ -126,7 +132,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private checkpoint(): void {
     if (!this.voyageBattle || this.resolving || this.finished) return;
-    const saved: BattleSave = structuredClone({ version: 1, nodeId: this.voyageBattle.nodeId,
+    const saved: BattleSave = structuredClone({ version: 1, nodeId: this.voyageBattle.nodeId, rules: this.rules,
       board: this.board, playerHand: this.playerHand, rivalHand: this.rivalHand,
       playerDeck: this.playerDeck, rivalDeck: this.rivalDeck, shocked: [...this.shocked], killedIds: [...this.killedIds],
       plays: this.plays, turn: this.turn, rngCalls: this.rngCalls,
@@ -138,7 +144,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private resetMatch(): void {
     this.resolving = false; this.feedbackLog?.replaceChildren();
-    this.board = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
+    this.board = Array(this.rules.size * this.rules.size).fill(null);
     const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createEnabledDeck("player"));
     const rivalRound = this.dealRound(this.voyageBattle?.rivalDeck ?? createEnabledDeck("rival"));
     this.playerHand = playerRound.hand.map((card) => ({ card, played: false }));
@@ -170,16 +176,16 @@ export class FoundationScene extends Phaser.Scene {
     this.ui = this.add.container(0, 0);
     const add = (object: Phaser.GameObjects.GameObject) => this.ui?.add(object);
     const scores = this.getScores();
-    if (this.voyageBattle) {
+    if (this.textures.exists("battle-seascape")) {
       add(this.add.image(0, 0, "battle-seascape").setOrigin(0));
       add(this.add.rectangle(0, 0, this.scale.width, this.scale.height, COLORS.deep, 0.65).setOrigin(0));
     }
 
     add(pixelPanel(this, this.scale.width / 2, 48, this.scale.width - 32, 80));
-    add(this.add.text(40, 22, "KING OF THE REEF", this.textStyle(24, "#eed49b")));
+    add(this.add.text(40, 22, `KING OF THE REEF · ${this.rules.difficulty.toUpperCase()} · ${this.rules.size}×${this.rules.size}`, this.textStyle(24, "#eed49b")));
     add(this.add.text(40, 65, message, this.textStyle(16, "#b8ffd0")).setWordWrapWidth(1200));
     add(this.add.text(this.scale.width - 40, 26, `YOU ${scores.player}  ·  ${scores.rival} RIVAL`, this.textStyle(16, "#ffb8d8")).setOrigin(1, 0));
-    add(this.add.text(this.scale.width - 40, 58, `FISH PLAYED ${this.plays.player}/${PLAYS_PER_BATTLE}  ·  ${this.plays.rival}/${PLAYS_PER_BATTLE}`, this.textStyle(16, "#b8d7dc")).setOrigin(1, 0));
+    add(this.add.text(this.scale.width - 40, 58, `FISH PLAYED ${this.plays.player}/${this.rules.plays}  ·  ${this.plays.rival}/${this.rules.plays}`, this.textStyle(16, "#b8d7dc")).setOrigin(1, 0));
 
     const board = this.boardOrigin();
     this.drawSidePanel(38, board.y, "YOUR DECK", this.playerDeck.length, "player");
@@ -218,15 +224,15 @@ export class FoundationScene extends Phaser.Scene {
     });
 
     for (let index = 0; index < this.board.length; index += 1) {
-      const row = Math.floor(index / BOARD_SIZE);
-      const column = index % BOARD_SIZE;
+      const row = Math.floor(index / this.rules.size);
+      const column = index % this.rules.size;
       const x = board.x + column * (CELL + GAP);
       const y = board.y + row * (CELL + GAP);
-      const reef = REEFS.has(index);
+      const reef = scoringReefs(this.rules.size).has(index);
       const cell = this.add.rectangle(x + CELL / 2, y + CELL / 2, CELL, CELL, this.waterColor)
         .setStrokeStyle(3, reef ? COLORS.pink : this.borderColor, reef ? 1 : 0.72);
       add(cell);
-      add(this.add.text(x + 4, y + 3, tileName(index), this.textStyle(8, "#86a9b3")));
+      add(this.add.text(x + 4, y + 3, tileName(index, this.rules.size), this.textStyle(8, "#86a9b3")));
       if (!this.board[index]) this.drawTerrain(index, x, y);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
@@ -278,7 +284,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private boardSpan(): number {
-    return BOARD_SIZE * CELL + (BOARD_SIZE - 1) * GAP;
+    return this.rules.size * CELL + (this.rules.size - 1) * GAP;
   }
 
   private boardOrigin(): { x: number; y: number } {
@@ -388,8 +394,8 @@ export class FoundationScene extends Phaser.Scene {
     if (this.previewIndex === index) return;
     this.clearPlacementPreview();
     const destination = placementDestination(this.board, index, this.terrain);
-    const row = Math.floor(destination / BOARD_SIZE);
-    const column = destination % BOARD_SIZE;
+    const row = Math.floor(destination / this.rules.size);
+    const column = destination % this.rules.size;
     const board = this.boardOrigin();
     const x = board.x + column * (CELL + GAP) + CELL / 2;
     const y = board.y + row * (CELL + GAP) + CELL / 2;
@@ -407,10 +413,10 @@ export class FoundationScene extends Phaser.Scene {
     const board = this.boardOrigin();
     const column = Math.floor((x - board.x) / (CELL + GAP));
     const row = Math.floor((y - board.y) / (CELL + GAP));
-    if (row < 0 || row >= BOARD_SIZE || column < 0 || column >= BOARD_SIZE) return null;
+    if (row < 0 || row >= this.rules.size || column < 0 || column >= this.rules.size) return null;
     const localX = x - (board.x + column * (CELL + GAP));
     const localY = y - (board.y + row * (CELL + GAP));
-    return localX <= CELL && localY <= CELL ? row * BOARD_SIZE + column : null;
+    return localX <= CELL && localY <= CELL ? row * this.rules.size + column : null;
   }
 
   private dealRound(school: FishCard[]): { hand: FishCard[]; deck: FishCard[] } {
@@ -470,11 +476,11 @@ export class FoundationScene extends Phaser.Scene {
 
   private hasLegalMove(owner: "player" | "rival"): boolean {
     const hand = owner === "player" ? this.playerHand : this.rivalHand;
-    return canPlayFish(hand, this.plays[owner]) && hand.some(slot => !slot.played && this.board.some((_, index) => canPlaceFish(this.board, index, slot.card, this.terrain)));
+    return canPlayFish(hand, this.plays[owner], this.rules.plays) && hand.some(slot => !slot.played && this.board.some((_, index) => canPlaceFish(this.board, index, slot.card, this.terrain)));
   }
 
   private canUseCharm(id: CharmId): boolean {
-    if (this.resolving || this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player) || !availableCharms(this.charms).includes(id)) return false;
+    if (this.resolving || this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player, this.rules.plays) || !availableCharms(this.charms).includes(id)) return false;
     if (id === "spyglass-pearl") return revealTargets(this.rivalHand).length > 0;
     if (id === "current-conch") return this.playerDeck.length > 0;
     if (id === "drift-shell") return this.board.some((_, from) => this.board.some((_, to) => canDrift(this.board, from, to, this.terrain)));
@@ -570,16 +576,14 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private async playRivalTurn(): Promise<void> {
-    const open = this.board.map((card, index) => (!card && !blocksPlacement(this.terrain, index) ? index : -1)).filter((index) => index >= 0);
-    const available = this.rivalHand.filter((slot) => !slot.played);
-    if (!open.length || !available.length) return this.finishMatch();
-    let best: { slot: HandSlot; index: number; score: number } | undefined;
-    for (const slot of available) for (const index of open) {
-      if (!canPlaceFish(this.board, index, slot.card, this.terrain)) continue;
-      const score = this.evaluateMove(index, slot.card) + this.random() * 1.5;
-      if (!best || score > best.score) best = { slot, index, score };
-    }
-    if (!best) return this.finishMatch();
+    const publicPool = STARTERS.filter(c => (REGIONS.find(r => r.id === this.rules.region)!.pool as readonly string[]).includes(c.texture));
+    const revealed = this.playerHand.filter(s => !s.played && s.revealed).map(s => s.card);
+    const profiles = [...revealed, ...publicPool.filter((_, i) => i % Math.max(1, Math.floor(publicPool.length / 6)) === 0).map(c => ({...c, owner: 'player' as const, condition: 'healthy' as const}))];
+    const choice = chooseRivalMove({board: this.board, shocked: this.shocked, terrain: this.terrain, hand: this.rivalHand,
+      difficulty: this.rules.difficulty, rivalPlaysLeft: this.rules.plays - this.plays.rival,
+      playerPlaysLeft: this.hasLegalMove('player') ? this.rules.plays - this.plays.player : 0, publicThreats: profiles}, () => this.random());
+    if (!choice) return this.advanceTurn('rival');
+    const best = {slot: this.rivalHand[choice.slotIndex], index: choice.index};
     best.slot.played = true;
     const playedCard = best.slot.card;
     const result = await this.placeCard(best.index, playedCard);
@@ -603,24 +607,6 @@ export class FoundationScene extends Phaser.Scene {
     if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
   }
 
-  private evaluateMove(index: number, card: FishCard): number {
-    let simulation = this.board;
-    const beforeScores = this.getScores(simulation);
-    const opposingOwner = card.owner === "player" ? "rival" : "player";
-    const opposingBefore = simulation.filter((fish) => fish?.owner === opposingOwner).length;
-    const ownBefore = simulation.filter((fish) => fish?.owner === card.owner).length + 1;
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card);
-    simulation = result.board;
-    const afterScores = this.getScores(simulation);
-    const opposingAfter = simulation.filter((fish) => fish?.owner === opposingOwner).length;
-    const ownScoreChange = afterScores[card.owner] - beforeScores[card.owner];
-    const opposingScoreChange = afterScores[opposingOwner] - beforeScores[opposingOwner];
-    const ownAfter = simulation.filter((fish) => fish?.owner === card.owner).length;
-    const shockValue = simulation.reduce((value, fish) => value + (fish && result.shocked.has(fish.id) && !this.shocked.has(fish.id)
-      ? (fish.owner === card.owner ? -1 : 1) * fish.edges.length : 0), 0);
-    return ownScoreChange * 9 - opposingScoreChange * 7 + (opposingBefore - opposingAfter) * 6 - (ownBefore - ownAfter) * 6 + shockValue;
-  }
-
   private logCombat(message: string): void {
     const line = document.createElement("li"); line.textContent = message;
     this.feedbackLog?.append(line);
@@ -637,7 +623,7 @@ export class FoundationScene extends Phaser.Scene {
     this.render("Resolving: " + frame.label);
     if (this.motionReduced || !this.sys.isActive()) return;
     const origin = this.boardOrigin();
-    const position = (index: number) => ({ x: origin.x + (index % BOARD_SIZE) * (CELL + GAP) + CELL / 2, y: origin.y + Math.floor(index / BOARD_SIZE) * (CELL + GAP) + CELL / 2 });
+    const position = (index: number) => ({ x: origin.x + (index % this.rules.size) * (CELL + GAP) + CELL / 2, y: origin.y + Math.floor(index / this.rules.size) * (CELL + GAP) + CELL / 2 });
     const animations: Promise<void>[] = [];
     const animate = (drawing: Phaser.GameObjects.Container, values: object) => animations.push(new Promise(resolve => {
       this.tweens.add({ targets: drawing, ...values, duration: 260, ease: "Sine.easeInOut", onUpdate: () => { drawing.x = Math.round(drawing.x); drawing.y = Math.round(drawing.y); }, onComplete: () => resolve() });
@@ -669,7 +655,7 @@ export class FoundationScene extends Phaser.Scene {
   private async placeCard(index: number, card: FishCard): Promise<ReturnType<typeof resolvePlacement>> {
     this.resolving = true;
     const beforeScore = this.getScores();
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card, BOARD_SIZE, true);
+    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card, this.rules.size, true);
     for (const frame of result.frames) {
       if (!this.sys.isActive()) break;
       await this.showCombatFrame(frame);
@@ -711,7 +697,7 @@ export class FoundationScene extends Phaser.Scene {
   private getScores(board: Array<FishCard | null> = this.board): { player: number; rival: number } { return scoreBoard(board); }
 
   private checkEnd(): boolean {
-    if ((!canPlayFish(this.playerHand, this.plays.player) && !canPlayFish(this.rivalHand, this.plays.rival))
+    if ((!canPlayFish(this.playerHand, this.plays.player, this.rules.plays) && !canPlayFish(this.rivalHand, this.plays.rival, this.rules.plays))
       || !this.hasLegalMove("player") && !this.hasLegalMove("rival")) {
       this.finishMatch();
       return true;

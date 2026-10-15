@@ -1,4 +1,5 @@
 import type { FishCard } from "./data/starterFish.ts";
+import { scoringReefs } from "./battleRules.ts";
 import { blocksPlacement, type Terrain } from "./terrain.ts";
 
 export const ABILITIES = {
@@ -24,11 +25,11 @@ export function grantAbility(card: FishCard, ability: CardAbility): FishCard {
 }
 export function canPlaceFish(board: readonly (FishCard | null)[], index: number, card: FishCard | undefined, terrain: Terrain): boolean {
   return Boolean(card && Number.isInteger(index) && index >= 0 && index < board.length && !board[index]
-    && !blocksPlacement(terrain, index) && (!SCORING_REEFS.has(index) || hasAbility(card, "reefborn")));
+    && !blocksPlacement(terrain, index) && (!scoringReefs(Math.sqrt(board.length)).has(index) || hasAbility(card, "reefborn")));
 }
 export function scoreBoard(board: readonly (FishCard | null)[]): { player: number; rival: number } {
   const scores = { player: 0, rival: 0 };
-  for (const index of SCORING_REEFS) {
+  for (const index of scoringReefs(Math.sqrt(board.length))) {
     const card = board[index];
     if (card) scores[card.owner] += hasAbility(card, "sovereign") ? 2 : 1;
   }

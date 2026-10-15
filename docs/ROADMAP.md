@@ -61,6 +61,8 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Later development
 
+Implemented: three regional rival difficulty levels, 5×5/6×6/7×7 boards with five/six/seven plays per side, sparse seeded terrain, and a Quick Match setup popup with independent choices. Rival strength still needs human playtesting; Expert uses bounded public-information counterplay forecasts.
+
 Implemented: stable battle checkpoints (including charms and pending choices), confirmed shop charm replacement, and a versioned longer-voyage balance pass. New regions have 18 stops, regular recovery, two guaranteed shops, affordable consumables and scaled rewards. Automated route scenarios cover pacing; extended human combat/balance playtesting remains ongoing.
 
 - Multiple aquatic regions

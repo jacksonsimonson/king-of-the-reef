@@ -196,3 +196,5 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
 .audio-controls input[type="checkbox"] { appearance: auto; width: 20px; height: 20px; accent-color: #73cbb1; }
 .audio-controls button { font: inherit; color: #eed49b; background: #28545a; border: 2px solid #73cbb1; padding: 8px; cursor: pointer; }
 .audio-controls output { min-width: 4ch; }
+.quick-match-setup label { display: flex; justify-content: space-between; gap: 16px; margin: 16px 0; align-items: center; }
+.quick-match-setup select { font: inherit; padding: 8px; background: #102d38; color: #eed49b; max-width: 65%; }
