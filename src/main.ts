@@ -1,9 +1,11 @@
+import { settleBattleWithSummary } from './game/run/battleSummary';
+import type { TideScore } from './game/twoTide';
 import Phaser from "phaser";
 import { mountAudioControls, reefAudio } from "./game/audio/audio";
 import "./styles/main.css";
 import { createGameConfig, type GameView } from "./game/config";
 import { VoyageView, currentRun, persistRun } from "./game/run/view";
-import { activeNode, battleResult, consumeCharm, rivalDeckFor } from "./game/run/state";
+import { activeNode, consumeCharm, rivalDeckFor } from "./game/run/state";
 import type { CharmId } from "./game/data/tideCharms";
 import { random, REGIONS } from "./game/run/maps";
 import { drawSeascape } from "./game/run/art";
@@ -96,8 +98,8 @@ function syncView(): void {
           },
           region: REGIONS[run.region].id, seed: run.seed,
           rng: random(`${run.seed}:${run.pending}:deal`),
-          onResult: (player: number, rival: number, killedIds: string[], spentCharms: CharmId[]) => {
-            battleResult(run, player, rival, killedIds, spentCharms); persistRun(run);
+          onResult: (_player: number, _rival: number, killedIds: string[], spentCharms: CharmId[], scores: TideScore[]) => {
+            const summary = settleBattleWithSummary(run, scores, killedIds, spentCharms); persistRun(run); return summary;
           },
           onComplete: () => { window.location.hash = "#voyage"; },
         });

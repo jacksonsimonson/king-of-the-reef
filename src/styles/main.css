@@ -207,3 +207,7 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
 .battle-controls p { line-height: 1.5; }
 .battle-controls details { margin-top: 12px; }
 button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #ffdd88; outline-offset: 4px; }
+
+.match-summary { width: min(720px, calc(100vw - 48px)); max-height: calc(100vh - 48px); overflow: auto; }
+.match-summary table { width: 100%; text-align: left; border-collapse: collapse; }
+.match-summary th, .match-summary td { padding: 8px; border-bottom: 2px solid #537f79; }

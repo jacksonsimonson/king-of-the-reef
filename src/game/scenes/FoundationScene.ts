@@ -1,3 +1,5 @@
+import type { BattleSummary } from '../run/battleSummary';
+import { showBattleSummary } from '../ui/battleSummary';
 import { reefAudio } from "../audio/audio.ts";
 import { combatCue } from "../audio/cues.ts";
 import type { BattleSave, BattleOpening } from "../run/battleSave.ts";
@@ -36,11 +38,14 @@ interface VoyageBattle {
   nodeId: string;
   onCheckpoint: (save: BattleSave) => boolean;
   onUseCharm: (id: CharmId) => boolean;
-  onResult: (player: number, rival: number, killedIds: string[], spentCharms: CharmId[]) => void;
+  onResult: (player: number, rival: number, killedIds: string[], spentCharms: CharmId[], scores: TideScore[]) => BattleSummary | void;
   onComplete: () => void;
 }
 
 export class FoundationScene extends Phaser.Scene {
+  private summary?: BattleSummary;
+  private summaryDialog?: HTMLDialogElement;
+  private openSummary(): void { if (this.summary) { this.summaryDialog?.remove(); this.summaryDialog = showBattleSummary(this.summary, () => this.resultAction()); } }
   private twoTide = false;
   private tideScores: TideScore[] = [];
   private opening?: BattleOpening;
@@ -124,7 +129,7 @@ export class FoundationScene extends Phaser.Scene {
     document.querySelector("#game")?.after(this.feedbackPanel);
     this.controls = document.createElement('details'); this.controls.className = 'battle-controls'; this.controls.setAttribute('aria-label', 'Battle controls');
     document.querySelector('#game')?.before(this.controls);
-    const cleanup = () => this.controls?.remove();
+    const cleanup = () => { this.controls?.remove(); this.summaryDialog?.remove(); };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup); this.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedbackPanel?.remove(); });
     this.events.once(Phaser.Scenes.Events.DESTROY, () => { this.feedbackPanel?.remove(); });
@@ -178,6 +183,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private resetMatch(nextTide = false): void {
     if (!nextTide) {
+      this.summary = undefined; this.summaryDialog?.remove();
       this.tideScores = []; this.opening = undefined; this.matchKilled.clear(); this.spentCharms = [];
       this.tideSeed = this.voyageBattle ? this.voyageBattle.seed + ':' + this.voyageBattle.nodeId : crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
     }
@@ -657,6 +663,7 @@ export class FoundationScene extends Phaser.Scene {
       }
       if (this.pendingReveal === 'charm' || this.pendingDraft || this.pendingDrift) button('cancel','Cancel choice · keep charm', () => { this.pendingReveal = null; this.pendingDraft = false; this.pendingDrift = false; this.driftFrom = null; this.render('Choice canceled. Charm kept.'); });
     }
+    if (this.finished && this.summary) button('summary', 'View match summary', () => this.openSummary());
     const inspect = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Inspect board and revealed rival cards'; inspect.append(summary);
     this.board.forEach((_,i) => { const p = document.createElement('p'); p.textContent = tile(i); inspect.append(p); });
     this.rivalHand.forEach((slot,i) => { if (slot.revealed && !slot.played) { const p = document.createElement('p'); p.textContent = 'Rival card '+(i+1)+': '+cardDescription(slot.card); inspect.append(p); } });
@@ -837,8 +844,9 @@ export class FoundationScene extends Phaser.Scene {
       return;
     }
     reefAudio.play(score.player > score.rival ? "victory" : score.player < score.rival ? "defeat" : "reward");
-    this.voyageBattle?.onResult(score.player, score.rival, [...(this.twoTide ? this.matchKilled : this.killedIds)], this.spentCharms);
+    this.summary = this.voyageBattle?.onResult(score.player, score.rival, [...(this.twoTide ? this.matchKilled : this.killedIds)], this.spentCharms, this.twoTide ? this.tideScores : [score]) || undefined;
     this.render(score.player > score.rival ? "You rule the reef!" : score.rival > score.player ? "The rival rules this tide." : "The tide ends in a draw.");
+    this.openSummary();
   }
 
   private drawResult(player: number, rival: number): void {
