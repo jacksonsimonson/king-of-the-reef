@@ -99,7 +99,7 @@ All counts below are fixture observations, not win rates. Each candidate has 72 
 
 ### Three isolated alternatives
 
-These exist only inside the analysis script. No live definitions are edited.
+These were simulation-only proposals at the time of the initial pilot. The [first follow-up batch](BALANCE_BATCH_1.md) adopts two after role-specific tests and retains full-Shock Eel. The comparison script now uses frozen pre-batch layouts so these historical results remain reproducible.
 
 | Variant | Exact hypothetical change | Observed result | Interpretation |
 | --- | --- | --- | --- |
@@ -115,11 +115,13 @@ Keep the role-first approach, but revise the “useful in two-thirds of position
 
 Do not use the current measurements to globally rank creatures, nerf all self-movers, or buff every zero-score card. Retention tests assume free delivery; reply tests omit Shock, Swap, area effects, and innate abilities; greedy placement ignores future support. Worst-case replies use fixed hypothetical profiles, not actual AI or hidden hands. Empty-board Bounce gains deserve special attention because final-turn access can be strong without an enemy, but remain different from winning a full battle.
 
-## Recommended next batch
+## Original recommendations and follow-up
 
 1. Manually choose narrow primary identities for the 53 mixed packages, starting with Phantom Shark and similarly dense Bermuda cards. Preserve deliberate collateral effects; remove unrelated coverage only with a stated role reason.
 2. Build follow-up positions for holder delivery, Spines retaliation, Shock-assisted allied turns, and Revelation information. Check final-turn access separately from early setup and swap acting order in actual paired battles.
 3. Playtest the three isolated alternatives alongside their live versions in mixed regional schools, including relevant charm grants. Record exact positions and friendly harm accepted in useful plays.
 4. Then propose a small content PR with the chosen assignments and explicit regional introduction rules. Only after that pilot should we reshuffle the wider roster.
+
+Follow-up: the first two-card batch is recorded in [Balance Batch 1](BALANCE_BATCH_1.md). Remaining mixed packages, information support, charm interactions, and full paired battles still need their own review.
 
 Colossals remain last. More edge and card abilities remain available as future design space; this inventory is a baseline to revise, not a closed list of permitted mechanics.

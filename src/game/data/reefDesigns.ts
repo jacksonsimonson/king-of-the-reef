@@ -472,7 +472,7 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
       },
       {
         "direction": "down",
-        "effect": "spines"
+        "effect": "standard"
       },
       {
         "direction": "left",
@@ -481,7 +481,7 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
     ],
     "rarity": "Rare",
     "movement": "lurker",
-    "rationale": "Gimmick: all-around spines, no active attack"
+    "rationale": "Tube feet push below while three spiny sides retaliate"
   },
   "invisible-ink-squid": {
     "edges": [
