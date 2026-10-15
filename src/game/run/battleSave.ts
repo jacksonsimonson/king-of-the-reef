@@ -2,6 +2,17 @@ import { ABILITIES } from '../abilities.ts';
 import { STARTERS, type FishCard } from '../data/starterFish.ts';
 import type { HandSlot } from '../combat.ts';
 import { validRules, type BattleRules } from '../battleRules.ts';
+import { isCharm, CHARM_CAPACITY, type CharmId } from '../data/tideCharms.ts';
+import { tidePlayLimit, type TideScore } from '../twoTide.ts';
+
+export interface BattleOpening {
+  playerHand: HandSlot[]; rivalHand: HandSlot[]; playerDeck: FishCard[]; rivalDeck: FishCard[]; charms: CharmId[];
+}
+export interface TwoTideSave {
+  opening: BattleOpening; scores: TideScore[]; seed: string; intermission: boolean;
+  charms: CharmId[]; spentCharms: CharmId[]; killedIds: string[];
+}
+export function voyageMatchFormat(saved?: BattleSave): 'classic' | 'two-tide' { return saved && !saved.twoTide ? 'classic' : 'two-tide'; }
 
 /** Only stable decision points are saved. Animation frames are never checkpoints. */
 export interface BattleSave {
@@ -11,12 +22,13 @@ export interface BattleSave {
   turn: 'player' | 'rival'; rngCalls: number;
   pendingReveal: 'card' | null; rallySlot: number | null;
   rules?: BattleRules;
+  twoTide?: TwoTideSave;
 }
 export function validBattleSave(value: unknown, nodeId: string): value is BattleSave {
   if (!value || typeof value !== 'object') return false;
   const s = value as BattleSave;
   if (s.rules !== undefined && !validRules(s.rules)) return false;
-  const size = s.rules?.size ?? 5, limit = s.rules?.plays ?? 5;
+  const size = s.rules?.size ?? 5, limit = s.twoTide && s.rules ? tidePlayLimit(s.rules.region) : s.rules?.plays ?? 5;
   const integer = (n: number, max: number) => Number.isInteger(n) && n >= 0 && n <= max;
   const card = (f: FishCard) => f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.species === 'string'
     && STARTERS.some(base => base.texture === f.texture) && ['player', 'rival'].includes(f.owner) && f.condition === 'healthy'
@@ -37,5 +49,22 @@ export function validBattleSave(value: unknown, nodeId: string): value is Battle
   if (s.killedIds.some(id => live.some(f => f.id === id))) return false;
   if (s.pendingReveal && (s.turn !== 'player' || !s.rivalHand.some(h => !h.played && !h.revealed))) return false;
   if (s.rallySlot !== null && (s.turn !== 'player' || s.pendingReveal || !s.playerHand[s.rallySlot].played || !s.playerDeck.length)) return false;
+  if (s.twoTide !== undefined) {
+    const t = s.twoTide, o = t?.opening;
+    const charms = (ids: CharmId[]) => Array.isArray(ids) && ids.length <= CHARM_CAPACITY && ids.every(isCharm);
+    const subset = (a: CharmId[], b: CharmId[]) => a.every(id => a.filter(c => c === id).length <= b.filter(c => c === id).length);
+    if (!s.rules || !t || !o || typeof t.seed !== 'string' || t.seed.length > 500 || typeof t.intermission !== 'boolean'
+      || !Array.isArray(t.scores) || t.scores.length > 1 || t.scores.some(score => !score || !integer(score.player, 1000) || !integer(score.rival, 1000))
+      || t.intermission && (t.scores.length !== 1 || s.pendingReveal !== null || s.rallySlot !== null)
+      || !hand(o.playerHand, 'player') || !hand(o.rivalHand, 'rival') || !deck(o.playerDeck, 'player') || !deck(o.rivalDeck, 'rival')
+      || [...o.playerHand, ...o.rivalHand].some(slot => slot.played || slot.revealed)
+      || !charms(o.charms) || !charms(t.charms) || !charms(t.spentCharms) || !subset(t.charms, o.charms) || !subset(t.spentCharms, o.charms)
+      || !Array.isArray(t.killedIds) || t.killedIds.some(id => typeof id !== 'string') || new Set(t.killedIds).size !== t.killedIds.length) return false;
+    const openingCards = [...o.playerHand.map(s => s.card), ...o.rivalHand.map(s => s.card), ...o.playerDeck, ...o.rivalDeck];
+    if (new Set(openingCards.map(c => c.id)).size !== openingCards.length) return false;
+    if (t.killedIds.some(id => !openingCards.some(c => c.id === id))) return false;
+    // Every charge missing this tide must be represented in the permanent-spending ledger.
+    if (o.charms.some(id => o.charms.filter(c => c === id).length - t.charms.filter(c => c === id).length > t.spentCharms.filter(c => c === id).length)) return false;
+  }
   return true;
 }

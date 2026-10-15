@@ -9,6 +9,7 @@ import { random, REGIONS } from "./game/run/maps";
 import { drawSeascape } from "./game/run/art";
 import { regionalRules } from './game/battleRules';
 import { quickMatchSetup, type QuickMatchSettings } from './game/ui/quickMatchSetup';
+import { voyageMatchFormat } from './game/run/battleSave';
 import { openTutorial } from './game/ui/tutorial';
 
 const playView = document.querySelector<HTMLElement>("#play");
@@ -83,6 +84,7 @@ function syncView(): void {
       const rivalDeck = rivalDeckFor(run);
       config.callbacks = { preBoot: (game) => {
         game.registry.set('battleRules', rules);
+        game.registry.set('matchFormat', voyageMatchFormat(run.battle));
         game.registry.set("voyageBattle", {
           nodeId: run.pending!, checkpoint: run.battle,
           onCheckpoint: (checkpoint: import("./game/run/battleSave").BattleSave) => { run.battle = checkpoint; return persistRun(run); },
@@ -94,8 +96,8 @@ function syncView(): void {
           },
           region: REGIONS[run.region].id, seed: run.seed,
           rng: random(`${run.seed}:${run.pending}:deal`),
-          onResult: (player: number, rival: number, killedIds: string[]) => {
-            battleResult(run, player, rival, killedIds); persistRun(run);
+          onResult: (player: number, rival: number, killedIds: string[], spentCharms: CharmId[]) => {
+            battleResult(run, player, rival, killedIds, spentCharms); persistRun(run);
           },
           onComplete: () => { window.location.hash = "#voyage"; },
         });

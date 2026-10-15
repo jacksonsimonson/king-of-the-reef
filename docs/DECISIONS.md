@@ -209,3 +209,7 @@ Adopt Void Angler without Left Shock and Buoy Jelly without Down Hook after fres
 ## 2026-10-15 — Optional two-tide prototype
 
 Trial two tides in Quick Match, with 4/5/6 plays per side per tide by region with equivalent opening resources, swapped starters and additive scores. Three-play Shoreline produced too many draws in the fresh-seed study; four remains the Shoreline minimum; the requested regional progression adds one play per tide in each later map. Keep Classic default and Voyage unchanged. [Evidence and pacing limits](TWO_TIDE_PROTOTYPE.md) distinguish equal access to second move from proven human balance.
+
+## 2026-10-15 — Voyage two-tide rollout
+
+Use regional 4/5/6 tides for new Voyage battles and bosses. Preserve already-saved Classic battles. Snapshot the opening resources and save the intermission and both tide states. Settle the combined score once; union casualties across tides and consume the maximum copies of each charm used in either tide. The refreshed second-tide copy is not a second permanent charge. See [Voyage rules](VOYAGE.md#two-tide-battles). Human pacing remains a follow-up evaluation, not a claim established by simulation.

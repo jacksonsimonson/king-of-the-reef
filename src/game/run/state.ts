@@ -204,10 +204,11 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
   } else return false;
   return true;
 }
-export function battleResult(run: Run, player: number, rival: number, killedIds: string[] = []): void {
+export function battleResult(run: Run, player: number, rival: number, killedIds: string[] = [], spentCharms: CharmId[] = []): void {
   if (!run.pending || run.status !== "active") return;
   const node = activeNode(run);
   if (node.type !== "battle" && node.type !== "boss") return;
+  for (const id of spentCharms) consumeCharm(run, id);
   delete run.battle;
   for (const fish of run.school) if (killedIds.includes(fish.id)) fish.condition = "killed";
   if (player < rival) {

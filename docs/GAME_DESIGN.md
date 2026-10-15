@@ -135,4 +135,4 @@ Run-based progression should emphasize discovering fish and building combination
 
 The current playable build includes three regional board sizes, rival difficulty levels, terrain, Tide Charms, persistent voyages, and a growing creature roster. Future assignments follow the balance chapter above. Creature sprites use the approved 64×64 standard; player creatures face right and rival creatures face left.
 
-The optional [two-tide Quick Match prototype](TWO_TIDE_PROTOTYPE.md) uses two rounds of 4/5/6 plays per side in Shoreline/Ocean/Bermuda, refreshed resources, swapped starters and combined reef scores. Classic and Voyage retain their existing format pending human pacing tests.
+The optional [two-tide Quick Match prototype](TWO_TIDE_PROTOTYPE.md) uses two rounds of 4/5/6 plays per side in Shoreline/Ocean/Bermuda, refreshed resources, swapped starters and combined reef scores. New Voyage battles use the same regional two-tide format, with one combined result, deferred injuries and charm consumption, and checkpoints in either tide or the intermission. Existing single-tide checkpoints finish unchanged; Quick Match still offers Classic.

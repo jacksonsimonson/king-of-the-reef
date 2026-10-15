@@ -57,3 +57,11 @@ Future region tabs permit inspection without unlocking travel or rewards there. 
 ## Validation
 
 `npm test` runs deterministic generation and state-transition checks, including 3,000 maps across the three regions, a statistical check of encounter weights, legal routes, noncrossing paths, all three finales, purchases, hydration, defeat, duplicate reward prevention and save/load. `npm run build` checks TypeScript and production bundling.
+
+## Two-tide battles
+
+New battle and boss encounters use two tides with 4/5/6 plays per side per tide in Shoreline/Open Ocean/Bermuda. Boards remain 5×5/6×6/7×7. You start tide 1; the rival starts tide 2. Add both final reef scores before awarding shells, losing resolve or advancing past a boss. A tied boss match requires a rematch under the existing rule.
+
+The second tide restores the opening hands, reserves, board and up to three available charms, clearing temporary upgrades, reveals and Shock. Fish killed in either tide return for tide 2 but need hydration after the combined result. Charms used in either tide are consumed at match end: each inventory copy can be reused in the other tide without a second charge. Duplicate charms consume the maximum number of copies used in either tide; any legacy queued inventory beyond the three available charms remains untouched.
+
+Checkpoints include both-round bookkeeping, the original deal, current charms, action RNG position and the intermission. Leaving at the intermission resumes the Next tide screen; leaving during tide 2 preserves tide 1’s score and casualties. Existing saved single-tide battles finish unchanged; their next battle or boss rematch uses two tides. No card catalog or map migration is required. See [balance and pacing evidence](TWO_TIDE_PROTOTYPE.md).

@@ -62,7 +62,7 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 ## Next design work
 
 - Use [Creature Balancing Guidelines](CREATURE_BALANCE.md), now part of the game design, to inventory tactical roles, redundant upgrades, and missing ordinary counters.
-- Initial [167-creature inventory and ten-creature pilot](BALANCE_PILOT.md) complete, including three simulation-only proposals. The [first role-specific content batch](BALANCE_BATCH_1.md) follows with two changes and a preserved Eel gimmick. The [896-match mixed-school study](MIXED_SCHOOL_STUDY.md) is complete. The [fresh-seed charm follow-up](BALANCE_BATCH_2.md) adopts the Angler/Buoy reductions. The optional [two-tide Quick Match prototype](TWO_TIDE_PROTOTYPE.md) is implemented. Next: human pacing/adaptation checks before any Voyage rollout; no catalog-wide reshuffle yet.
+- Initial [167-creature inventory and ten-creature pilot](BALANCE_PILOT.md) complete, including three simulation-only proposals. The [first role-specific content batch](BALANCE_BATCH_1.md) follows with two changes and a preserved Eel gimmick. The [896-match mixed-school study](MIXED_SCHOOL_STUDY.md) is complete. The [fresh-seed charm follow-up](BALANCE_BATCH_2.md) adopts the Angler/Buoy reductions. The optional [two-tide Quick Match prototype](TWO_TIDE_PROTOTYPE.md) is implemented. Voyage now uses the same 4/5/6 progression with resumable tides and one settlement. Next: human pacing/adaptation checks; no catalog-wide reshuffle yet.
 - Establish the remaining intended main systems and ordinary roster before bespoke Colossals. Colossals are last.
 
 ## Later development
