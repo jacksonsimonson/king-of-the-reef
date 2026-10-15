@@ -205,3 +205,7 @@ Sea Urchin uses Down Standard with three Spines sides for allied reef setup and 
 ## 2026-10-15 — Charm-tested second creature batch
 
 Adopt Void Angler without Left Shock and Buoy Jelly without Down Hook after fresh-seed charm comparisons. Preserve their core roles and existing voyages via balance version 2. [Batch 2](BALANCE_BATCH_2.md) records the modest strength tradeoffs and limits. Keep live turn-order rules unchanged: tie wins, snake initiative and naive round-end scoring do not consistently resolve the observed advantage. Recommend a separate two-tide prototype with swapped starters and equivalent round resources; it is not yet an accepted gameplay rule.
+
+## 2026-10-15 — Optional two-tide prototype
+
+Trial two tides in Quick Match, with 4/5/6 plays per side per tide by region with equivalent opening resources, swapped starters and additive scores. Three-play Shoreline produced too many draws in the fresh-seed study; four remains the Shoreline minimum; the requested regional progression adds one play per tide in each later map. Keep Classic default and Voyage unchanged. [Evidence and pacing limits](TWO_TIDE_PROTOTYPE.md) distinguish equal access to second move from proven human balance.

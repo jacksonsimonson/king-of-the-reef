@@ -3,7 +3,8 @@ import { combatCue } from "../audio/cues.ts";
 import type { BattleSave } from "../run/battleSave.ts";
 import { regionalRules, scoringReefs, type BattleRules } from '../battleRules.ts';
 import { chooseRivalMove } from '../rivalAI.ts';
-import { REGIONS } from '../run/maps.ts';
+import { combinedScore, freshTide, tidePlayLimit, type TideScore } from '../twoTide.ts';
+import { random, REGIONS } from '../run/maps.ts';
 import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
@@ -40,6 +41,13 @@ interface VoyageBattle {
 }
 
 export class FoundationScene extends Phaser.Scene {
+  private twoTide = false;
+  private tideScores: TideScore[] = [];
+  private opening?: {playerHand: HandSlot[]; rivalHand: HandSlot[]; playerDeck: FishCard[]; rivalDeck: FishCard[]; charms: CharmId[]};
+  private tideSeed = '';
+  private tideRandom?: () => number;
+  private get playLimit(): number { return this.twoTide ? tidePlayLimit(this.rules.region) : this.rules.plays; }
+  private get intermission(): boolean { return this.twoTide && this.finished && this.tideScores.length === 1; }
   private board: Array<FishCard | null> = [];
   private terrain = battleTerrain();
   private rules: BattleRules = regionalRules(0, 'quick');
@@ -88,6 +96,7 @@ export class FoundationScene extends Phaser.Scene {
     this.input.dragDistanceThreshold = 6;
     this.voyageBattle = this.registry.get("voyageBattle") as VoyageBattle | undefined;
     this.rules = this.registry.get('battleRules') ?? this.rules;
+    this.twoTide = !this.voyageBattle && this.registry.get('matchFormat') === 'two-tide';
     {
       const canvas = document.createElement("canvas");
       canvas.width = this.scale.width; canvas.height = this.scale.height;
@@ -121,7 +130,7 @@ export class FoundationScene extends Phaser.Scene {
     else this.resetMatch();
   }
 
-  private random(): number { this.rngCalls++; return this.voyageBattle?.rng() ?? Math.random(); }
+  private random(): number { this.rngCalls++; return this.voyageBattle?.rng() ?? this.tideRandom?.() ?? Math.random(); }
 
   private restoreBattle(saved: BattleSave): void {
     const s = structuredClone(saved);
@@ -148,7 +157,19 @@ export class FoundationScene extends Phaser.Scene {
     if (this.saveStatus) this.saveStatus.textContent = ok ? "Battle saved. Leaving during an animation resumes the previous decision." : "Battle could not be saved. Keep this page open to preserve your progress.";
   }
 
-  private resetMatch(): void {
+  private resultAction(): void {
+    if (!this.finished) return;
+    if (this.intermission) this.resetMatch(true);
+    else if (this.voyageBattle) this.voyageBattle.onComplete();
+    else this.resetMatch();
+  }
+
+  private resetMatch(nextTide = false): void {
+    if (!nextTide) {
+      this.tideScores = []; this.opening = undefined;
+      this.tideSeed = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+    }
+    if (this.twoTide) this.tideRandom = random(this.tideSeed + ':deal');
     this.resolving = false; this.feedbackLog?.replaceChildren();
     this.board = Array(this.rules.size * this.rules.size).fill(null);
     const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createEnabledDeck("player"));
@@ -165,13 +186,21 @@ export class FoundationScene extends Phaser.Scene {
     this.pendingReveal = null;
     this.pendingRally = null;
     this.pendingDraft = false; this.pendingDrift = false; this.driftFrom = null;
-    this.charms = this.voyageBattle?.charms ?? randomCharms();
+    this.charms = this.voyageBattle?.charms ?? randomCharms(() => this.random());
+    if (this.twoTide) {
+      if (!this.opening) this.opening = freshTide({playerHand: this.playerHand, rivalHand: this.rivalHand, playerDeck: this.playerDeck, rivalDeck: this.rivalDeck, charms: this.charms});
+      Object.assign(this, freshTide(this.opening));
+      this.tideRandom = random(this.tideSeed + ':actions');
+      this.turn = nextTide ? 'rival' : 'player';
+    }
     this.plays = { player: 0, rival: 0 };
-    this.render("Drag a fish to open water, or select it and choose a tile.");
-    if (!this.playerHand.length) this.advanceTurn("player");
+    this.render(this.turn === 'rival' ? 'Fresh tide. The rival moves first.' : 'Drag a fish to open water, or select it and choose a tile.');
+    if (this.turn === 'rival') this.time.delayedCall(550, () => this.playRivalTurn());
+    else if (!this.playerHand.length) this.advanceTurn("player");
   }
 
   private render(message: string): void {
+    if (this.twoTide) message = `Tide ${Math.min(this.tideScores.length + (this.finished ? 0 : 1), 2)}/2 · ${this.tideScores.length ? 'Combined ' + combinedScore(this.tideScores).player + '–' + combinedScore(this.tideScores).rival + ' · ' : ''}${message}`;
     this.checkpoint();
     this.placementPreview = undefined;
     this.previewIndex = null;
@@ -191,7 +220,7 @@ export class FoundationScene extends Phaser.Scene {
     add(this.add.text(40, 22, `KING OF THE REEF · ${this.rules.difficulty.toUpperCase()} · ${this.rules.size}×${this.rules.size}`, this.textStyle(24, "#eed49b")));
     add(this.add.text(40, 65, message, this.textStyle(16, "#b8ffd0")).setWordWrapWidth(1200));
     add(this.add.text(this.scale.width - 40, 26, `YOU ${scores.player}  ·  ${scores.rival} RIVAL`, this.textStyle(16, "#ffb8d8")).setOrigin(1, 0));
-    add(this.add.text(this.scale.width - 40, 58, `FISH PLAYED ${this.plays.player}/${this.rules.plays}  ·  ${this.plays.rival}/${this.rules.plays}`, this.textStyle(16, "#b8d7dc")).setOrigin(1, 0));
+    add(this.add.text(this.scale.width - 40, 58, `FISH PLAYED ${this.plays.player}/${this.playLimit}  ·  ${this.plays.rival}/${this.playLimit}`, this.textStyle(16, "#b8d7dc")).setOrigin(1, 0));
 
     const board = this.boardOrigin();
     this.drawSidePanel(38, board.y, "YOUR DECK", this.playerDeck.length, "player");
@@ -473,11 +502,11 @@ export class FoundationScene extends Phaser.Scene {
 
   private hasLegalMove(owner: "player" | "rival"): boolean {
     const hand = owner === "player" ? this.playerHand : this.rivalHand;
-    return canPlayFish(hand, this.plays[owner], this.rules.plays) && hand.some(slot => !slot.played && this.board.some((_, index) => canPlaceFish(this.board, index, slot.card, this.terrain)));
+    return canPlayFish(hand, this.plays[owner], this.playLimit) && hand.some(slot => !slot.played && this.board.some((_, index) => canPlaceFish(this.board, index, slot.card, this.terrain)));
   }
 
   private canUseCharm(id: CharmId): boolean {
-    if (this.resolving || this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player, this.rules.plays) || !availableCharms(this.charms).includes(id)) return false;
+    if (this.resolving || this.finished || this.turn !== "player" || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift || !canPlayFish(this.playerHand, this.plays.player, this.playLimit) || !availableCharms(this.charms).includes(id)) return false;
     if (id === "spyglass-pearl") return revealTargets(this.rivalHand).length > 0;
     if (id === "current-conch") return this.playerDeck.length > 0;
     if (id === "drift-shell") return this.board.some((_, from) => this.board.some((_, to) => canDrift(this.board, from, to, this.terrain)));
@@ -564,7 +593,8 @@ export class FoundationScene extends Phaser.Scene {
     const text = (value: string) => { const p = document.createElement('p'); p.textContent = value; root.append(p); return p; };
     const heading = document.createElement('h3'); heading.textContent = 'Battle controls'; root.append(heading);
     const scores = this.getScores();
-    const status = text(message + ` Reef points: you ${scores.player}, rival ${scores.rival}. Plays: you ${this.plays.player}/${this.rules.plays}, rival ${this.plays.rival}/${this.rules.plays}.`); status.setAttribute('role', 'status'); status.tabIndex = -1; status.dataset.control = 'status';
+    const status = text(message + ` Reef points: you ${scores.player}, rival ${scores.rival}. Plays: you ${this.plays.player}/${this.playLimit}, rival ${this.plays.rival}/${this.playLimit}.`); status.setAttribute('role', 'status'); status.tabIndex = -1; status.dataset.control = 'status';
+    if (this.twoTide && this.tideScores.length) text(this.tideScores.map((s, i) => `Tide ${i + 1}: you ${s.player}, rival ${s.rival}`).join(' · '));
     const button = (id: string, label: string, action: () => void, disabled = false) => {
       const b = document.createElement('button'); b.className = 'voyage-button'; b.dataset.control = id; b.textContent = label; b.disabled = disabled; b.onclick = action; root.append(b); return b;
     };
@@ -581,7 +611,7 @@ export class FoundationScene extends Phaser.Scene {
         + (feature ? TERRAIN_INFO[feature].name + ': ' + TERRAIN_INFO[feature].rule + ' ' : '') + (f ? f.owner + ' ' + cardDescription(f) + (this.shocked.has(f.id) ? ' Shocked.' : '') : 'empty');
     };
     const busy = this.resolving || this.turn !== 'player';
-    if (this.finished) button('result', this.voyageBattle ? 'Return to map' : 'Play again', () => this.voyageBattle ? this.voyageBattle.onComplete() : this.resetMatch());
+    if (this.finished) button('result', this.intermission ? 'Next tide · rival starts' : this.voyageBattle ? 'Return to map' : 'Play again', () => this.resultAction());
     else if (!busy) {
       if (this.pendingRally) {
         text('Next reserve: ' + (this.playerDeck[0] ? cardDescription(this.playerDeck[0]) : 'empty'));
@@ -658,8 +688,8 @@ export class FoundationScene extends Phaser.Scene {
     const revealed = this.playerHand.filter(s => !s.played && s.revealed).map(s => s.card);
     const profiles = [...revealed, ...publicPool.filter((_, i) => i % Math.max(1, Math.floor(publicPool.length / 6)) === 0).map(c => ({...c, owner: 'player' as const, condition: 'healthy' as const}))];
     const choice = chooseRivalMove({board: this.board, shocked: this.shocked, terrain: this.terrain, hand: this.rivalHand,
-      difficulty: this.rules.difficulty, rivalPlaysLeft: this.rules.plays - this.plays.rival,
-      playerPlaysLeft: this.hasLegalMove('player') ? this.rules.plays - this.plays.player : 0, publicThreats: profiles}, () => this.random());
+      difficulty: this.rules.difficulty, rivalPlaysLeft: this.playLimit - this.plays.rival,
+      playerPlaysLeft: this.hasLegalMove('player') ? this.playLimit - this.plays.player : 0, publicThreats: profiles}, () => this.random());
     if (!choice) return this.advanceTurn('rival');
     const best = {slot: this.rivalHand[choice.slotIndex], index: choice.index};
     best.slot.played = true;
@@ -775,7 +805,7 @@ export class FoundationScene extends Phaser.Scene {
   private getScores(board: Array<FishCard | null> = this.board): { player: number; rival: number } { return scoreBoard(board); }
 
   private checkEnd(): boolean {
-    if ((!canPlayFish(this.playerHand, this.plays.player, this.rules.plays) && !canPlayFish(this.rivalHand, this.plays.rival, this.rules.plays))
+    if ((!canPlayFish(this.playerHand, this.plays.player, this.playLimit) && !canPlayFish(this.rivalHand, this.plays.rival, this.playLimit))
       || !this.hasLegalMove("player") && !this.hasLegalMove("rival")) {
       this.finishMatch();
       return true;
@@ -786,30 +816,38 @@ export class FoundationScene extends Phaser.Scene {
   private finishMatch(): void {
     if (this.finished) return;
     this.finished = true;
-    const score = this.getScores();
+    if (this.twoTide) this.tideScores.push(this.getScores());
+    const score = this.twoTide ? combinedScore(this.tideScores) : this.getScores();
+    if (this.intermission) {
+      this.render('Next tide: board and resources reset; rival starts.');
+      return;
+    }
     reefAudio.play(score.player > score.rival ? "victory" : score.player < score.rival ? "defeat" : "reward");
     this.voyageBattle?.onResult(score.player, score.rival, [...this.killedIds]);
     this.render(score.player > score.rival ? "You rule the reef!" : score.rival > score.player ? "The rival rules this tide." : "The tide ends in a draw.");
   }
 
   private drawResult(player: number, rival: number): void {
+    if (this.twoTide) ({player, rival} = combinedScore(this.tideScores));
     const centerX = this.scale.width / 2;
     const centerY = this.scale.height / 2;
     const panel = pixelPanel(this, centerX, centerY, 560, 208);
-    const title = player > rival ? "YOU RULE THE REEF" : rival > player ? "RIVAL VICTORY" : "TIED TIDE";
+    const title = this.intermission ? "TIDE 1 COMPLETE" : player > rival ? "YOU RULE THE REEF" : rival > player ? "RIVAL VICTORY" : "TIED TIDE";
     const heading = this.add.text(centerX, centerY - 43, title, this.textStyle(29, "#39ff14", true)).setOrigin(0.5);
-    const score = this.add.text(centerX, centerY + 3, `${player} PEARLS  ·  ${rival} PEARLS`, this.textStyle(19, "#ff5ca8", true)).setOrigin(0.5);
+    const score = this.add.text(centerX, centerY + 3, `${this.twoTide ? "TOTAL: " : ""}${player} PEARLS  ·  ${rival} PEARLS`, this.textStyle(19, "#ff5ca8", true)).setOrigin(0.5);
     const buttonFrame = pixelPanel(this, centerX, centerY + 58, 216, 48, 0x28545a);
     const button = this.add.rectangle(centerX, centerY + 58, 200, 32, 0x28545a).setInteractive({ useHandCursor: true });
     button.on("pointerover", () => button.setFillStyle(0x3b6b65));
     button.on("pointerout", () => button.setFillStyle(0x28545a));
-    const label = this.add.text(centerX, centerY + 58, this.voyageBattle ? "RETURN TO MAP" : "PLAY AGAIN", this.textStyle(16, "#eed49b")).setOrigin(0.5);
+    const label = this.add.text(centerX, centerY + 58, this.intermission ? "NEXT TIDE" : this.voyageBattle ? "RETURN TO MAP" : "PLAY AGAIN", this.textStyle(16, "#eed49b")).setOrigin(0.5);
     button.once("pointerdown", () => {
       button.disableInteractive();
-      if (this.voyageBattle) this.voyageBattle.onComplete();
-      else this.resetMatch();
+      this.resultAction();
     });
     this.ui?.add([panel, heading, score, buttonFrame, button, label]);
+    if (this.twoTide) this.ui?.add(this.add.text(centerX, centerY - 78,
+      this.tideScores.map((s, i) => `TIDE ${i + 1}: ${s.player}–${s.rival}`).join('  ·  '), this.textStyle(16, '#b8d7dc')).setOrigin(0.5));
+
   }
 
   private textStyle(size: number, color: string, _bold = false): Phaser.Types.GameObjects.Text.TextStyle {
