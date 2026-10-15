@@ -13,6 +13,7 @@ import { regionalRules } from './game/battleRules';
 import { quickMatchSetup, type QuickMatchSettings } from './game/ui/quickMatchSetup';
 import { voyageMatchFormat } from './game/run/battleSave';
 import { openTutorial } from './game/ui/tutorial';
+import { openJournal } from './game/ui/journal';
 
 const playView = document.querySelector<HTMLElement>("#play");
 const galleryView = document.querySelector<HTMLElement>("#gallery");
@@ -114,6 +115,7 @@ function syncView(): void {
 async function boot(): Promise<void> {
   mountAudioControls();
   document.querySelector<HTMLButtonElement>('#tutorial-button')!.onclick = openTutorial;
+  document.querySelector<HTMLButtonElement>('#journal-button')!.onclick = () => openJournal(currentRun());
   const setup = document.createElement('button'); setup.className = 'voyage-button'; setup.textContent = 'Quick Match Setup';
   setup.onclick = () => { activeGame?.scene.pause('foundation'); activeView = undefined; quickRules = undefined; syncView(); };
   playView?.querySelector('nav')?.append(setup);

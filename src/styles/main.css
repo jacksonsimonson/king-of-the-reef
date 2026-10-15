@@ -211,3 +211,21 @@ button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visib
 .match-summary { width: min(720px, calc(100vw - 48px)); max-height: calc(100vh - 48px); overflow: auto; }
 .match-summary table { width: 100%; text-align: left; border-collapse: collapse; }
 .match-summary th, .match-summary td { padding: 8px; border-bottom: 2px solid #537f79; }
+
+/* Native-size journal cards and controls; narrow screens scroll instead of scaling. */
+.journal-dialog { width: min(1080px, calc(100vw - 32px)); max-width: 1080px; max-height: calc(100dvh - 32px); overflow: auto; box-sizing: border-box; padding: 20px; }
+.journal-dialog p, .journal-dialog li { line-height: 1.6; }
+.journal-toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 16px; }
+.journal-toolbar label { display: flex; flex-direction: column; gap: 8px; }
+.journal-toolbar select { font: inherit; padding: 12px; color: #f2e9c9; background: #071e2a; border: 2px solid #547b76; max-width: 100%; }
+.journal-dialog input { margin: 0; width: 240px; box-sizing: border-box; }
+.journal-dialog button { margin: 0; }
+.journal-dialog [aria-pressed="true"] { outline: 3px solid #e9d5a0; outline-offset: -3px; background: #315d60; }
+.journal-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow: auto; padding: 4px; }
+.journal-list button { text-align: left; }
+.journal-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 20px; margin-top: 24px; }
+.journal-creature { min-width: 0; border: 2px solid #547b76; padding: 12px; overflow-wrap: anywhere; }
+.journal-creature ul { padding-left: 20px; }
+.journal-warning { color: #ffd582; }
+.journal-list { margin-top: 12px; }
+.journal-toolbar > button { align-self: end; }

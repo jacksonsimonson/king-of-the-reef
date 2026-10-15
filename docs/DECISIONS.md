@@ -217,3 +217,10 @@ Use regional 4/5/6 tides for new Voyage battles and bosses. Preserve already-sav
 ## 2026-10-15 — Full Voyage study and settlement summary
 
 Run carried-school combat through real routes and economic settlement before changing resources. Across 192 runs, two-tide casualties increased but playable-school shortages were rare; deterministic boss repeats confound completion rates. Keep balance values unchanged and document the limitations in [the full study](FULL_VOYAGE_BALANCE.md). Show actual settlement in a post-match summary, including boss recovery and permanent charm consumption; preserve legacy-checkpoint uncertainty instead of inventing past spending.
+
+## Collection journal and school inspection (2026-10-15)
+
+- The journal records species recruited into Voyage schools, including starters, across runs in this browser. Shop/fishing previews, rival cards, Quick Match and Gallery browsing do not unlock entries. Existing saves contribute their current school; creatures released before this feature cannot be reconstructed.
+- Discovery IDs use a separate local-storage key and do not change Voyage save schemas or card definitions. Storage failures keep discoveries in tab memory and show a warning when opening the journal. Clearing browser data clears the journal.
+- School inspection preserves each owned copy's saved mechanics and health; journal entries show the current catalog. Both support search, region/rarity/role filters and comparison of two cards; school additionally filters health and summarizes ready/total copies by role. All healthy copies still enter the battle shuffle; this is inspection, not active-deck selection.
+- Role labels are deterministic browsing aids derived from current edges/abilities, not the aspirational creature-role inventory or balance ratings. Spines-heavy cards are labeled Retaliator, not Defender. Update these guides when mechanics change; this feature does not rebalance the roster.
