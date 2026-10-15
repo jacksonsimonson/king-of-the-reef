@@ -213,3 +213,7 @@ Trial two tides in Quick Match, with 4/5/6 plays per side per tide by region wit
 ## 2026-10-15 — Voyage two-tide rollout
 
 Use regional 4/5/6 tides for new Voyage battles and bosses. Preserve already-saved Classic battles. Snapshot the opening resources and save the intermission and both tide states. Settle the combined score once; union casualties across tides and consume the maximum copies of each charm used in either tide. The refreshed second-tide copy is not a second permanent charge. See [Voyage rules](VOYAGE.md#two-tide-battles). Human pacing remains a follow-up evaluation, not a claim established by simulation.
+
+## 2026-10-15 — Full Voyage study and settlement summary
+
+Run carried-school combat through real routes and economic settlement before changing resources. Across 192 runs, two-tide casualties increased but playable-school shortages were rare; deterministic boss repeats confound completion rates. Keep balance values unchanged and document the limitations in [the full study](FULL_VOYAGE_BALANCE.md). Show actual settlement in a post-match summary, including boss recovery and permanent charm consumption; preserve legacy-checkpoint uncertainty instead of inventing past spending.
