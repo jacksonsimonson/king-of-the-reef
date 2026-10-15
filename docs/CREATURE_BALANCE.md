@@ -121,7 +121,7 @@ Balance acquisition separately after battle function is sound. Record encounter 
 
 ## 8. A practical comparison suite
 
-Maintain a small reusable set of legal positions rather than building an exhaustive simulator first. This suite is a proposed process; it has not yet been implemented as an automated balance harness.
+Maintain a small reusable set of legal positions rather than building an exhaustive simulator first. The first [offline pilot](BALANCE_PILOT.md) implements a limited deterministic subset. Full role-specific follow-up, paired matches, and manual play remain to be done.
 
 For each changed role, compare the old card, candidate, and two peers in the same positions. Keep the surrounding school, hands, terrain, remaining placements, and random seed fixed. Include:
 
@@ -187,4 +187,8 @@ Start with a roster inventory grouped by role, not by rarity. Identify strict up
 
 Each content batch should include the worksheet conclusions, meaningful combat/interaction tests, obtainable catalog entries, readable descriptions, and any required save-definition/pool versioning. Preserve stable IDs and old-run behavior deliberately; do not silently rewrite saved creatures or seeded offers. Follow the existing reef-content and reef-verify workflows when actual data changes begin.
 
-For now, complete the shared balance framework and creature-role passes before bespoke Colossal design. **Colossals are deferred until last**, after the other intended main systems and ordinary creature roster are established. Their eventual mechanics should test those established tools rather than force the roster to be balanced around one boss gimmick.
+Continue the creature-role passes and validate the first pilot before bespoke Colossal design. **Colossals are deferred until last**, after the other intended main systems and ordinary creature roster are established. Their eventual mechanics should test those established tools rather than force the roster to be balanced around one boss gimmick.
+
+## First inventory and pilot
+
+See [Roster balance pilot](BALANCE_PILOT.md), the [complete role inventory](ROSTER_ROLE_INVENTORY.md), and [measured fixtures](BALANCE_PILOT_RESULTS.md). Relative weights use Standard = 1 as a revisable reference, never an objective cost or universal rarity budget. Region introductions, clear primary roles, and deliberate friendly harm are now explicit review dimensions. The first stress probe cannot apply the two-thirds usefulness target across unlike roles; holders and information support need role-specific follow-up objectives.
