@@ -201,3 +201,7 @@ An offline reproducible resolver probe compares ten unchanged cards and three is
 ## 2026-10-15 — First role-focused creature batch
 
 Sea Urchin uses Down Standard with three Spines sides for allied reef setup and retaliation. Phantom Shark uses Up Bounce then Right Bite as an evasive predator, with blank lower/left approaches. Electric Eel keeps four Shock edges as an intentional thematic support gimmick. Role tests cover ordinary utility, counters, and friendly harm on all three board sizes. Relative weights remain provisional. New voyages record `cardBalanceVersion: 1`; earlier voyages retain pre-batch definitions for recruitment, opponents and previews. See [batch evidence and remaining limits](BALANCE_BATCH_1.md).
+
+## 2026-10-15 — Charm-tested second creature batch
+
+Adopt Void Angler without Left Shock and Buoy Jelly without Down Hook after fresh-seed charm comparisons. Preserve their core roles and existing voyages via balance version 2. [Batch 2](BALANCE_BATCH_2.md) records the modest strength tradeoffs and limits. Keep live turn-order rules unchanged: tie wins, snake initiative and naive round-end scoring do not consistently resolve the observed advantage. Recommend a separate two-tide prototype with swapped starters and equivalent round resources; it is not yet an accepted gameplay rule.

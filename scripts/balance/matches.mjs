@@ -1,4 +1,5 @@
-import {STARTERS,PRE_BALANCE_STARTERS} from '../../src/game/data/starterFish.ts';
+import {useStudyCharm} from './charms.mjs';
+import {BATCH_ONE_STARTERS as STARTERS,PRE_BALANCE_STARTERS} from '../../src/game/data/starterFish.ts';
 import {chooseRivalMove} from '../../src/game/rivalAI.ts';
 import {resolvePlacement,revealCard,revealTargets} from '../../src/game/combat.ts';
 import {canPlaceFish,scoreBoard} from '../../src/game/abilities.ts';
@@ -25,7 +26,7 @@ export function shuffled(items,seed){const result=[...items],rng=random(seed);fo
 const other=owner=>owner==='player'?'rival':'player';
 // The same production rival policy controls both seats. Swap ownership, never geometry.
 const perspective=(card,owner)=>card&&({...card,owner:card.owner===owner?'rival':'player'});
-export function match({region=0,seed='study',school=0,first='player',legacy=false,terrain=true,difficulty,override}={}){
+export function match({region=0,seed='study',school=0,first='player',legacy=false,terrain=true,difficulty,override,loadout=[],charmMode='both',target,initiative='alternating'}={}){
  const rules=regionalRules(region,seed);if(difficulty)rules.difficulty=difficulty;
  const focal=region===2?'phantom-shark':'sea-urchin';
  const lookup=(id,owner)=>{
@@ -36,13 +37,16 @@ export function match({region=0,seed='study',school=0,first='player',legacy=fals
  const decks={},hands={};
  for(const owner of ['player','rival']){decks[owner]=shuffled(SCHOOLS[region][owner==='player'?school:1-school],seed+':'+owner).map(id=>lookup(id,owner));hands[owner]=decks[owner].splice(0,5).map(card=>({card,played:false}));}
  let state={board:Array(rules.size**2).fill(null),shocked:new Set(),terrain:terrain?terrainForRules(rules):{rocks:new Set(),whirlpools:[-1,-1],features:new Map()}};
- const plays={player:0,rival:0},trace=[];
+ const plays={player:0,rival:0},trace=[],charmLog=[];
+ const inventories={player:[...loadout],rival:charmMode==='both'?[...loadout]:[]};
+ const checkpoints=[];
  const legal=owner=>plays[owner]<rules.plays&&hands[owner].some(slot=>!slot.played&&state.board.some((_,i)=>canPlaceFish(state.board,i,slot.card,state.terrain)));
- let owner=first;
- for(let turn=0;turn<rules.plays*2+2;turn++,owner=other(owner)){
+ const sequence=Array.from({length:rules.plays},(_,round)=>initiative==='snake'&&round%2?[other(first),first]:[first,other(first)]).flat();
+ for(const [turn,owner] of sequence.entries()){
   if(!legal('player')&&!legal('rival'))break;
   if(!legal(owner))continue;
   const opponent=other(owner),rng=random(seed+':decision:'+owner+':'+plays[owner]);
+  const used=useStudyCharm({state,hands,decks,owner,inventory:inventories[owner],target:target??focal,rng:random(seed+':charm:'+owner+':'+plays[owner])});if(used)charmLog.push({...used,turn});
   const pool=STARTERS.filter(c=>REGIONS[region].pool.includes(c.texture));
   const publicThreats=[...hands[opponent].filter(s=>!s.played&&s.revealed).map(s=>perspective(s.card,owner)),...pool.filter((_,i)=>i%Math.max(1,Math.floor(pool.length/6))===0).map(c=>({...c,owner:'player',condition:'healthy'}))];
   const choice=chooseRivalMove({...state,board:state.board.map(c=>perspective(c,owner)),hand:hands[owner].map(s=>({...s,card:perspective(s.card,owner)})),difficulty:rules.difficulty,rivalPlaysLeft:rules.plays-plays[owner],playerPlaysLeft:legal(opponent)?rules.plays-plays[opponent]:0,publicThreats},rng);
@@ -55,9 +59,10 @@ export function match({region=0,seed='study',school=0,first='player',legacy=fals
   state={...result,terrain:state.terrain};slot.played=true;plays[owner]++;
   if(triggersRally(card,result.pushedEnemyIds,decks[owner]))resolveRally(decks[owner],rivalRallyChoice(decks[owner][0]));
   refillSlot(slot,decks[owner]);
+  if(turn%2===1)checkpoints.push(scoreBoard(state.board));
   if(card.ability==='revelation'){const targets=revealTargets(hands[opponent]);if(targets.length)revealCard(hands[opponent],targets[Math.floor(rng()*targets.length)].card.id);}
  }
  if(legal('player')||legal('rival'))throw new Error('Match ended prematurely');
  const score=scoreBoard(state.board);
- return {region,seed,school,first,legacy,focal,terrain,score,plays,trace,reefOccupants:[...scoringReefs(rules.size)].map(i=>state.board[i]?.id??null),difference:score.player-score.rival};
+ return {region,seed,school,first,legacy,focal,terrain,score,plays,trace,reefOccupants:[...scoringReefs(rules.size)].map(i=>state.board[i]?.id??null),difference:score.player-score.rival,charmLog,checkpoints,initiative,charmMode};
 }

@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {STARTERS} from '../../src/game/data/starterFish.ts';
+import {BATCH_ONE_STARTERS as STARTERS} from '../../src/game/data/starterFish.ts';
 import {match} from './matches.mjs';
 export const PROPOSALS=[{texture:'void-angler',school:0,remove:'left'},{texture:'buoy-jelly',school:1,remove:'down'}];
 export function candidate(proposal){const original=STARTERS.find(c=>c.texture===proposal.texture);return {...original,edges:original.edges.filter(e=>e.direction!==proposal.remove)};}
