@@ -1,4 +1,6 @@
 import { FishingSession } from "../fishing/view.ts";
+import { recordDiscoveries } from '../journal.ts';
+import { openJournal } from '../ui/journal.ts';
 import { voyageEvent, eventChoiceAvailable } from './events.ts';
 import { reefAudio } from "../audio/audio.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
@@ -13,8 +15,12 @@ import { REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
 import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, buyOffer, type Run } from "./state.ts";
 
 let memory: Run | null = null;
-export function currentRun(): Run | null { return memory ??= loadRun(); }
-export function persistRun(run: Run): boolean { memory = run; return saveRun(run); }
+export function currentRun(): Run | null {
+  memory ??= loadRun();
+  if (memory) recordDiscoveries(memory.school.map(f => f.texture));
+  return memory;
+}
+export function persistRun(run: Run): boolean { memory = run; recordDiscoveries(run.school.map(f => f.texture)); return saveRun(run); }
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = "", text = ""): HTMLElementTagNameMap[K] {
   const el = document.createElement(tag); el.className = className; el.textContent = text; return el;
@@ -57,6 +63,8 @@ export class VoyageView {
     const controls = element("nav", "voyage-controls");
     const menu = element("a", "voyage-button", "Main Menu"); menu.href = "#menu";
     controls.append(menu);
+    controls.append(button('Collection journal', () => openJournal(run)));
+    if (run) controls.append(button('Inspect school', () => openJournal(run, 'school')));
     if (run) controls.append(button("New voyage", () => this.newRunDialog()));
     if (this.viewingMap && run?.pending && isEncounterSpace(activeNode(run).type)) controls.prepend(button("Resume visit →", () => { this.viewingMap = false; this.preview = run.region; this.render(); }));
     top.append(title, controls); this.root.append(top);
@@ -159,13 +167,6 @@ export class VoyageView {
       const bag = element("details", "voyage-school");
       bag.append(element("summary", "", `Tide Charms · ${Math.min(run.charms.length, CHARM_CAPACITY)}/${CHARM_CAPACITY}${run.charms.length > CHARM_CAPACITY ? ` · ${run.charms.length - CHARM_CAPACITY} Legacy Extras` : ""}`));
       bag.append(this.charmInventory(run)); this.root.append(bag);
-      const school = element("details", "voyage-school"); school.append(element("summary", "", `Your School · ${run.school.length} Cards`));
-      const cards = element("div", "school-cards");
-      run.school.forEach((fish) => {
-        const card = element("div", fish.condition === "healthy" ? "" : "resting");
-        card.append(cardElement(fish), element("span", "", fish.name), element("small", "", fish.condition === "healthy" ? "Ready" : "Killed · Needs Hydration")); cards.append(card);
-      });
-      school.append(cards); this.root.append(school);
     }
     if (run?.fishing) this.openFishing(true);
   }

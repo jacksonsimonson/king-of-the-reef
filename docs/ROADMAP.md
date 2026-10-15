@@ -77,7 +77,7 @@ Implemented: stable battle checkpoints (including charms and pending choices), c
 - Environmental board tiles and currents
 - Expanded events and shops
 - Colossal-specific rules — deferred until last
-- Collection journal
+- Collection journal and school inspection: implemented persistent recruited-species discovery, regional progress, searchable/filterable creature inspection, saved-copy health and role counts, and two-card comparison. Further roster-role changes remain incremental and evidence-based.
 - Accessibility and input options
 - Sound and music: implemented three original regional map loops, an escalating battle arrangement per area, combat/encounter cues, and saved audio controls. Next: listening feedback and mix refinement.
 - Save data and broader balancing
