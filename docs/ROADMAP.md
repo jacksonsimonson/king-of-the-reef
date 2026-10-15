@@ -50,7 +50,7 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 - Add knockout and hydration recovery
 - Add a basic run win/loss flow
 
-The first playable version of the above loop is implemented in Voyage; see [generation rules and current encounter scope](VOYAGE.md). Fishing gameplay, casualty rules, regional events, and stable combat saves are implemented. Next: custom Colossal creatures and encounter mechanics.
+The first playable version of the above loop is implemented in Voyage; see [generation rules and current encounter scope](VOYAGE.md). Fishing gameplay, casualty rules, regional events, and stable combat saves are implemented. Bespoke Colossal work is deferred until last.
 
 ## Fishing prototype
 
@@ -58,6 +58,12 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 - Add a moving capture window
 - Connect performance to catch success
 - Award fish cards through catches
+
+## Next design work
+
+- Use [Creature Balancing Guidelines](CREATURE_BALANCE.md), now part of the game design, to inventory tactical roles, redundant upgrades, and missing ordinary counters.
+- Pilot a small set of creature/edge/ability comparisons before a catalog-wide reshuffle; no assignments change in the documentation pass.
+- Establish the remaining intended main systems and ordinary roster before bespoke Colossals. Colossals are last.
 
 ## Later development
 
@@ -70,7 +76,7 @@ Implemented: stable battle checkpoints (including charms and pending choices), c
 - Multiple aquatic regions
 - Environmental board tiles and currents
 - Expanded events and shops
-- Colossal-specific rules
+- Colossal-specific rules — deferred until last
 - Collection journal
 - Accessibility and input options
 - Sound and music: implemented three original regional map loops, an escalating battle arrangement per area, combat/encounter cues, and saved audio controls. Next: listening feedback and mix refinement.

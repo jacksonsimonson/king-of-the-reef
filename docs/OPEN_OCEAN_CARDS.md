@@ -4,6 +4,8 @@
 
 ## Power budget
 
+These edge-count budgets describe the current assignment pass. Future revisions use the [Creature Balancing Guidelines](CREATURE_BALANCE.md); counts alone do not establish balance.
+
 Common: one signature and at most one support edge. Uncommon: usually two special edges. Rare: two or three synergistic edges. Extremely Rare: three special edges. Every new card has a blank side. Bermuda retains room for four-sided offense and stronger combinations. Layouts remain unique across the entire catalog.
 
 Acquisition: 45% Common, 35% Uncommon, 18% Rare, 2% Extremely Rare. Within a tier, cards from the current map zone have double weight. Other zones remain available, so roster toggles cannot strand a route. Existing Voyages retain their old pool, definitions, prices and offers.
