@@ -1,6 +1,6 @@
 # Two-tide Quick Match prototype
 
-Choose **Quick Match → Format → Two tides · prototype**. Classic remains the default; Voyage, rewards, injuries and saved runs retain their existing rules. The regional two-tide budget is ready for a later Voyage rollout; this PR still prototypes the format in Quick Match.
+Choose **Quick Match → Format → Two tides · prototype**. Classic remains the Quick Match default. New Voyage battles now also use the regional two-tide format; see [Voyage saves, charms and consequences](VOYAGE.md#two-tide-battles). Existing in-progress single-tide checkpoints finish under their original rules. The study below records the Quick Match prototype that informed this rollout.
 
 ## Rules and pacing
 
@@ -48,4 +48,4 @@ Automated regressions cover resource-copy isolation, regional 4/5/6 budgets, add
 
 Browser checks: Quick Match region changes display 4/8, 5/10, 6/12 per-tide/total budgets and retain a disabled Classic-only selector. Production-scene fixtures with normal animations complete five plays per side in each Ocean tide and six in each Bermuda tide, retaining the original opening and adding both scores. Earlier Shoreline checks cover four-play transitions and fresh replay. Automated Ocean playback took 7.7 and 8.0 seconds per tide; Bermuda took 8.9 and 8.8 seconds (15.7 seconds total Ocean, 17.7 seconds Bermuda). These fixture times exclude human thinking and intermission and do not estimate typical human match duration.
 
-Before promoting this to Voyage, compare Classic and two-tide play in each region: record elapsed time including decisions, charm use, draws and meaningful interactions. Assess whether the longer Ocean/Bermuda games earn their extra decisions, whether replaying an opening feels strategic or repetitive, and whether setup/support creatures benefit. Do not disguise longer matches as equally fast; preserve the requested progression and use human evidence to tune presentation or decision overhead next.
+Follow up the Voyage rollout with human comparisons of Classic and two-tide play in each region: record elapsed time including decisions, charm use, draws and meaningful interactions. Assess whether the longer Ocean/Bermuda games earn their extra decisions, whether replaying an opening feels strategic or repetitive, and whether setup/support creatures benefit. Do not disguise longer matches as equally fast; preserve the requested progression and use human evidence to tune presentation or decision overhead next.

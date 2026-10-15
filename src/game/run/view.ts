@@ -3,6 +3,8 @@ import { voyageEvent, eventChoiceAvailable } from './events.ts';
 import { reefAudio } from "../audio/audio.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
+import { tidePlayLimit } from '../twoTide';
+import { voyageMatchFormat } from './battleSave';
 import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
 import { shopOffers, runFishDefinition } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
@@ -233,6 +235,9 @@ export class VoyageView {
   private renderEncounterActions(panel: HTMLElement, run: Run, node: MapNode): void {
     const actions = element("div", "encounter-actions");
     if (node.type === "battle" || node.type === "boss") {
+      panel.append(element("p", "", voyageMatchFormat(run.battle) === 'two-tide'
+        ? `Two tides · ${tidePlayLimit(REGIONS[run.region].id)} plays per side per tide. Rival starts tide 2. Combined reef scores decide one result. Hands and charms refresh; fish killed in either tide need hydration afterward. Used charms are consumed after the match.`
+        : 'Resume this saved single-tide battle under its original rules.'));
       const reward = run.voyageVersion === 2 ? (node.type === "boss" ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === "boss" ? 25 : 12;
       panel.append(element("p", "", `Win: ${reward} shells. ${node.type === "boss" ? "Tie: rematch." : `Tie: ${run.voyageVersion === 2 ? 6 : 4} shells.`} Loss: −1 resolve.`));
       panel.append(element("p", "", run.log));

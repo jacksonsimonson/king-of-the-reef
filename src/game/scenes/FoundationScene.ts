@@ -1,9 +1,9 @@
 import { reefAudio } from "../audio/audio.ts";
 import { combatCue } from "../audio/cues.ts";
-import type { BattleSave } from "../run/battleSave.ts";
+import type { BattleSave, BattleOpening } from "../run/battleSave.ts";
 import { regionalRules, scoringReefs, type BattleRules } from '../battleRules.ts';
 import { chooseRivalMove } from '../rivalAI.ts';
-import { combinedScore, freshTide, tidePlayLimit, type TideScore } from '../twoTide.ts';
+import { combinedScore, matchCharmSpending, freshTide, tidePlayLimit, type TideScore } from '../twoTide.ts';
 import { random, REGIONS } from '../run/maps.ts';
 import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { canPlaceFish, scoreBoard } from "../abilities";
@@ -36,14 +36,16 @@ interface VoyageBattle {
   nodeId: string;
   onCheckpoint: (save: BattleSave) => boolean;
   onUseCharm: (id: CharmId) => boolean;
-  onResult: (player: number, rival: number, killedIds: string[]) => void;
+  onResult: (player: number, rival: number, killedIds: string[], spentCharms: CharmId[]) => void;
   onComplete: () => void;
 }
 
 export class FoundationScene extends Phaser.Scene {
   private twoTide = false;
   private tideScores: TideScore[] = [];
-  private opening?: {playerHand: HandSlot[]; rivalHand: HandSlot[]; playerDeck: FishCard[]; rivalDeck: FishCard[]; charms: CharmId[]};
+  private opening?: BattleOpening;
+  private matchKilled = new Set<string>();
+  private spentCharms: CharmId[] = [];
   private tideSeed = '';
   private tideRandom?: () => number;
   private get playLimit(): number { return this.twoTide ? tidePlayLimit(this.rules.region) : this.rules.plays; }
@@ -96,7 +98,7 @@ export class FoundationScene extends Phaser.Scene {
     this.input.dragDistanceThreshold = 6;
     this.voyageBattle = this.registry.get("voyageBattle") as VoyageBattle | undefined;
     this.rules = this.registry.get('battleRules') ?? this.rules;
-    this.twoTide = !this.voyageBattle && this.registry.get('matchFormat') === 'two-tide';
+    this.twoTide = this.registry.get('matchFormat') === 'two-tide';
     {
       const canvas = document.createElement("canvas");
       canvas.width = this.scale.width; canvas.height = this.scale.height;
@@ -130,7 +132,7 @@ export class FoundationScene extends Phaser.Scene {
     else this.resetMatch();
   }
 
-  private random(): number { this.rngCalls++; return this.voyageBattle?.rng() ?? this.tideRandom?.() ?? Math.random(); }
+  private random(): number { this.rngCalls++; return this.tideRandom?.() ?? this.voyageBattle?.rng() ?? Math.random(); }
 
   private restoreBattle(saved: BattleSave): void {
     const s = structuredClone(saved);
@@ -139,20 +141,30 @@ export class FoundationScene extends Phaser.Scene {
     this.shocked = new Set(s.shocked); this.killedIds = new Set(s.killedIds); this.turn = s.turn;
     this.pendingReveal = s.pendingReveal; this.pendingRally = s.rallySlot === null ? null : this.playerHand[s.rallySlot];
     this.charms = this.voyageBattle!.charms;
+    if (s.twoTide) {
+      this.opening = s.twoTide.opening; this.tideScores = s.twoTide.scores;
+      this.tideSeed = s.twoTide.seed; this.tideRandom = random(this.tideSeed + ':actions');
+      this.charms = s.twoTide.charms; this.spentCharms = s.twoTide.spentCharms;
+      this.matchKilled = new Set(s.twoTide.killedIds); this.finished = s.twoTide.intermission;
+    }
     for (let i = 0; i < s.rngCalls; i++) this.random();
     this.logCombat("Battle resumed from the last saved decision.");
-    this.render(this.pendingRally ? "Rally — choose your next draw." : this.pendingReveal ? "Revelation — reveal a rival card." : this.turn === "rival" ? "Battle resumed. The rival is choosing…" : "Battle resumed. Your turn.");
-    if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
+    this.render(this.intermission ? 'Tide 1 complete. Next tide restores resources; rival starts.' : this.pendingRally ? "Rally — choose your next draw." : this.pendingReveal ? "Revelation — reveal a rival card." : this.turn === "rival" ? "Battle resumed. The rival is choosing…" : "Battle resumed. Your turn.");
+    if (!this.finished && this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
   }
 
   private checkpoint(): void {
-    if (!this.voyageBattle || this.resolving || this.finished) return;
+    if (!this.voyageBattle || this.resolving || this.finished && !this.intermission) return;
     const saved: BattleSave = structuredClone({ version: 1, nodeId: this.voyageBattle.nodeId, rules: this.rules,
       board: this.board, playerHand: this.playerHand, rivalHand: this.rivalHand,
       playerDeck: this.playerDeck, rivalDeck: this.rivalDeck, shocked: [...this.shocked], killedIds: [...this.killedIds],
       plays: this.plays, turn: this.turn, rngCalls: this.rngCalls,
       pendingReveal: this.pendingReveal === "card" ? "card" : null,
       rallySlot: this.pendingRally ? this.playerHand.indexOf(this.pendingRally) : null });
+    if (this.twoTide && this.opening) saved.twoTide = freshTide({
+      opening: this.opening, scores: this.tideScores, seed: this.tideSeed, intermission: this.intermission,
+      charms: this.charms, spentCharms: this.spentCharms, killedIds: [...this.matchKilled],
+    });
     const ok = this.voyageBattle.onCheckpoint(saved);
     if (this.saveStatus) this.saveStatus.textContent = ok ? "Battle saved. Leaving during an animation resumes the previous decision." : "Battle could not be saved. Keep this page open to preserve your progress.";
   }
@@ -166,8 +178,8 @@ export class FoundationScene extends Phaser.Scene {
 
   private resetMatch(nextTide = false): void {
     if (!nextTide) {
-      this.tideScores = []; this.opening = undefined;
-      this.tideSeed = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+      this.tideScores = []; this.opening = undefined; this.matchKilled.clear(); this.spentCharms = [];
+      this.tideSeed = this.voyageBattle ? this.voyageBattle.seed + ':' + this.voyageBattle.nodeId : crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
     }
     if (this.twoTide) this.tideRandom = random(this.tideSeed + ':deal');
     this.resolving = false; this.feedbackLog?.replaceChildren();
@@ -186,11 +198,11 @@ export class FoundationScene extends Phaser.Scene {
     this.pendingReveal = null;
     this.pendingRally = null;
     this.pendingDraft = false; this.pendingDrift = false; this.driftFrom = null;
-    this.charms = this.voyageBattle?.charms ?? randomCharms(() => this.random());
+    this.charms = this.voyageBattle ? (this.twoTide ? availableCharms(this.voyageBattle.charms) : this.voyageBattle.charms) : randomCharms(() => this.random());
     if (this.twoTide) {
       if (!this.opening) this.opening = freshTide({playerHand: this.playerHand, rivalHand: this.rivalHand, playerDeck: this.playerDeck, rivalDeck: this.rivalDeck, charms: this.charms});
       Object.assign(this, freshTide(this.opening));
-      this.tideRandom = random(this.tideSeed + ':actions');
+      this.tideRandom = random(this.tideSeed + ':actions'); this.rngCalls = 0;
       this.turn = nextTide ? 'rival' : 'player';
     }
     this.plays = { player: 0, rival: 0 };
@@ -517,14 +529,16 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private spendCharm(id: CharmId): boolean {
-    if (this.voyageBattle) {
+    if (this.voyageBattle && !this.twoTide) {
       const spent = this.voyageBattle.onUseCharm(id);
       if (spent) reefAudio.play("charm");
       return spent;
     }
     const index = this.charms.indexOf(id);
     if (index < 0) return false;
-    this.charms.splice(index, 1); reefAudio.play("charm"); return true;
+    this.charms.splice(index, 1);
+    if (this.twoTide && this.opening) this.spentCharms = matchCharmSpending(this.opening.charms, this.charms, this.spentCharms);
+    reefAudio.play("charm"); return true;
   }
 
   private useCharm(id: CharmId): void {
@@ -816,14 +830,14 @@ export class FoundationScene extends Phaser.Scene {
   private finishMatch(): void {
     if (this.finished) return;
     this.finished = true;
-    if (this.twoTide) this.tideScores.push(this.getScores());
+    if (this.twoTide) { this.tideScores.push(this.getScores()); for (const id of this.killedIds) this.matchKilled.add(id); }
     const score = this.twoTide ? combinedScore(this.tideScores) : this.getScores();
     if (this.intermission) {
       this.render('Next tide: board and resources reset; rival starts.');
       return;
     }
     reefAudio.play(score.player > score.rival ? "victory" : score.player < score.rival ? "defeat" : "reward");
-    this.voyageBattle?.onResult(score.player, score.rival, [...this.killedIds]);
+    this.voyageBattle?.onResult(score.player, score.rival, [...(this.twoTide ? this.matchKilled : this.killedIds)], this.spentCharms);
     this.render(score.player > score.rival ? "You rule the reef!" : score.rival > score.player ? "The rival rules this tide." : "The tide ends in a draw.");
   }
 
