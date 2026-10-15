@@ -43,3 +43,5 @@ New voyages use `cardBalanceVersion: 1`; existing voyages without that marker ke
 ## Next evidence to collect
 
 Play mixed regional schools with both acting orders, especially Phantom as the last play, Urchin's added defensive underside, Eel support tempo, and charm-granted abilities. Record positions and accepted friendly harm. Human playtesting and broader paired battles remain outstanding. Review another small thematic cluster after that evidence; keep new abilities available as future design space and Colossals last.
+
+Follow-up: the [mixed-school study](MIXED_SCHOOL_STUDY.md) completes automated full matches and proposes the next two-card trial. Human and charm-interaction checks remain outstanding.
