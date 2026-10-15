@@ -7,8 +7,8 @@ import { activeNode, battleResult, consumeCharm, rivalDeckFor } from "./game/run
 import type { CharmId } from "./game/data/tideCharms";
 import { random, REGIONS } from "./game/run/maps";
 import { drawSeascape } from "./game/run/art";
-import { regionalRules, type BattleRules } from './game/battleRules';
-import { quickMatchSetup } from './game/ui/quickMatchSetup';
+import { regionalRules } from './game/battleRules';
+import { quickMatchSetup, type QuickMatchSettings } from './game/ui/quickMatchSetup';
 import { openTutorial } from './game/ui/tutorial';
 
 const playView = document.querySelector<HTMLElement>("#play");
@@ -16,8 +16,8 @@ const galleryView = document.querySelector<HTMLElement>("#gallery");
 const menuView = document.querySelector<HTMLElement>("#menu");
 let activeGame: Phaser.Game | undefined;
 let voyage: VoyageView | undefined;
-let quickRules: BattleRules | undefined;
-let previousQuickRules: BattleRules | undefined;
+let quickRules: QuickMatchSettings | undefined;
+let previousQuickRules: QuickMatchSettings | undefined;
 let quickDialog: HTMLDialogElement | undefined;
 let activeView: GameView | "menu" | "voyage" | "voyage-battle" | undefined;
 const voyageRoot = document.querySelector<HTMLElement>("#voyage")!;
@@ -78,7 +78,7 @@ function syncView(): void {
       reefAudio.setTrack(`battle-${['shoreline','ocean','bermuda'].indexOf(rules.region) as 0 | 1 | 2}`);
       if (playView) playView.dataset.region = rules.region;
     }
-    config.callbacks = {preBoot: game => { game.registry.set('battleRules', rules); }};
+    config.callbacks = {preBoot: game => { game.registry.set('battleRules', rules); game.registry.set('matchFormat', quickRules?.format); }};
     if (battle) {
       const rivalDeck = rivalDeckFor(run);
       config.callbacks = { preBoot: (game) => {
