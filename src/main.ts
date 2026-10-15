@@ -7,12 +7,17 @@ import { activeNode, battleResult, consumeCharm, rivalDeckFor } from "./game/run
 import type { CharmId } from "./game/data/tideCharms";
 import { random, REGIONS } from "./game/run/maps";
 import { drawSeascape } from "./game/run/art";
+import { regionalRules, type BattleRules } from './game/battleRules';
+import { quickMatchSetup } from './game/ui/quickMatchSetup';
 
 const playView = document.querySelector<HTMLElement>("#play");
 const galleryView = document.querySelector<HTMLElement>("#gallery");
 const menuView = document.querySelector<HTMLElement>("#menu");
 let activeGame: Phaser.Game | undefined;
 let voyage: VoyageView | undefined;
+let quickRules: BattleRules | undefined;
+let previousQuickRules: BattleRules | undefined;
+let quickDialog: HTMLDialogElement | undefined;
 let activeView: GameView | "menu" | "voyage" | "voyage-battle" | undefined;
 const voyageRoot = document.querySelector<HTMLElement>("#voyage")!;
 
@@ -35,6 +40,13 @@ function syncView(): void {
       ? "play"
       : "menu";
   const run = currentRun();
+  if (nextView !== 'play') { quickRules = undefined; quickDialog?.remove(); quickDialog = undefined; }
+  if (nextView === 'play' && activeView !== 'play' && !quickRules) {
+    if (!quickDialog) quickDialog = quickMatchSetup(previousQuickRules, rules => {
+      quickRules = rules; previousQuickRules = rules; quickDialog = undefined; syncView();
+    }, () => { quickDialog = undefined; window.location.hash = '#menu'; });
+    return;
+  }
   if (nextView === "voyage-battle" && (!run || run.status !== "active" || !run.pending || !["battle", "boss"].includes(activeNode(run).type))) {
     window.location.replace("#voyage"); nextView = "voyage";
   }
@@ -59,10 +71,17 @@ function syncView(): void {
     const back = playView?.querySelector<HTMLAnchorElement>(".nav-link");
     if (heading) heading.textContent = battle ? `${REGIONS[run.region].name} · ${activeNode(run).type === "boss" ? REGIONS[run.region].boss : "Battle"}` : "Quick Match";
     if (back) { back.href = battle ? "#voyage" : "#menu"; back.textContent = battle ? "Voyage Map" : "Main Menu"; }
-    const config = createGameConfig(showGallery ? nextView as "gallery" | "gallery-roster" : "play");
+    const rules = battle ? (run.battle?.rules ?? (run.battle ? {...regionalRules(run.region, `${run.seed}:${run.pending}`), size: 5 as const, plays: 5 as const, legacyTerrain: true} : regionalRules(run.region, `${run.seed}:${run.pending}`))) : quickRules ?? regionalRules(0, 'gallery');
+    const config = createGameConfig(showGallery ? nextView as "gallery" | "gallery-roster" : "play", rules.size);
+    if (!showGallery) {
+      reefAudio.setTrack(`battle-${['shoreline','ocean','bermuda'].indexOf(rules.region) as 0 | 1 | 2}`);
+      if (playView) playView.dataset.region = rules.region;
+    }
+    config.callbacks = {preBoot: game => { game.registry.set('battleRules', rules); }};
     if (battle) {
       const rivalDeck = rivalDeckFor(run);
       config.callbacks = { preBoot: (game) => {
+        game.registry.set('battleRules', rules);
         game.registry.set("voyageBattle", {
           nodeId: run.pending!, checkpoint: run.battle,
           onCheckpoint: (checkpoint: import("./game/run/battleSave").BattleSave) => { run.battle = checkpoint; return persistRun(run); },
@@ -89,6 +108,11 @@ function syncView(): void {
 // Canvas text must wait for the local typeface rather than caching a fallback.
 async function boot(): Promise<void> {
   mountAudioControls();
+  const setup = document.createElement('button'); setup.className = 'voyage-button'; setup.textContent = 'Quick Match Setup';
+  setup.onclick = () => { activeGame?.scene.pause('foundation'); activeView = undefined; quickRules = undefined; syncView(); };
+  playView?.querySelector('nav')?.append(setup);
+  const showSetup = () => { setup.hidden = window.location.hash !== '#quick-match'; };
+  window.addEventListener('hashchange', showSetup); showSetup();
   await document.fonts.load('16px "Reef Pixel"');
   window.addEventListener("hashchange", syncView);
   window.addEventListener("resize", () => { if (activeView === "menu") drawMenu(); });

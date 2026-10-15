@@ -34,7 +34,7 @@ export function edgeBlocks(target: FishCard, incoming: Direction, effect: EdgeEf
 }
 
 /** Returns a new board/status set. Cards and the input state are never mutated. */
-export function resolvePlacement(state: BattleState, placedIndex: number, card: FishCard, size = 5, record = false): { frames: CombatFrame[]; board: Array<FishCard | null>; shocked: Set<string>; killedIds: string[]; pushedEnemyIds: string[] } {
+export function resolvePlacement(state: BattleState, placedIndex: number, card: FishCard, size = Math.sqrt(state.board.length), record = false): { frames: CombatFrame[]; board: Array<FishCard | null>; shocked: Set<string>; killedIds: string[]; pushedEnemyIds: string[] } {
   const frames: CombatFrame[] = [];
   let notes: string[] = [];
   let previous = state.board;

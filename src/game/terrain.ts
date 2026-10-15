@@ -1,4 +1,6 @@
 import type { Direction, FishCard } from "./data/starterFish.ts";
+import { scoringReefs, type BattleRules } from './battleRules.ts';
+import { random } from './run/maps.ts';
 
 export type ChannelTerrain = `channel-${Direction}`;
 export type RegionalTerrain = "kelp" | ChannelTerrain | "trench" | "vent" | "mirror" | "storm";
@@ -15,6 +17,42 @@ export function battleTerrain(region = "shoreline"): Terrain {
   return { rocks: new Set([8, 16]), whirlpools: [6, 19], features: new Map([[12, "kelp"], [10, "channel-right"], [7, "channel-up"], [13, "channel-down"], [3, "channel-left"]]) };
 }
 
+/** The budget counts every occupied special tile, including both ends of a pool pair. Reefs are separate. */
+export function terrainForRules(rules: BattleRules): Terrain {
+  if (rules.legacyTerrain) return battleTerrain(rules.region);
+  const region = ['shoreline', 'ocean', 'bermuda'].indexOf(rules.region);
+  const rng = random(`${rules.seed}:${rules.region}:${rules.size}:terrain-v1`), size = rules.size;
+  const reefs = scoringReefs(size), budget = 2 + region + Math.floor(rng() * 3);
+  const cells = Array.from({length: size * size}, (_, i) => i).filter(i => !reefs.has(i));
+  for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+  const rocks = new Set<number>(), features = new Map<number, RegionalTerrain>();
+  let whirlpools: [number, number] = [-1, -1], remaining = budget;
+  if (rng() < .45) { whirlpools = [cells.pop()!, cells.pop()!]; remaining -= 2; }
+  const neighbors = (i: number) => [i - size, i + size, ...(i % size ? [i - 1] : []), ...(i % size < size - 1 ? [i + 1] : [])].filter(n => n >= 0 && n < size * size);
+  const choices = region === 0 ? ['rock', 'kelp', 'channel-up', 'channel-right', 'channel-down', 'channel-left'] : region === 1 ? ['rock', 'trench', 'vent'] : ['rock', 'mirror', 'storm'];
+  while (remaining-- > 0) {
+    const index = cells.pop()!; let type = choices[Math.floor(rng() * choices.length)];
+    if (type === 'rock' || type === 'trench') {
+      const blocked = (n: number) => n === index || rocks.has(n) || features.get(n) === 'trench';
+      if ([...reefs].some(reef => neighbors(reef).every(blocked))) type = region === 0 ? 'kelp' : region === 1 ? 'vent' : 'mirror';
+    }
+    if (type.startsWith('channel-')) {
+      const exits = neighbors(index).filter(n => !rocks.has(n) && features.get(n) !== 'trench');
+      const exit = exits[Math.floor(rng() * exits.length)];
+      type = `channel-${exit === index - size ? 'up' : exit === index + size ? 'down' : exit < index ? 'left' : 'right'}`;
+    }
+    if (type === 'rock') rocks.add(index); else features.set(index, type as RegionalTerrain);
+  }
+  // Later rocks must not leave a generated channel pointing at a blocked landing.
+  for (const [index, feature] of features) if (feature.startsWith('channel-')) {
+    const exits = neighbors(index).filter(n => !rocks.has(n) && features.get(n) !== 'trench');
+    if (!exits.length) { features.set(index, 'kelp'); continue; }
+    const exit = exits[Math.floor(rng() * exits.length)];
+    features.set(index, `channel-${exit === index - size ? 'up' : exit === index + size ? 'down' : exit < index ? 'left' : 'right'}`);
+  }
+  return { rocks, whirlpools, features };
+}
+
 export function blocksPlacement(terrain: Terrain, index: number): boolean {
   return terrain.rocks.has(index) || terrain.features?.get(index) === "trench";
 }
@@ -26,7 +64,7 @@ export function placementCard(card: FishCard, index: number, terrain?: Terrain):
 }
 
 /** Channels move a directly played card before its edges; pools resolve afterward. */
-export function placementDestination(board: readonly (FishCard | null)[], index: number, terrain?: Terrain, size = 5): number {
+export function placementDestination(board: readonly (FishCard | null)[], index: number, terrain?: Terrain, size = Math.sqrt(board.length)): number {
   if (!terrain) return index;
   const feature = terrain.features?.get(index);
   const steps: Partial<Record<RegionalTerrain, readonly [number, number]>> = {
@@ -53,5 +91,5 @@ export const TERRAIN_INFO: Record<RegionalTerrain, { name: string; color: number
 };
 
 export function terrainLegend(terrain: Terrain): string {
-  return ["Rock: blocks placement and movement.", "Pools A/B: play, resolve edges, then travel once if still on the pool. Occupied exit: stay.", ...new Set([...(terrain.features?.values() ?? [])].map(type => TERRAIN_INFO[type].rule))].join("\n");
+  return [...(terrain.rocks.size ? ["Rock: blocks placement and movement."] : []), ...(terrain.whirlpools[0] >= 0 ? ["Pools A/B: play, resolve edges, then travel once if still on the pool. Occupied exit: stay."] : []), ...new Set([...(terrain.features?.values() ?? [])].map(type => TERRAIN_INFO[type].rule))].join("\n");
 }

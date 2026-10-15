@@ -56,4 +56,4 @@ Inventory consumption and its battle effect save together at the next stable dec
 
 Both sides start with up to five healthy cards. After each placement resolves, its hand slot immediately draws the next card from the previously shuffled reserve. Revelation still belongs to the fish just played, even though the slot now holds its replacement. Empty reserves leave the played silhouette. Deck counters track actual reserve size.
 
-For this first pass, retain five fish plays per side, with visible counters; a larger school increases available choices rather than extending the battle. An exhausted side skips its remaining plays. The battle ends when both sides are done, or if no legal placement tiles remain. Unplayed healthy cards remain healthy afterward.
+Voyage placement budgets are five/six/seven per side by region, with visible counters; Quick Match allows choosing five, six or seven. Hand size remains five, with reserve refills. An exhausted side skips its remaining plays. The battle ends when both sides are done, or if no legal placement tiles remain. Unplayed healthy cards remain healthy afterward.

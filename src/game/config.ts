@@ -4,11 +4,11 @@ import { GalleryScene, GALLERY_HEIGHT, ROSTER_HEIGHT } from "./scenes/GallerySce
 
 export type GameView = "play" | "gallery" | "gallery-roster";
 
-export function createGameConfig(view: GameView): Phaser.Types.Core.GameConfig {
+export function createGameConfig(view: GameView, boardSize = 5): Phaser.Types.Core.GameConfig {
   const gallery = view === "gallery" || view === "gallery-roster";
   const parent = document.querySelector(gallery ? "#gallery-game" : "#game");
-  const canvasWidth = Math.max(gallery ? 1360 : 2000, Math.floor(parent?.clientWidth ?? window.innerWidth - 64));
-  const playHeight = Math.max(820, window.innerHeight - 145);
+  const canvasWidth = Math.max(gallery ? 1360 : 2000 + (boardSize - 5) * 102, Math.floor(parent?.clientWidth ?? window.innerWidth - 64));
+  const playHeight = Math.max(820 + (boardSize - 5) * 102, window.innerHeight - 145);
   return {
   type: Phaser.AUTO,
   parent: gallery ? "gallery-game" : "game",

@@ -57,7 +57,7 @@ export function exchangeReserve(slot: HandSlot, deck: FishCard[], index: number)
   return true;
 }
 
-export function canDrift(board: readonly (FishCard | null)[], from: number, to: number, terrain: Terrain, size = 5): boolean {
+export function canDrift(board: readonly (FishCard | null)[], from: number, to: number, terrain: Terrain, size = Math.sqrt(board.length)): boolean {
   if (!Number.isInteger(from) || !Number.isInteger(to) || from < 0 || to < 0 || from >= board.length || to >= board.length) return false;
   if (board[from]?.owner !== "player" || board[to] || blocksPlacement(terrain, to)
     || hasAbility(board[from], "anchor") || terrain.features?.get(from) === "kelp") return false;
@@ -69,8 +69,8 @@ export function refillSlot(slot: HandSlot, deck: FishCard[]): void {
   if (next) { slot.card = next; slot.played = false; slot.revealed = false; }
 }
 export const PLAYS_PER_BATTLE = 5;
-export function canPlayFish(hand: HandSlot[], played: number): boolean {
-  return played < PLAYS_PER_BATTLE && hand.some((slot) => !slot.played);
+export function canPlayFish(hand: HandSlot[], played: number, limit = PLAYS_PER_BATTLE): boolean {
+  return played < limit && hand.some((slot) => !slot.played);
 }
 
 export function shuffleHand(hand: HandSlot[], deck: FishCard[], rng: () => number): void {

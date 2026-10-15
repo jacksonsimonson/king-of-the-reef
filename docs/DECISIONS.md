@@ -1,5 +1,13 @@
 # Design Decisions
 
+## 2026-10-14 — Regional rival difficulty and board progression
+
+Use Beginner on Shoreline (5×5, five plays), Tactical in Open Ocean (6×6, six), and Expert in Bermuda (7×7, seven). Beginner evaluates immediate control, casualties and Shock with wider tie variation; Tactical adds proximity and defensive protection. Expert searches six promising moves against up to six revealed/public regional card profiles, taking the strongest predicted response into account. Hidden hand identities and reserve order are never supplied. This bounded forecast is a difficulty step, not an exhaustive solver or a promise of perfect play. All levels prioritize final reef scores when no opposing placements remain.
+
+Seed 2–4/3–5/4–6 special tiles by region, counting both pool endpoints and excluding the three scoring reefs. Preserve readable approaches, unique positions, and usable channel exits. Scale reef coordinates, resolution, targeting, previews, logs, scoring and play limits together. Keep five-card hands and native card/tile sizes; enlarge the canvas and scroll. Quick Match opens a region/difficulty/size/plays popup, with regional defaults and independent overrides.
+
+Persist battle rules and terrain seed with checkpoints. Older in-progress saves keep 5×5/five plays and their original terrain; future encounters adopt regional rules. Quick Match rematches retain setup; opening setup again creates a fresh terrain seed. These settings do not change voyage economy or map length.
+
 ## 2026-10-07 — Saved battles and longer voyages
 
 Save only stable battle decisions, never animation frames. Persist charm consumption and effects together; preserve random-call position, temporary cards, reserve order, revealed hands, deaths, Shock and Rally/Revelation choices. Resume rival decisions automatically. Result processing removes the checkpoint before persisting rewards. Transient selection/targeting is canceled on reload without a spend. Storage failure is visible in combat.

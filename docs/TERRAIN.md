@@ -1,6 +1,6 @@
 # Battle terrain
 
-Quick matches and voyage battles now have two rocks, a linked pair of whirlpools, and regional terrain. Shoreline has kelp plus four directional channels; the other regions have two regional tiles. Each region has a fixed layout; rematches retain it. Terrain never covers a scoring reef. Quick matches use the Shoreline layout.
+New battles use seeded sparse layouts: Shoreline has 2–4 special tiles, Open Ocean 3–5, Bermuda 4–6. This counts rocks, regional features and both whirlpool endpoints; the three scoring reefs are additional. Pools appear only as linked pairs. Tiles never overlap reefs and generated channels have a usable landing. Every reef retains an unblocked adjacent approach. Voyage layouts are seeded per encounter and survive reload. Quick Match offers regional presets plus independent difficulty, size and placement-budget controls. Old in-progress checkpoints retain their fixed legacy layout.
 
 - **Rocks** reject placement and block movement, pushes, hook paths, and wave rays. A blocked push leaves its target in place. Dive cannot land on or pass through rock.
 - **Whirlpools A/B** resolve a directly played card's edges at the entrance, then move it to the other pool if it survived and is still on the entrance. Exit occupancy is checked after combat: an occupied exit prevents travel. A card that moved away through its own edges does not teleport. Travel happens once, never repeats edges, and never activates on forced movement. The placement ghost shows where the edges start resolving.
@@ -11,7 +11,7 @@ Use rocks to anchor a defensive position; attack from a whirlpool entrance, then
 | Region | Terrain | Rule and tactical purpose |
 | --- | --- | --- |
 | Shoreline | Kelp | Occupants resist forced pushes, hooks, and swaps. Anchor a threat; shock and predation still work. Cards may move themselves out by dive/bounce/follow-current. |
-| Shoreline | Tide channel | Up, right, down, and left arrows carry a directly played card one tile in that direction before edges fire. An occupied, rock, trench, or out-of-board destination leaves it in place. All four variants appear in Shoreline, pointing toward scoring reefs. |
+| Shoreline | Tide channel | Up, right, down, and left arrows carry a directly played card one tile in that direction before edges fire. An occupied, rock, trench, or out-of-board destination leaves it in place. All four variants can appear across seeded Shoreline layouts. |
 | Open Ocean | Trench | No direct placement. Cards moved into it die immediately, including your own diving cards. Threaten interior kills instead of only board-edge kills. |
 | Open Ocean | Thermal vent | Direct play erupts, pushing all orthogonal neighbors one tile outward before card edges fire. Ignores defensive edges, affects both owners, and stops at occupied cells/rocks/kelp. Out-of-board moves kill; enemy displacement can trigger Rally, but terrain itself does not trigger Spines. Positioned to carry a neighbor onto a reef or eject a rival. |
 | Bermuda | Mirror | Direct play reverses every edge for the rest of this battle, including defenses. Reorient directional cards without altering the saved school. |
