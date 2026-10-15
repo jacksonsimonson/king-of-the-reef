@@ -14,7 +14,7 @@
     "balance:report": "node scripts/balance/report.mjs"
   },
   "dependencies": {
-    "phaser": "3.90.0"
+    "phaser": "4.2.1"
   },
   "devDependencies": {
     "typescript": "7.0.2",
