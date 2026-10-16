@@ -1,5 +1,7 @@
 # Full Voyage validation after the roster pass
 
+Follow-up: [deliberate recruiting and school trimming](DELIBERATE_SCHOOL_STUDY.md) compares four policies on these seeds and a fresh batch. It retains gameplay values after mixed results.
+
 ## Decision
 
 Keep gameplay balance values unchanged in this pass. The completed roster can sustain full regional turn budgets under these simulated routes: only **6 of 1,232 matches** began with fewer healthy cards than needed. However, later-region combat results are poor even with ample healthy cards. This is a progression warning, not evidence that the entire Voyage is balanced or that more free healing will fix it.

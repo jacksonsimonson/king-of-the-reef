@@ -5,9 +5,12 @@ import {random,REGIONS} from '../../src/game/run/maps.ts';
 import {tidePlayLimit,combinedScore,matchCharmSpending} from '../../src/game/twoTide.ts';
 import {availableCharms} from '../../src/game/data/tideCharms.ts';
 import {match} from './matches.mjs';
+import {chooseRecruit,recruitGain,trimCandidate} from './school-policy.mjs';
 
 /** Seeded route decisions and real combat/settlement; fishing success is an explicit assumption. */
-export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6}={}){
+export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline'}={}){
+ assert.ok(['baseline','recruit','trim','both'].includes(schoolPolicy));
+ const deliberate=['recruit','both'].includes(schoolPolicy),trimming=['trim','both'].includes(schoolPolicy);
  const run=createRun(seed),battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
  const startingSchool=run.school.map(c=>c.texture),balanceVersion=run.cardBalanceVersion;
  const healthy=()=>run.school.filter(c=>c.condition==='healthy').length;
@@ -43,14 +46,23 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
   }else if(node.type==='hydration'){
    const selected=run.school.filter(c=>c.condition==='killed').slice(0,3).map(c=>c.id);healed+=selected.length;assert.ok(resolveVisit(run,'rest',selected));
   }else if(node.type==='fishing'){
-   const choices=offers(run),rng=random(seed+':'+node.id+':catch');const texture=choices[Math.floor(rng()*choices.length)];
+   const choices=offers(run),rng=random(seed+':'+node.id+':catch'),randomChoice=choices[Math.floor(rng()*choices.length)];
+   const texture=deliberate?chooseRecruit(run,choices):randomChoice;
+   visit.fishingChoice={offered:choices,selected:texture,gain:recruitGain(run,texture)};
    assert.ok(beginFishing(run,texture));const caught=rng()<catchRate;
    const snapshot={...run.fishing.snapshot,status:caught?'caught':'escaped',progress:caught?1:0};assert.ok(finishFishing(run,snapshot));caught?catches++:escapes++;
   }else if(node.type==='shop'){
    const offered=shopOffers(run);visit.stock=offered.map(o=>({kind:o.kind,price:o.price,affordable:o.price<=run.shells}));visit.charmSlots=3-run.charms.length;
    const stock=offered.filter(o=>o.price<=run.shells).sort((a,b)=>(healthy()<8?Number(b.kind==='fish')-Number(a.kind==='fish'):Number(b.kind==='charm')-Number(a.kind==='charm'))||a.price-b.price);
+   if(deliberate)stock.sort((a,b)=>{
+    const value=o=>o.kind==='fish'&&(healthy()<8||recruitGain(run,o.texture)>1e-9)?2+recruitGain(run,o.texture):o.kind==='charm'?1:0;
+    return value(b)-value(a)||a.price-b.price;
+   });
    for(const offer of stock){if(offer.kind==='charm'&&run.charms.length>=3)continue;if(offer.price>run.shells)continue;if(buyOffer(run,offer.id)){purchases++;visit.purchase={kind:offer.kind,price:offer.price};break;}}
    assert.ok(resolveVisit(run,'leave'));
+  }else if(node.type==='release'&&trimming){
+   const selected=trimCandidate(run);visit.trimmed=selected?{id:selected.id,texture:selected.texture}:null;
+   assert.ok(resolveVisit(run,selected?.id??'leave'));
   }else if(node.type==='event'){
    const selected=run.school.find(c=>c.condition==='killed')?.id;
    const options=voyageEvent(run,'offered fish').choices.map(choice=>({choice,ids:(choice.heal||choice.trade)&&selected?[selected]:[]})).filter(({choice,ids})=>eventChoiceAvailable(run,choice,ids));
@@ -64,5 +76,5 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
   assert.ok(run.shells>=0&&run.resolve>=0&&run.charms.length<=3);
  }
  assert.ok(run.status!=='active'||capped,'Study guard reached without a terminal outcome or declared boss cap');
- return {seed,format,route,playerDifficulty,catchRate,balanceVersion,startingSchool,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),school:run.school.map(c=>({texture:c.texture,condition:c.condition})),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
+ return {seed,format,route,playerDifficulty,catchRate,schoolPolicy,balanceVersion,startingSchool,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),school:run.school.map(c=>({texture:c.texture,condition:c.condition})),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
 }
