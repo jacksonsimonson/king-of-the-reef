@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {STARTERS} from '../src/game/data/starterFish.ts';
+import {STARTERS,BATCH_TWO_STARTERS} from '../src/game/data/starterFish.ts';
 import {ABILITIES,canPlaceFish} from '../src/game/abilities.ts';
 import {resolvePlacement} from '../src/game/combat.ts';
 import {scoringReefs} from '../src/game/battleRules.ts';
@@ -24,7 +24,9 @@ test('comparison fixtures are legal and deterministic; proposals never mutate li
  assert.deepEqual(STARTERS,snapshot);
 });
 test('holder probe distinguishes defense from retaliation and does not claim invulnerability',()=>{
- const box=STARTERS.find(c=>c.texture==='boxfish'),urchin=STARTERS.find(c=>c.texture==='sea-urchin');assert.equal(retention(box,5).dislodges,0);assert.ok(retention(urchin,5).dislodges>0);
+ const box=STARTERS.find(c=>c.texture==='boxfish'),urchin=STARTERS.find(c=>c.texture==='sea-urchin');
+ assert.equal(retention(BATCH_TWO_STARTERS.find(c=>c.texture==='boxfish'),5).dislodges,0);
+ assert.ok(retention(box,5).dislodges>0);assert.ok(retention(urchin,5).dislodges>0);
  const reef=[...scoringReefs(5)][1],board=Array(25).fill(null);board[reef]={...box,id:'holder',owner:'player',condition:'healthy'};
  const piercing={...STARTERS[0],id:'piercer',owner:'rival',condition:'healthy',ability:'piercing',edges:[{direction:'right',effect:'standard'}]};
  const result=resolvePlacement({board,shocked:new Set()},reef-1,piercing);assert.notEqual(result.board[reef]?.id,'holder');

@@ -105,7 +105,24 @@ export function createStarterDeck(owner: Owner): FishCard[] {
 }
 
 // Pre-batch layouts preserve future recruits in existing voyages.
-export const BATCH_ONE_STARTERS = STARTERS.map((fish) => {
+const PRE_REGION_EDGES: Record<string, CardEdge[]> = {
+  "boxfish": ["up", "right", "down", "left"].map(direction => ({ direction: direction as Direction, effect: "weak" })),
+  "sand-dollar": [{"direction":"down","effect":"weak"}],
+  "cowrie-snail": [{"direction":"up","effect":"weak"},{"direction":"left","effect":"weak"}],
+  "chiton": [{"direction":"up","effect":"weak"},{"direction":"down","effect":"weak"}],
+  "moon-jellyfish": [{"direction":"down","effect":"spines"}],
+  "tube-sponge": [{"direction":"up","effect":"weak"}],
+  "brain-coral": [{"direction":"up","effect":"weak"},{"direction":"right","effect":"weak"}],
+  "staghorn-coral": [{"direction":"up","effect":"spines"},{"direction":"left","effect":"spines"}],
+  "blacktip-reef-shark": [{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"standard"}],
+};
+export const BATCH_THREE_STARTERS = STARTERS.map(fish => PRE_REGION_EDGES[fish.texture] ? { ...fish, edges: PRE_REGION_EDGES[fish.texture] } : fish);
+export const BATCH_TWO_STARTERS = BATCH_THREE_STARTERS.map((fish) => {
+  if (fish.texture === "horseshoe-crab") return { ...fish, edges: [{ direction: "up", effect: "weak" }, { direction: "right", effect: "standard" }, { direction: "left", effect: "weak" }] as CardEdge[] };
+  if (fish.texture === "pom-pom-crab") return { ...fish, edges: [{ direction: "right", effect: "spines" }, { direction: "left", effect: "spines" }] as CardEdge[] };
+  return fish;
+});
+export const BATCH_ONE_STARTERS = BATCH_TWO_STARTERS.map((fish) => {
   if (fish.texture === "void-angler") return { ...fish, edges: [...fish.edges, { direction: "left", effect: "shock" }] as CardEdge[] };
   if (fish.texture === "buoy-jelly") return { ...fish, edges: [{ direction: "up", effect: "wave" }, { direction: "right", effect: "shock" }, { direction: "down", effect: "hook" }, { direction: "left", effect: "bounce" }] as CardEdge[] };
   return fish;

@@ -1,4 +1,5 @@
 import { STARTERS, type FishCard } from '../data/starterFish.ts';
+import { SHORELINE_ROLES } from '../data/shorelineRoles.ts';
 import { enabledTextures } from '../data/roster.ts';
 import { REGIONS } from '../run/maps.ts';
 import type { Run } from '../run/state.ts';
@@ -59,6 +60,11 @@ export function openJournal(run: Run | null, initial: 'journal' | 'school' = 'jo
       else panel.append(el('p', `Owned copies: ${run?.school.filter(f => f.texture === fish.texture).length ?? 0} · Current catalog rules`));
       if (!enabled.has(fish.texture)) panel.append(el('p', 'Excluded from this voyage’s recruitment roster (or current roster settings if no voyage).'));
       const role = creatureRole(fish); panel.append(el('h4', role), el('p', ROLE_HELP[role]));
+      const identity = SHORELINE_ROLES[fish.texture];
+      const current = STARTERS.find(f => f.texture === fish.texture);
+      if (identity && current && JSON.stringify(current.edges) === JSON.stringify(fish.edges) && current.ability === fish.ability) {
+        panel.append(el('h4', identity.title), el('p', identity.plan), el('p', `Tradeoff: ${identity.limitation}`));
+      }
       const edges = el('ul');
       for (const direction of ['up', 'right', 'down', 'left'] as const) {
         const edge = fish.edges.find(e => e.direction === direction);

@@ -45,14 +45,14 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "blacktip-reef-shark",
     "edges": [
       {
-        "direction": "right",
-        "effect": "bigger-fish"
+            "direction": "up",
+            "effect": "bigger-fish"
       },
       {
-        "direction": "down",
-        "effect": "standard"
+            "direction": "down",
+            "effect": "standard"
       }
-    ]
+]
   },
   {
     "id": "nurse-shark",
@@ -317,7 +317,7 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
         "effect": "weak"
       },
       {
-        "direction": "right",
+        "direction": "down",
         "effect": "standard"
       },
       {
@@ -349,10 +349,18 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "sand-dollar",
     "edges": [
       {
-        "direction": "down",
-        "effect": "weak"
+            "direction": "right",
+            "effect": "standard"
+      },
+      {
+            "direction": "down",
+            "effect": "weak"
+      },
+      {
+            "direction": "left",
+            "effect": "standard"
       }
-    ]
+]
   },
   {
     "id": "conch-snail",
@@ -377,14 +385,18 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "cowrie-snail",
     "edges": [
       {
-        "direction": "up",
-        "effect": "weak"
+            "direction": "up",
+            "effect": "weak"
       },
       {
-        "direction": "left",
-        "effect": "weak"
+            "direction": "right",
+            "effect": "standard"
+      },
+      {
+            "direction": "left",
+            "effect": "weak"
       }
-    ]
+]
   },
   {
     "id": "chiton",
@@ -393,14 +405,18 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "chiton",
     "edges": [
       {
-        "direction": "up",
-        "effect": "weak"
+            "direction": "up",
+            "effect": "weak"
       },
       {
-        "direction": "down",
-        "effect": "weak"
+            "direction": "down",
+            "effect": "weak"
+      },
+      {
+            "direction": "left",
+            "effect": "standard"
       }
-    ]
+]
   },
   {
     "id": "sea-hare",
@@ -497,10 +513,14 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "moon-jellyfish",
     "edges": [
       {
-        "direction": "down",
-        "effect": "spines"
+            "direction": "up",
+            "effect": "standard"
+      },
+      {
+            "direction": "down",
+            "effect": "spines"
       }
-    ]
+]
   },
   {
     "id": "comb-jelly",
@@ -557,10 +577,14 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "tube-sponge",
     "edges": [
       {
-        "direction": "up",
-        "effect": "weak"
+            "direction": "up",
+            "effect": "weak"
+      },
+      {
+            "direction": "down",
+            "effect": "standard"
       }
-    ]
+]
   },
   {
     "id": "barrel-sponge",
@@ -585,14 +609,18 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "brain-coral",
     "edges": [
       {
-        "direction": "up",
-        "effect": "weak"
+            "direction": "up",
+            "effect": "weak"
       },
       {
-        "direction": "right",
-        "effect": "weak"
+            "direction": "right",
+            "effect": "weak"
+      },
+      {
+            "direction": "down",
+            "effect": "standard"
       }
-    ]
+]
   },
   {
     "id": "staghorn-coral",
@@ -601,14 +629,18 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
     "texture": "staghorn-coral",
     "edges": [
       {
-        "direction": "up",
-        "effect": "spines"
+            "direction": "up",
+            "effect": "spines"
       },
       {
-        "direction": "left",
-        "effect": "spines"
+            "direction": "down",
+            "effect": "standard"
+      },
+      {
+            "direction": "left",
+            "effect": "spines"
       }
-    ]
+]
   },
   {
     "id": "goose-neck-barnacle",
@@ -684,6 +716,7 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
         "direction": "right",
         "effect": "spines"
       },
+      { "direction": "down", "effect": "standard" },
       {
         "direction": "left",
         "effect": "spines"
