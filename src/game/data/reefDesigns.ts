@@ -792,7 +792,7 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
         "effect": "weak"
       },
       {
-        "direction": "right",
+        "direction": "down",
         "effect": "standard"
       },
       {
@@ -802,7 +802,7 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
     ],
     "rarity": "Uncommon",
     "movement": "lurker",
-    "rationale": "Broad carapace and small forward movement"
+    "rationale": "Guarded vertical reef setter: shell above/left, downward shove, exposed right flank"
   },
   "sea-cucumber": {
     "edges": [
@@ -1136,6 +1136,7 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
         "direction": "right",
         "effect": "spines"
       },
+      { "direction": "down", "effect": "standard" },
       {
         "direction": "left",
         "effect": "spines"
@@ -1143,7 +1144,7 @@ export const REEF_DESIGNS: Record<string, ReefDesign> = {
     ],
     "rarity": "Rare",
     "movement": "lurker",
-    "rationale": "Stinging anemones carried in both claws"
+    "rationale": "Push-and-retaliate setter: downward shove and lateral anemones; open upper side permits an enemy push without retaliation"
   },
   "arrow-crab": {
     "edges": [

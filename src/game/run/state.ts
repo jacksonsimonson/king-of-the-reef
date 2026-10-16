@@ -1,5 +1,5 @@
 import { drawOceanCard, LEGACY_OCEAN_POOL } from "../data/oceanPool.ts";
-import { STARTERS, BATCH_ONE_STARTERS, PRE_BALANCE_STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
+import { STARTERS, BATCH_TWO_STARTERS, BATCH_ONE_STARTERS, PRE_BALANCE_STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
@@ -15,7 +15,7 @@ export interface Run {
   resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
   roster: string[];
   reefPoolVersion: 1 | 2 | 3;
-  cardBalanceVersion?: 1 | 2;
+  cardBalanceVersion?: 1 | 2 | 3;
   oceanPoolVersion?: 1;
   charmPoolVersion?: 1 | 2;
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
@@ -27,7 +27,7 @@ export interface Run {
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export function runFishDefinition(run: Run, texture: string) {
-  return (run.reefPoolVersion < 3 ? LEGACY_STARTERS : run.cardBalanceVersion === 2 ? STARTERS : run.cardBalanceVersion === 1 ? BATCH_ONE_STARTERS : PRE_BALANCE_STARTERS).find((fish) => fish.texture === texture);
+  return (run.reefPoolVersion < 3 ? LEGACY_STARTERS : run.cardBalanceVersion === 3 ? STARTERS : run.cardBalanceVersion === 2 ? BATCH_TWO_STARTERS : run.cardBalanceVersion === 1 ? BATCH_ONE_STARTERS : PRE_BALANCE_STARTERS).find((fish) => fish.texture === texture);
 }
 export function recruit(run: Run, texture: string): void {
   const definition = runFishDefinition(run, texture);
@@ -37,7 +37,7 @@ export function recruit(run: Run, texture: string): void {
 export function createRun(seed: string, version: 1 | 2 = 2): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i, version));
   const roster = enabledTextures();
-  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 2, oceanPoolVersion: 1, charmPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 3, oceanPoolVersion: 1, charmPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   const enabled = new Set(roster);
   run.eventVersion = 1;
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
@@ -263,7 +263,7 @@ export function loadRun(): Run | null {
     if (!Array.isArray(run.charms) || !run.charms.every(isCharm)) return null;
     // Older voyages predate roster selection and retain the original full pool.
     run.roster ??= [...ORIGINAL_FISH_TEXTURES];
-    if (run.cardBalanceVersion !== undefined && ![1, 2].includes(run.cardBalanceVersion)) return null;
+    if (run.cardBalanceVersion !== undefined && ![1, 2, 3].includes(run.cardBalanceVersion)) return null;
     run.reefPoolVersion ??= 1;
     if (run.oceanPoolVersion !== undefined && run.oceanPoolVersion !== 1) return null;
     if (![1, 2, 3].includes(run.reefPoolVersion)) return null;

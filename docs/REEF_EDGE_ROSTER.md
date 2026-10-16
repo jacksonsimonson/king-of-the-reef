@@ -59,7 +59,7 @@ A = Standard Arrow; D = Double; S = Shield; H = Hook; E = Shock; P = Spines; B =
 | Porcupinefish | Rare | P | A | — | P | Inflated flank spines with a forward push |
 | Clown Triggerfish | Uncommon | — | D | A | S | Strong jaws and protected retreat |
 | Spiny Lobster | Uncommon | P | A | — | A | Spiny back, antennae, and tail thrust |
-| Horseshoe Crab | Uncommon | S | A | — | S | Broad carapace and small forward movement |
+| Horseshoe Crab | Uncommon | S | — | A | S | Guarded downward setter; exposed right flank |
 | Sea Cucumber | Common | — | — | H | A | Underside tube feet |
 | Sand Dollar | Common | — | — | S | — | Low protective seafloor profile |
 | Conch Snail | Common | — | A | S | — | Crawling foot and bottom support |
@@ -82,7 +82,7 @@ A = Standard Arrow; D = Double; S = Shield; H = Hook; E = Shock; P = Spines; B =
 | Christmas Tree Worm | Common | H | — | — | — | Exposed feeding crown |
 | Crown Conch | Rare | S | D | — | A | Predatory mouth and armored shell |
 | Coral Banded Shrimp | Uncommon | — | H | — | A | Grasping claws and tail escape |
-| Pom-Pom Crab | Rare | — | P | — | P | Stinging anemones carried in both claws |
+| Pom-Pom Crab | Rare | — | P | A | P | Downward setter with lateral anemone retaliation; open top |
 | Arrow Crab | Uncommon | A | H | — | — | Long legs and reaching claw |
 | Remora | Uncommon | S | H | — | — | Dorsal attachment disc and approach to host |
 | Trumpetfish | Uncommon | A | H | — | A | Forward suction mouth and backward swimming |

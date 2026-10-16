@@ -317,7 +317,7 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
         "effect": "weak"
       },
       {
-        "direction": "right",
+        "direction": "down",
         "effect": "standard"
       },
       {
@@ -684,6 +684,7 @@ export const REEF_ART_CARDS: Omit<FishCard, "owner" | "condition">[] = [
         "direction": "right",
         "effect": "spines"
       },
+      { "direction": "down", "effect": "standard" },
       {
         "direction": "left",
         "effect": "spines"
