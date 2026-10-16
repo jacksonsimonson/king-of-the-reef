@@ -102,9 +102,17 @@ Could manipulate targeting, visibility, or enemy placement.
 
 ## Progression ideas
 
+### Colossal decks and creature rewards
+
+**Status:** Planned for themed decks; Exploring for exclusive cards and rewards. Colossals remain last, after the ordinary roster pass.
+
+Give each Colossal a coherent themed deck that supports its identity and battle plan. It may contain exclusive creatures. Defeating a Colossal could award one of those creatures for the remainder of the current Voyage, giving the victory a playable reward in later regions. Exclusivity, reward choice versus fixed grant, and whether a boss card needs a player-appropriate variant remain undecided. A final-region reward has no remaining normal voyage encounters, so its purpose needs a separate decision; do not assume permanent unlocks or postgame content.
+
+### Other progression possibilities
+
 - Fish collection journal
 - Alternate anglers
-- Unlockable starting schools
+- Unlockable starting schools — defer until the existing roster has completed its role and balance pass
 - Difficulty modifiers
 - Regional species pools
 - Cosmetic aquarium
