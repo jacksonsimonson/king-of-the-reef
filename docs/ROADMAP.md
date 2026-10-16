@@ -61,6 +61,8 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
+- [Deliberate recruiting/trimming comparison](DELIBERATE_SCHOOL_STUDY.md) complete: 768 policy runs on 24 map seeds, including exact reproduction of the prior 96-run baseline. Recruiting reduced shortages but progression remained mixed; trimming did not consistently help. No gameplay balance values changed. Recommended next evaluation: human later-region and stalled-boss playtests before resource or roster adjustments.
+
 - [Finished-roster full Voyage validation](FINISHED_ROSTER_VOYAGE_BALANCE.md) complete: 96 policy runs on 12 paired seeds, 1,232 matches. Healthy-school shortages were rare, while later-region losses and repeated boss draws remain concerns. Keep gameplay values unchanged; compare deliberate school-building/recruitment policies and human adaptation before resource buffs. This study does not certify perfect balance. The 192-run study below predates the completed roster.
 
 - Prioritize a complete role/coherence and balance pass over the existing roster before starting-school choices. Work in small tested batches, progressing from Shoreline foundations through Open Ocean and Bermuda; every creature needs a thematic primary job, deliberate limitations, and a recorded keep/change decision. Preserve staged mechanic introductions and coherent gimmicks. Validate under current two-tide 4/5/6 rules with mixed schools and charms; an inventory or automated role label is not balance sign-off.
