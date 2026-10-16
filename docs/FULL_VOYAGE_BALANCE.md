@@ -1,5 +1,7 @@
 # Full Voyage balance study and post-match summary
 
+Historical study from before the complete regional roster pass. For balance version 6, use the [finished-roster Voyage validation](FINISHED_ROSTER_VOYAGE_BALANCE.md). The commands below use the live catalog; rerunning them on a later checkout does not reproduce these historical numbers.
+
 ## Scope and reproduction
 
 This study replaces the earlier scripted-win route checks with production combat, carried schools, casualties, spending, hydration, events and boss results. It follows a run until victory, defeat, or a six-attempt boss cap. Capped runs remain unresolved; they are not counted as losses or wins.

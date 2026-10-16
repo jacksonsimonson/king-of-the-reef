@@ -8,7 +8,8 @@ import {match} from './matches.mjs';
 
 /** Seeded route decisions and real combat/settlement; fishing success is an explicit assumption. */
 export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6}={}){
- const run=createRun(seed),battles=[],visits=[],attempts=new Map();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
+ const run=createRun(seed),battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
+ const startingSchool=run.school.map(c=>c.texture),balanceVersion=run.cardBalanceVersion;
  const healthy=()=>run.school.filter(c=>c.condition==='healthy').length;
  for(let guard=0;run.status==='active'&&guard<100;guard++){
   if(!run.pending){
@@ -19,17 +20,26 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
    };
    candidates.sort((a,b)=>rank(b)-rank(a)||a.id.localeCompare(b.id));assert.ok(candidates.length);assert.ok(enterNode(run,candidates[0].id));
   }
-  const node=activeNode(run),region=run.region;visits.push({region,type:node.type,healthy:healthy(),shells:run.shells,resolve:run.resolve});
+  const node=activeNode(run),region=run.region;
+  const visit={region,nodeId:node.id,column:node.column,type:node.type,school:run.school.length,healthy:healthy(),shells:run.shells,resolve:run.resolve};visits.push(visit);
+  const previousIds=new Set(run.school.map(c=>c.id)),previousInjured=new Set(run.school.filter(c=>c.condition==='killed').map(c=>c.id));
   if(node.type==='battle'||node.type==='boss'){
    const count=(attempts.get(node.id)??0)+1;attempts.set(node.id,count);
    if(count>maxBossAttempts){capped=true;break;}
-   const opening=availableCharms(run.charms),before=healthy();if(before<tidePlayLimit(REGIONS[region].id))lowSchoolBattles++;
+   const opening=availableCharms(run.charms),before=healthy(),playLimit=format==='two-tide'?tidePlayLimit(REGIONS[region].id):5+region;
+   const regionalHealthy=run.school.filter(c=>c.condition==='healthy'&&REGIONS[region].pool.includes(c.texture)).length;
+   const distinctHealthy=new Set(run.school.filter(c=>c.condition==='healthy').map(c=>c.texture)).size;
+   if(before<playLimit)lowSchoolBattles++;
+   const signature=JSON.stringify([node.id,run.school.map(c=>[c.id,c.condition]),opening]);
+   const repeatedOpening=node.type==='boss'&&bossOpenings.has(signature);if(node.type==='boss')bossOpenings.add(signature);
    const args={region,seed:run.seed+':'+node.id,current:true,customDecks:{player:run.school,rival:rivalDeckFor(run)},loadout:opening,charmMode:'player',playerDifficulty,playLimit:format==='two-tide'?tidePlayLimit(REGIONS[region].id):5+region,collectFrames:true};
    const tides=[match({...args,first:'player'})];if(format==='two-tide')tides.push(match({...args,first:'rival'}));
    const score=combinedScore(tides.map(t=>t.score)),killed=[...new Set(tides.flatMap(t=>t.killedIds))],spent=tides.reduce((ledger,t)=>matchCharmSpending(opening,t.inventories.player,ledger),[]);
    const shells=run.shells,resolve=run.resolve;
    battleResult(run,score.player,score.rival,killed,spent);
-   battles.push({region,boss:node.type==='boss',attempt:count,before,score,dead:killed.filter(id=>run.school.some(c=>c.id===id)).length,spent:spent.length,playerPlays:tides.reduce((n,t)=>n+t.plays.player,0),rivalPlays:tides.reduce((n,t)=>n+t.plays.rival,0),frames:tides.reduce((n,t)=>n+t.frameCount,0),shellDelta:run.shells-shells,resolveDelta:run.resolve-resolve});
+   const dead=killed.filter(id=>run.school.some(c=>c.id===id));
+   visit.battleRestored=run.school.filter(c=>c.condition==='healthy'&&(previousInjured.has(c.id)||dead.includes(c.id))).length;
+   battles.push({region,boss:node.type==='boss',attempt:count,before,school:run.school.length,after:healthy(),regionalHealthy,distinctHealthy,playLimit,repeatedOpening,score,dead:dead.length,injuredAfter:run.school.length-healthy(),restored:visit.battleRestored,spent:spent.length,playerPlays:tides.reduce((n,t)=>n+t.plays.player,0),rivalPlays:tides.reduce((n,t)=>n+t.plays.rival,0),frames:tides.reduce((n,t)=>n+t.frameCount,0),shellDelta:run.shells-shells,resolveDelta:run.resolve-resolve,playedTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').map(x=>x.card)))],availableTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').flatMap(x=>x.available)))]});
   }else if(node.type==='hydration'){
    const selected=run.school.filter(c=>c.condition==='killed').slice(0,3).map(c=>c.id);healed+=selected.length;assert.ok(resolveVisit(run,'rest',selected));
   }else if(node.type==='fishing'){
@@ -37,8 +47,9 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
    assert.ok(beginFishing(run,texture));const caught=rng()<catchRate;
    const snapshot={...run.fishing.snapshot,status:caught?'caught':'escaped',progress:caught?1:0};assert.ok(finishFishing(run,snapshot));caught?catches++:escapes++;
   }else if(node.type==='shop'){
-   const stock=shopOffers(run).filter(o=>o.price<=run.shells).sort((a,b)=>(healthy()<8?Number(b.kind==='fish')-Number(a.kind==='fish'):Number(b.kind==='charm')-Number(a.kind==='charm'))||a.price-b.price);
-   for(const offer of stock){if(offer.kind==='charm'&&run.charms.length>=3)continue;if(offer.price>run.shells)continue;if(buyOffer(run,offer.id)){purchases++;break;}}
+   const offered=shopOffers(run);visit.stock=offered.map(o=>({kind:o.kind,price:o.price,affordable:o.price<=run.shells}));visit.charmSlots=3-run.charms.length;
+   const stock=offered.filter(o=>o.price<=run.shells).sort((a,b)=>(healthy()<8?Number(b.kind==='fish')-Number(a.kind==='fish'):Number(b.kind==='charm')-Number(a.kind==='charm'))||a.price-b.price);
+   for(const offer of stock){if(offer.kind==='charm'&&run.charms.length>=3)continue;if(offer.price>run.shells)continue;if(buyOffer(run,offer.id)){purchases++;visit.purchase={kind:offer.kind,price:offer.price};break;}}
    assert.ok(resolveVisit(run,'leave'));
   }else if(node.type==='event'){
    const selected=run.school.find(c=>c.condition==='killed')?.id;
@@ -46,7 +57,12 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
    const value=c=>(c.resolve??0)*(run.resolve<3?20:0)+(c.heal?12:0)+(c.recruit?10:0)+(c.shells??0)/4;
    options.sort((a,b)=>value(b.choice)-value(a.choice));assert.ok(options.length);assert.ok(resolveVisit(run,options[0].choice.id,options[0].ids));
   }else assert.ok(resolveVisit(run,'leave'));
+  visit.after={region:run.region,school:run.school.length,healthy:healthy(),shells:run.shells,resolve:run.resolve};
+  visit.recruited=run.school.filter(c=>!previousIds.has(c.id)).map(c=>c.texture);
+  visit.removed=[...previousIds].filter(id=>!run.school.some(c=>c.id===id)).length;
+  visit.restored=visit.battleRestored??run.school.filter(c=>previousInjured.has(c.id)&&c.condition==='healthy').length;
   assert.ok(run.shells>=0&&run.resolve>=0&&run.charms.length<=3);
  }
- return {seed,format,route,playerDifficulty,catchRate,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
+ assert.ok(run.status!=='active'||capped,'Study guard reached without a terminal outcome or declared boss cap');
+ return {seed,format,route,playerDifficulty,catchRate,balanceVersion,startingSchool,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),school:run.school.map(c=>({texture:c.texture,condition:c.condition})),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
 }
