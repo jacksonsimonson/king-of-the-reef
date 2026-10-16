@@ -1,5 +1,7 @@
 # Shoreline role pass — crab batch 1
 
+Historical first phase of PR #36. The same PR now contains the [complete 77-creature Shoreline pass](SHORELINE_BALANCE.md), superseding the remaining-work checklist below. Version 3 is preserved for crab-preview saves; new runs now use version 4.
+
 Three of the 77 Shoreline creatures reviewed in this new systematic pass; two changes adopted. This is not sign-off on the entire region. Earlier pilot/batch evidence remains relevant. Keep regional teaching progression, thematic families and relative weights; do not add unrelated edges to fill empty sides.
 
 | Creature | Primary job and theme | Decision | Ordinary limitation |

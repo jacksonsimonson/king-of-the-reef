@@ -19,11 +19,13 @@ No mana or per-card deployment cost exists: each creature consumes the same scar
 
 Check [Edge Effects](EDGE_EFFECTS.md), [Terrain](TERRAIN.md), and the actual combat resolver before judging a combination. If text and code disagree, resolve that discrepancy before tuning values.
 
-| Region | Board | Plays per side | Special tiles | Rival |
+| Region | Board | Plays per side per tide (Voyage) | Special tiles | Rival |
 | --- | --- | --- | --- | --- |
-| Shoreline | 5×5 | 5 | 2–4 | Beginner |
-| Open Ocean | 6×6 | 6 | 3–5 | Tactical |
-| Bermuda | 7×7 | 7 | 4–6 | Expert |
+| Shoreline | 5×5 | 4 | 2–4 | Beginner |
+| Open Ocean | 6×6 | 5 | 3–5 | Tactical |
+| Bermuda | 7×7 | 6 | 4–6 | Expert |
+
+Voyage uses two reset tides with swapped starters and a combined reef score. Quick Match also offers Classic single-tide 5/6/7 plays. State which format a study uses; historical Classic results do not automatically establish two-tide balance.
 
 All boards have three scoring reefs. Both whirlpool endpoints count toward specials. Hands hold up to five cards and refill from reserves. Larger boards have lower potential occupancy density despite the extra placements: do not assume crowd-dependent effects become stronger in later regions.
 

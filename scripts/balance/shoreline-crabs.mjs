@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {STARTERS} from '../../src/game/data/starterFish.ts';
+import {BATCH_THREE_STARTERS as STARTERS} from '../../src/game/data/starterFish.ts';
 import {match} from './matches.mjs';
 
 // Explicit baselines keep this experiment reproducible after adoption.
