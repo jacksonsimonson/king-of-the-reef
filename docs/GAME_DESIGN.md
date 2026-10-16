@@ -101,7 +101,7 @@ A Hydration space lets the player select up to three killed cards to restore. A 
 
 The playable [Voyage foundation](VOYAGE.md) now generates all three regions from a seed with weighted encounter types, guaranteed route milestones, persistent schools, and encounter rewards. Colossals are giant ocean creatures that rule parts of the sea; their identities and special mechanics will be designed separately.
 
-The first [Open Ocean card foundation](OPEN_OCEAN_CARDS.md) reserves stable identities, art filenames, gallery categories, provisional rarities, and zone assignments for 43 new creatures across the Continental Shelf, Polar Current, and Midnight Trench. All 43 supplied creatures are playable with the Open Ocean edge roster. Arctic Cod was removed.
+The [Open Ocean roster](OPEN_OCEAN_CARDS.md) contains 44 supplied entries including Sea Mine, plus the original Swordfish, Barracuda and Ocean Sunfish, across the Continental Shelf, Polar Current and Midnight Trench. The [complete regional balance pass](OPEN_OCEAN_BALANCE.md) reviews all 47 with authored thematic roles, ordinary uses, limitations and tested keep/change decisions. Arctic Cod remains excluded. New voyages use the revised layouts; existing voyages retain their saved balance version.
 
 ## Knockouts and recovery
 
