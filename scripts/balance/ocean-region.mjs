@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {STARTERS,BATCH_FOUR_STARTERS} from '../../src/game/data/starterFish.ts';
+import {BATCH_FIVE_STARTERS as STARTERS,BATCH_FOUR_STARTERS} from '../../src/game/data/starterFish.ts';
 import {OCEAN_POOL} from '../../src/game/data/oceanPool.ts';
 import {OCEAN_ROLES} from '../../src/game/data/oceanRoles.ts';
 import {scenarios,probe,retention} from './pilot.mjs';

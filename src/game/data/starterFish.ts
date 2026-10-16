@@ -105,6 +105,32 @@ export function createStarterDeck(owner: Owner): FishCard[] {
 }
 
 // Pre-batch layouts preserve future recruits in existing voyages.
+const PRE_BERMUDA_BALANCE_EDGES: Record<string, CardEdge[]> = {
+  "anchor-crab": [{"direction":"up","effect":"weak"},{"direction":"right","effect":"hook"},{"direction":"left","effect":"ram"}],
+  "chain-catshark": [{"direction":"right","effect":"follow-current"},{"direction":"down","effect":"hook"},{"direction":"left","effect":"double"}],
+  "rust-lobster": [{"direction":"up","effect":"spines"},{"direction":"right","effect":"ram"},{"direction":"down","effect":"weak"}],
+  "compass-jelly": [{"direction":"up","effect":"swap"},{"direction":"right","effect":"shock"},{"direction":"down","effect":"weak"},{"direction":"left","effect":"swap"}],
+  "figurehead-fish": [{"direction":"up","effect":"weak"},{"direction":"right","effect":"double"},{"direction":"down","effect":"ram"}],
+  "mimic-chest": [{"direction":"up","effect":"weak"},{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"weak"},{"direction":"left","effect":"weak"}],
+  "skeleton-fisherman": [{"direction":"up","effect":"hook"},{"direction":"right","effect":"hook"},{"direction":"down","effect":"weak"},{"direction":"left","effect":"shock"}],
+  "drowned-diver": [{"direction":"up","effect":"hook"},{"direction":"right","effect":"ram"},{"direction":"down","effect":"dive"},{"direction":"left","effect":"weak"}],
+  "bonefish": [{"direction":"up","effect":"spines"},{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"dive"},{"direction":"left","effect":"bounce"}],
+  "graveyard-leviathan": [{"direction":"up","effect":"hook"},{"direction":"right","effect":"wave"},{"direction":"down","effect":"bigger-fish"},{"direction":"left","effect":"ram"}],
+  "lighthouse-hermit": [{"direction":"up","effect":"shock"},{"direction":"right","effect":"ram"},{"direction":"down","effect":"spines"},{"direction":"left","effect":"hook"}],
+  "abyssal-spadefish": [{"direction":"up","effect":"shock"},{"direction":"right","effect":"double"},{"direction":"down","effect":"bounce"},{"direction":"left","effect":"dive"}],
+  "mountain-ray": [{"direction":"up","effect":"wave"},{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"ram"},{"direction":"left","effect":"dive"}],
+  "fossil-from-tomorrow": [{"direction":"up","effect":"spines"},{"direction":"right","effect":"double"},{"direction":"down","effect":"shock"},{"direction":"left","effect":"bounce"}],
+  "triangle-shard": [{"direction":"up","effect":"dive"},{"direction":"right","effect":"swap"},{"direction":"down","effect":"shock"},{"direction":"left","effect":"hook"}],
+  "reef-titan": [{"direction":"up","effect":"spines"},{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"wave"},{"direction":"left","effect":"ram"}],
+  "paradox-puffer": [{"direction":"up","effect":"bounce"},{"direction":"right","effect":"shock"},{"direction":"down","effect":"bigger-fish"},{"direction":"left","effect":"dive"}],
+  "map-serpent": [{"direction":"up","effect":"swap"},{"direction":"right","effect":"hook"},{"direction":"down","effect":"follow-current"},{"direction":"left","effect":"dive"}],
+  "squall-crab": [{"direction":"up","effect":"weak"},{"direction":"right","effect":"ram"},{"direction":"down","effect":"wave"},{"direction":"left","effect":"bounce"}],
+  "tempest-seahorse": [{"direction":"up","effect":"wave"},{"direction":"right","effect":"follow-current"},{"direction":"down","effect":"shock"},{"direction":"left","effect":"hook"}],
+  "stormfin-tuna": [{"direction":"up","effect":"double"},{"direction":"right","effect":"ram"},{"direction":"down","effect":"follow-current"},{"direction":"left","effect":"shock"}],
+  "stormback-whale": [{"direction":"up","effect":"wave"},{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"wave"},{"direction":"left","effect":"ram"}],
+  "black-squall": [{"direction":"up","effect":"wave"},{"direction":"right","effect":"follow-current"},{"direction":"down","effect":"bounce"},{"direction":"left","effect":"shock"}],
+};
+export const BATCH_FIVE_STARTERS = STARTERS.map(fish => PRE_BERMUDA_BALANCE_EDGES[fish.texture] ? { ...fish, edges: PRE_BERMUDA_BALANCE_EDGES[fish.texture] } : fish);
 const PRE_OCEAN_BALANCE_EDGES: Record<string, CardEdge[]> = {
   "orca": [
     {
@@ -257,7 +283,7 @@ const PRE_OCEAN_BALANCE_EDGES: Record<string, CardEdge[]> = {
     }
   ]
 };
-export const BATCH_FOUR_STARTERS = STARTERS.map(fish => PRE_OCEAN_BALANCE_EDGES[fish.texture] ? { ...fish, edges: PRE_OCEAN_BALANCE_EDGES[fish.texture] } : fish);
+export const BATCH_FOUR_STARTERS = BATCH_FIVE_STARTERS.map(fish => PRE_OCEAN_BALANCE_EDGES[fish.texture] ? { ...fish, edges: PRE_OCEAN_BALANCE_EDGES[fish.texture] } : fish);
 const PRE_REGION_EDGES: Record<string, CardEdge[]> = {
   "boxfish": ["up", "right", "down", "left"].map(direction => ({ direction: direction as Direction, effect: "weak" })),
   "sand-dollar": [{"direction":"down","effect":"weak"}],

@@ -84,4 +84,6 @@ Implemented: stable battle checkpoints (including charms and pending choices), c
 - Sound and music: implemented three original regional map loops, an escalating battle arrangement per area, combat/encounter cues, and saved audio controls. Next: listening feedback and mix refinement.
 - Save data and broader balancing
 
-- [Complete Open Ocean pass](OPEN_OCEAN_BALANCE.md): 47/47 entries reviewed in seven internal families, 11 changed and 36 retained. Authored journal roles, 15,232 simulated tides across two seed batches, ordinary counters and all saved balance versions checked. Bermuda is the remaining regional pass; human tuning remains evidence-driven.
+- [Complete Open Ocean pass](OPEN_OCEAN_BALANCE.md): 47/47 entries reviewed in seven internal families, 11 changed and 36 retained. Authored journal roles, 15,232 simulated tides across two seed batches, ordinary counters and all saved balance versions checked. Bermuda is complete below; human tuning remains evidence-driven.
+
+- [Complete Bermuda pass](BERMUDA_BALANCE.md): 43/43 entries reviewed in six internal families, 23 changed and 20 retained. This completes authored roles for all 167 catalog entries. Ordinary counters, saved versions, internal role batches and 13,952 final-evidence simulated tides validate the pass; future tuning remains evidence-driven. Starting-school choices can now build on the reviewed roster; Colossals remain last.
