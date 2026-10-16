@@ -61,6 +61,7 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
+- Prioritize a complete role/coherence and balance pass over the existing roster before starting-school choices. Work in small tested batches, progressing from Shoreline foundations through Open Ocean and Bermuda; every creature needs a thematic primary job, deliberate limitations, and a recorded keep/change decision. Preserve staged mechanic introductions and coherent gimmicks. Validate under current two-tide 4/5/6 rules with mixed schools and charms; an inventory or automated role label is not balance sign-off.
 - Use [Creature Balancing Guidelines](CREATURE_BALANCE.md), now part of the game design, to inventory tactical roles, redundant upgrades, and missing ordinary counters.
 - Initial [167-creature inventory and ten-creature pilot](BALANCE_PILOT.md) complete, including three simulation-only proposals. The [first role-specific content batch](BALANCE_BATCH_1.md) follows with two changes and a preserved Eel gimmick. The [896-match mixed-school study](MIXED_SCHOOL_STUDY.md) is complete. The [fresh-seed charm follow-up](BALANCE_BATCH_2.md) adopts the Angler/Buoy reductions. The optional [two-tide Quick Match prototype](TWO_TIDE_PROTOTYPE.md) is implemented. Voyage now uses the same 4/5/6 progression with resumable tides and one settlement. The [192-run combat/economy study](FULL_VOYAGE_BALANCE.md) and post-match summary are implemented, with no balance-value changes justified. Next: human pacing/adaptation checks; no catalog-wide reshuffle yet.
 - Establish the remaining intended main systems and ordinary roster before bespoke Colossals. Colossals are last.
@@ -76,7 +77,7 @@ Implemented: stable battle checkpoints (including charms and pending choices), c
 - Multiple aquatic regions
 - Environmental board tiles and currents
 - Expanded events and shops
-- Colossal-specific rules — deferred until last
+- Colossal-specific rules — deferred until last. Each Colossal should have its own themed deck; possible exclusive creatures and a defeated-boss creature reward are tracked in the [idea backlog](IDEA_BACKLOG.md#colossal-decks-and-creature-rewards).
 - Collection journal and school inspection: implemented persistent recruited-species discovery, regional progress, searchable/filterable creature inspection, saved-copy health and role counts, and two-card comparison. Further roster-role changes remain incremental and evidence-based.
 - Accessibility and input options
 - Sound and music: implemented three original regional map loops, an escalating battle arrangement per area, combat/encounter cues, and saved audio controls. Next: listening feedback and mix refinement.
