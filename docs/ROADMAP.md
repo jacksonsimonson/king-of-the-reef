@@ -61,6 +61,8 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
+- [Finished-roster full Voyage validation](FINISHED_ROSTER_VOYAGE_BALANCE.md) complete: 96 policy runs on 12 paired seeds, 1,232 matches. Healthy-school shortages were rare, while later-region losses and repeated boss draws remain concerns. Keep gameplay values unchanged; compare deliberate school-building/recruitment policies and human adaptation before resource buffs. This study does not certify perfect balance. The 192-run study below predates the completed roster.
+
 - Prioritize a complete role/coherence and balance pass over the existing roster before starting-school choices. Work in small tested batches, progressing from Shoreline foundations through Open Ocean and Bermuda; every creature needs a thematic primary job, deliberate limitations, and a recorded keep/change decision. Preserve staged mechanic introductions and coherent gimmicks. Validate under current two-tide 4/5/6 rules with mixed schools and charms; an inventory or automated role label is not balance sign-off.
 - [Complete Shoreline pass](SHORELINE_BALANCE.md): 77/77 reviewed in nine internal families, 11 changed and 66 retained. Authored identities appear in the journal and inventory; ordinary contribution, counters and saved versions are tested. Two regional seed batches cover 24,960 tides, with every species actually played. Open Ocean is complete below; ongoing human tuning is separate from the completed Shoreline checklist.
 - Use [Creature Balancing Guidelines](CREATURE_BALANCE.md), now part of the game design, to inventory tactical roles, redundant upgrades, and missing ordinary counters.
