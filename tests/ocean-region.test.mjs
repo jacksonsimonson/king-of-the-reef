@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {STARTERS,BATCH_FOUR_STARTERS,BATCH_THREE_STARTERS,BATCH_TWO_STARTERS,BATCH_ONE_STARTERS,PRE_BALANCE_STARTERS} from '../src/game/data/starterFish.ts';
+import {BATCH_FIVE_STARTERS as STARTERS,BATCH_FOUR_STARTERS,BATCH_THREE_STARTERS,BATCH_TWO_STARTERS,BATCH_ONE_STARTERS,PRE_BALANCE_STARTERS} from '../src/game/data/starterFish.ts';
 import {OCEAN_ROLES} from '../src/game/data/oceanRoles.ts';
 import {OCEAN_POOL} from '../src/game/data/oceanPool.ts';
 import {scenarios,probe} from '../scripts/balance/pilot.mjs';
@@ -82,6 +82,6 @@ test('all saved balance versions preserve Ocean definitions, recruits, rivals an
    saveRun(run);const loaded=loadRun();assert.ok(loaded);assert.deepEqual(loaded.school,run.school);assert.deepEqual(offers(loaded),catches);assert.deepEqual(shopOffers(loaded),stock);
    for(const f of rivalDeckFor(loaded))assert.deepEqual(f.edges,catalog.find(c=>c.texture===f.texture).edges);
   }
-  assert.equal(createRun('CURRENT').cardBalanceVersion,5);
+  assert.equal(createRun('CURRENT').cardBalanceVersion,6);
  }finally{if(previous)Object.defineProperty(globalThis,'localStorage',previous);else delete globalThis.localStorage;}
 });

@@ -87,6 +87,8 @@ The run uses a branching route map inspired by roguelike deck-building games.
 
 Runs progress through three aquatic regions: the Shoreline, the Open Ocean, and the Bermuda Triangle. Early cards come from recognizable shoreline, tidepool, and reef life; later regions can introduce more specialized and unusual creatures.
 
+The regional role review now covers all 167 catalog entries: [77 Shoreline](SHORELINE_BALANCE.md), [47 Open Ocean](OPEN_OCEAN_BALANCE.md), and [43 Bermuda](BERMUDA_BALANCE.md). Each creature has an authored thematic job, ordinary use and limitation in the journal and [role inventory](ROSTER_ROLE_INVENTORY.md). Bermuda keeps deliberate spatial gimmicks while reducing unrelated edge combinations. These are tested design decisions with relative, revisable weights, not a claim of perfect equal power. New voyages use balance version 6; existing voyages preserve prior rules.
+
 Confirmed location concepts:
 
 - Battle
