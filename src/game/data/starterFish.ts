@@ -105,6 +105,159 @@ export function createStarterDeck(owner: Owner): FishCard[] {
 }
 
 // Pre-batch layouts preserve future recruits in existing voyages.
+const PRE_OCEAN_BALANCE_EDGES: Record<string, CardEdge[]> = {
+  "orca": [
+    {
+      "direction": "up",
+      "effect": "ram"
+    },
+    {
+      "direction": "right",
+      "effect": "bigger-fish"
+    },
+    {
+      "direction": "down",
+      "effect": "follow-current"
+    }
+  ],
+  "portuguese-man-of-war": [
+    {
+      "direction": "right",
+      "effect": "wave"
+    },
+    {
+      "direction": "down",
+      "effect": "spines"
+    }
+  ],
+  "albatross": [
+    {
+      "direction": "up",
+      "effect": "bounce"
+    },
+    {
+      "direction": "right",
+      "effect": "follow-current"
+    },
+    {
+      "direction": "left",
+      "effect": "dive"
+    }
+  ],
+  "greenland-shark": [
+    {
+      "direction": "up",
+      "effect": "weak"
+    },
+    {
+      "direction": "right",
+      "effect": "bigger-fish"
+    },
+    {
+      "direction": "left",
+      "effect": "wave"
+    }
+  ],
+  "bowhead-whale": [
+    {
+      "direction": "up",
+      "effect": "weak"
+    },
+    {
+      "direction": "right",
+      "effect": "wave"
+    },
+    {
+      "direction": "down",
+      "effect": "ram"
+    }
+  ],
+  "walrus": [
+    {
+      "direction": "up",
+      "effect": "double"
+    },
+    {
+      "direction": "right",
+      "effect": "ram"
+    },
+    {
+      "direction": "down",
+      "effect": "weak"
+    }
+  ],
+  "king-crab": [
+    {
+      "direction": "up",
+      "effect": "ram"
+    },
+    {
+      "direction": "down",
+      "effect": "double"
+    },
+    {
+      "direction": "left",
+      "effect": "weak"
+    }
+  ],
+  "colossal-squid": [
+    {
+      "direction": "up",
+      "effect": "hook"
+    },
+    {
+      "direction": "right",
+      "effect": "bigger-fish"
+    },
+    {
+      "direction": "down",
+      "effect": "wave"
+    }
+  ],
+  "giant-oarfish": [
+    {
+      "direction": "up",
+      "effect": "wave"
+    },
+    {
+      "direction": "down",
+      "effect": "bounce"
+    },
+    {
+      "direction": "left",
+      "effect": "wave"
+    }
+  ],
+  "barreleye": [
+    {
+      "direction": "up",
+      "effect": "dive"
+    },
+    {
+      "direction": "right",
+      "effect": "bounce"
+    },
+    {
+      "direction": "left",
+      "effect": "double"
+    }
+  ],
+  "goblin-shark": [
+    {
+      "direction": "right",
+      "effect": "bigger-fish"
+    },
+    {
+      "direction": "down",
+      "effect": "ram"
+    },
+    {
+      "direction": "left",
+      "effect": "bounce"
+    }
+  ]
+};
+export const BATCH_FOUR_STARTERS = STARTERS.map(fish => PRE_OCEAN_BALANCE_EDGES[fish.texture] ? { ...fish, edges: PRE_OCEAN_BALANCE_EDGES[fish.texture] } : fish);
 const PRE_REGION_EDGES: Record<string, CardEdge[]> = {
   "boxfish": ["up", "right", "down", "left"].map(direction => ({ direction: direction as Direction, effect: "weak" })),
   "sand-dollar": [{"direction":"down","effect":"weak"}],
@@ -116,7 +269,7 @@ const PRE_REGION_EDGES: Record<string, CardEdge[]> = {
   "staghorn-coral": [{"direction":"up","effect":"spines"},{"direction":"left","effect":"spines"}],
   "blacktip-reef-shark": [{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"standard"}],
 };
-export const BATCH_THREE_STARTERS = STARTERS.map(fish => PRE_REGION_EDGES[fish.texture] ? { ...fish, edges: PRE_REGION_EDGES[fish.texture] } : fish);
+export const BATCH_THREE_STARTERS = BATCH_FOUR_STARTERS.map(fish => PRE_REGION_EDGES[fish.texture] ? { ...fish, edges: PRE_REGION_EDGES[fish.texture] } : fish);
 export const BATCH_TWO_STARTERS = BATCH_THREE_STARTERS.map((fish) => {
   if (fish.texture === "horseshoe-crab") return { ...fish, edges: [{ direction: "up", effect: "weak" }, { direction: "right", effect: "standard" }, { direction: "left", effect: "weak" }] as CardEdge[] };
   if (fish.texture === "pom-pom-crab") return { ...fish, edges: [{ direction: "right", effect: "spines" }, { direction: "left", effect: "spines" }] as CardEdge[] };

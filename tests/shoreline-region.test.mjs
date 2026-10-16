@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {STARTERS,BATCH_TWO_STARTERS,BATCH_THREE_STARTERS} from '../src/game/data/starterFish.ts';
+import {BATCH_FOUR_STARTERS as STARTERS,BATCH_TWO_STARTERS,BATCH_THREE_STARTERS} from '../src/game/data/starterFish.ts';
 import {SHORELINE_ROLES} from '../src/game/data/shorelineRoles.ts';
 import {REEF_POOL} from '../src/game/data/reefPool.ts';
 import {scenarios,probe} from '../scripts/balance/pilot.mjs';
@@ -66,6 +66,6 @@ test('whole-region versions retain saved definitions and seeded offers without c
    saveRun(run);const loaded=loadRun();assert.ok(loaded);assert.deepEqual(loaded.school,run.school);assert.deepEqual(offers(loaded),catches);assert.deepEqual(shopOffers(loaded),stock);
    for(const f of rivalDeckFor(loaded))assert.deepEqual(f.edges,catalog.find(c=>c.texture===f.texture).edges);
   }
-  assert.equal(createRun('CURRENT').cardBalanceVersion,4);
+  assert.equal(createRun('CURRENT').cardBalanceVersion,5);
  }finally{if(previous)Object.defineProperty(globalThis,'localStorage',previous);else delete globalThis.localStorage;}
 });
