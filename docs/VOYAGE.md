@@ -2,6 +2,8 @@
 
 Voyage is a saved three-region run reached from the main menu. Maps read left to right. Each new voyage receives a random seed; entering the same seed reproduces the same charts and encounter offers. Maps and pixel symbols are drawn directly at native size, with scrolling on narrower desktops.
 
+Before departure, choose [Tidepool Guides, Shellguard or Reef Tethers](STARTING_SCHOOLS.md), each with eight reef creatures, a distinct positional plan and equal resources. Existing saved schools are unchanged. New Voyage previews all eight cards before replacing the current run; cancelling keeps it intact.
+
 Noncombat visits use [dedicated encounter screens](ENCOUNTER_SCREENS.md) with original scene art. The chart can be inspected and the visit resumed without spending its action. Shop purchases and pending visits survive reload; unconfirmed card selections do not.
 
 ## The three regions
