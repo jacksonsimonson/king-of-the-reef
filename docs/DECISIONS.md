@@ -1,5 +1,9 @@
 # Design Decisions
 
+## 2026-10-28 — Later-region playtest and rematch clarity
+
+Keep gameplay values unchanged after three complete agent-operated browser matches using actual study-route saves. Ocean tied 3–3, the Ocean boss rematch lost 0–2, and Bermuda lost 1–4; ordinary positional counters existed and tactical mistakes mattered. Correct “tied tide” to “tied match” and explain unchanged boss terrain/rival school plus carried injuries/spending, without implying free recovery or a reroll. Show summary advice only while another boss attempt remains available. See [observations, fixtures and limits](LATER_REGION_PLAYTEST.md).
+
 ## 2026-10-14 — Regional rival difficulty and board progression
 
 Use Beginner on Shoreline (5×5, five plays), Tactical in Open Ocean (6×6, six), and Expert in Bermuda (7×7, seven). Beginner evaluates immediate control, casualties and Shock with wider tie variation; Tactical adds proximity and defensive protection. Expert searches six promising moves against up to six revealed/public regional card profiles, taking the strongest predicted response into account. Hidden hand identities and reserve order are never supplied. This bounded forecast is a difficulty step, not an exhaustive solver or a promise of perfect play. All levels prioritize final reef scores when no opposing placements remain.

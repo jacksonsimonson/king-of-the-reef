@@ -26,6 +26,7 @@ export interface Run {
   eventVersion?: 1;
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
+export const BOSS_REMATCH_GUIDANCE = "Rematches keep the same terrain and rival school. Injuries and spent charms carry over; there is no recovery between attempts. Try different placements or save a counter for the last play.";
 export function runFishDefinition(run: Run, texture: string) {
   return (run.reefPoolVersion < 3 ? LEGACY_STARTERS : run.cardBalanceVersion === 6 ? STARTERS : run.cardBalanceVersion === 5 ? BATCH_FIVE_STARTERS : run.cardBalanceVersion === 4 ? BATCH_FOUR_STARTERS : run.cardBalanceVersion === 3 ? BATCH_THREE_STARTERS : run.cardBalanceVersion === 2 ? BATCH_TWO_STARTERS : run.cardBalanceVersion === 1 ? BATCH_ONE_STARTERS : PRE_BALANCE_STARTERS).find((fish) => fish.texture === texture);
 }
@@ -224,7 +225,7 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
   }
   const reward = player > rival ? (run.voyageVersion === 2 ? (node.type === "boss" ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === "boss" ? 25 : 12) : run.voyageVersion === 2 ? 6 : 4;
   run.shells += reward;
-  finishNode(run, player > rival ? `Victory! Earned ${reward} shells.` : `A tied tide. Earned ${reward} shells and sailed onward.`);
+  finishNode(run, player > rival ? `Victory! Earned ${reward} shells.` : `A tied match. Earned ${reward} shells and sailed onward.`);
   if (node.type === "boss") {
     if (run.region === 2) { run.status = "won"; run.log = "You reached the heart of the Triangle. The three seas are yours."; }
     else {

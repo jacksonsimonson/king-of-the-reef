@@ -8,7 +8,7 @@ import {match} from './matches.mjs';
 import {chooseRecruit,recruitGain,trimCandidate} from './school-policy.mjs';
 
 /** Seeded route decisions and real combat/settlement; fishing success is an explicit assumption. */
-export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline'}={}){
+export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle}={}){
  assert.ok(['baseline','recruit','trim','both'].includes(schoolPolicy));
  const deliberate=['recruit','both'].includes(schoolPolicy),trimming=['trim','both'].includes(schoolPolicy);
  const run=createRun(seed),battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
@@ -29,6 +29,7 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
   if(node.type==='battle'||node.type==='boss'){
    const count=(attempts.get(node.id)??0)+1;attempts.set(node.id,count);
    if(count>maxBossAttempts){capped=true;break;}
+   onBattle?.(structuredClone(run),count);
    const opening=availableCharms(run.charms),before=healthy(),playLimit=format==='two-tide'?tidePlayLimit(REGIONS[region].id):5+region;
    const regionalHealthy=run.school.filter(c=>c.condition==='healthy'&&REGIONS[region].pool.includes(c.texture)).length;
    const distinctHealthy=new Set(run.school.filter(c=>c.condition==='healthy').map(c=>c.texture)).size;

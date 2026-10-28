@@ -11,6 +11,7 @@ export function showBattleSummary(summary: BattleSummary, onContinue: () => void
   const signed=(n:number)=>n>0?`+${n}`:String(n);
   paragraph(`Shells: ${signed(summary.shells)} · Resolve: ${signed(summary.resolve)} (${summary.resolveNow}/3 now)`);
   paragraph(summary.message);
+  if(summary.rematchAdvice)paragraph(summary.rematchAdvice);
   section('Casualties',summary.casualties.length?summary.casualties.map(c=>`${c.name} — ${c.recovered?'restored by regional passage':'needs hydration'}`):['No new casualties.']);
   if(summary.recovered.length)section('Earlier casualties restored',summary.recovered);
   const counts=new Map<string,number>();for(const id of summary.spentCharms)counts.set(CHARMS[id].name,(counts.get(CHARMS[id].name)??0)+1);

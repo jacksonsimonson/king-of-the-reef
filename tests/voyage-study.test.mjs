@@ -16,6 +16,13 @@ test('full Voyage study is deterministic and distinguishes capped rematches from
  assert.ok(a.battles.length>0);assert.ok(['won','lost'].includes(a.status)||a.capped);assert.ok(a.battles.every(m=>m.playerPlays<=2*(4+m.region)&&m.rivalPlays<=2*(4+m.region)));
  if(a.capped)assert.equal(a.status,'active');
 });
+test('playtest capture receives detached encounter saves without changing simulation results',()=>{
+ const options={seed:'VOYAGE-STUDY-REGRESSION',maxBossAttempts:2};let captured=0;
+ const expected=voyage(options),actual=voyage({...options,onBattle:(run,attempt)=>{
+  captured++;assert.ok(run.pending);assert.ok(attempt>=1);run.school.length=0;run.shells=0;
+ }});
+ assert.equal(captured,actual.battles.length);assert.deepEqual(actual,expected);
+});
 test('Voyage resource ledger reconciles purchases, recruitment, recovery and actual combat shortages',()=>{
  const run=voyage({seed:'RESOURCE-LEDGER',maxBossAttempts:2,catchRate:.6});
  assert.equal(run.balanceVersion,6);

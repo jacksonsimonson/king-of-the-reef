@@ -8,7 +8,7 @@ import { cardElement } from "../ui/cardElement";
 import { tidePlayLimit } from '../twoTide';
 import { voyageMatchFormat } from './battleSave';
 import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
-import { shopOffers, runFishDefinition } from "./state.ts";
+import { shopOffers, runFishDefinition, BOSS_REMATCH_GUIDANCE } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
@@ -241,6 +241,7 @@ export class VoyageView {
         : 'Resume this saved single-tide battle under its original rules.'));
       const reward = run.voyageVersion === 2 ? (node.type === "boss" ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === "boss" ? 25 : 12;
       panel.append(element("p", "", `Win: ${reward} shells. ${node.type === "boss" ? "Tie: rematch." : `Tie: ${run.voyageVersion === 2 ? 6 : 4} shells.`} Loss: −1 resolve.`));
+      if(node.type==='boss')panel.append(element('p','',BOSS_REMATCH_GUIDANCE));
       panel.append(element("p", "", run.log));
       actions.append(button(run.battle ? "Resume saved battle →" : node.type === "boss" ? "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
     } else if (node.type === "shop") {
