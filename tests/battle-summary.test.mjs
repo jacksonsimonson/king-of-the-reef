@@ -22,3 +22,17 @@ test('loss, boss draw and legacy summaries describe the actual outcome',()=>{
  const boss=fixture('boss'),tie=settleBattleWithSummary(boss,[{player:1,rival:1},{player:0,rival:0}],[],[]);assert.match(tie.message,/Rematch/);assert.equal(tie.shells,0);assert.equal(boss.region,0);
  assert.equal(settleBattleWithSummary(fixture(),[{player:1,rival:0}],[],[]).charmLedgerComplete,false);
 });
+
+test('rematch guidance follows actual boss availability without promising recovery or a reroll',()=>{
+ for(const scores of [[{player:1,rival:0},{player:0,rival:1}],[{player:0,rival:1},{player:0,rival:1}]]){
+  const run=fixture('boss'),pending=run.pending;run.charms=['anchor-stone'];
+  const s=settleBattleWithSummary(run,scores,[run.school[0].id],['anchor-stone']);
+  assert.match(s.rematchAdvice,/same terrain and rival school/);assert.match(s.rematchAdvice,/no recovery between attempts/);
+  assert.equal(run.pending,pending);assert.equal(run.school[0].condition,'killed');assert.deepEqual(run.charms,[]);
+ }
+ const ended=fixture('boss');ended.resolve=1;
+ assert.equal(settleBattleWithSummary(ended,[{player:0,rival:1}],[],[]).rematchAdvice,undefined);
+ assert.equal(settleBattleWithSummary(fixture('boss'),[{player:1,rival:0}],[],[]).rematchAdvice,undefined);
+ const tie=settleBattleWithSummary(fixture(),[{player:2,rival:1},{player:1,rival:2}],[],[]);
+ assert.match(tie.message,/tied match/);assert.equal(tie.rematchAdvice,undefined);assert.equal(tie.shells,6);
+});

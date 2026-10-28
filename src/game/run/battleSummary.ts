@@ -1,4 +1,4 @@
-import {battleResult, activeNode, type Run} from './state.ts';
+import {battleResult, activeNode, BOSS_REMATCH_GUIDANCE, type Run} from './state.ts';
 import {combinedScore, type TideScore} from '../twoTide.ts';
 import type {CharmId} from '../data/tideCharms.ts';
 
@@ -7,7 +7,7 @@ export interface BattleSummary {
   casualties: Array<{name: string; recovered: boolean}>;
   recovered: string[]; spentCharms: CharmId[];
   shells: number; resolve: number; resolveNow: number; healthy: number;
-  message: string;
+  message: string; rematchAdvice?: string;
 }
 /** Describe actual settlement, including boss passage recovery, rather than predicting rewards. */
 export function settleBattleWithSummary(run: Run, scores: TideScore[], killedIds: string[], spentCharms: CharmId[]): BattleSummary | undefined {
@@ -21,5 +21,6 @@ export function settleBattleWithSummary(run: Run, scores: TideScore[], killedIds
     casualties:before.school.filter(c=>c.condition==='healthy'&&killedIds.includes(c.id)).map(c=>({name:c.name,recovered:run.school.find(f=>f.id===c.id)?.condition==='healthy'})),
     recovered:before.school.filter(c=>c.condition==='killed'&&run.school.find(f=>f.id===c.id)?.condition==='healthy').map(c=>c.name),
     spentCharms:consumed,shells:run.shells-before.shells,resolve:run.resolve-before.resolve,resolveNow:run.resolve,
-    healthy:run.school.filter(c=>c.condition==='healthy').length,message:run.log};
+    healthy:run.school.filter(c=>c.condition==='healthy').length,message:run.log,
+    rematchAdvice:run.status==='active'&&run.pending&&activeNode(run).type==='boss'?BOSS_REMATCH_GUIDANCE:undefined};
 }
