@@ -8,10 +8,10 @@ import {match} from './matches.mjs';
 import {chooseRecruit,recruitGain,trimCandidate} from './school-policy.mjs';
 
 /** Seeded route decisions and real combat/settlement; fishing success is an explicit assumption. */
-export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle}={}){
+export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle,startingSchoolId}={}){
  assert.ok(['baseline','recruit','trim','both'].includes(schoolPolicy));
  const deliberate=['recruit','both'].includes(schoolPolicy),trimming=['trim','both'].includes(schoolPolicy);
- const run=createRun(seed),battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
+ const run=createRun(seed,2,startingSchoolId),battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
  const startingSchool=run.school.map(c=>c.texture),balanceVersion=run.cardBalanceVersion;
  const healthy=()=>run.school.filter(c=>c.condition==='healthy').length;
  for(let guard=0;run.status==='active'&&guard<100;guard++){

@@ -8,12 +8,14 @@ import { generateShop, type ShopOffer } from "./shop.ts";
 import { enabledTextures } from "../data/roster.ts";
 import { validBattleSave, type BattleSave } from "./battleSave.ts";
 import { voyageEvent, eventChoiceAvailable } from './events.ts';
+import { startingTextures, isStartingSchool, type StartingSchoolId } from './startingSchools.ts';
 
 export interface Run {
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
   visited: string[]; pending: string | null; school: FishCard[]; shells: number;
   resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
   roster: string[];
+  startingSchool?: StartingSchoolId;
   reefPoolVersion: 1 | 2 | 3;
   cardBalanceVersion?: 1 | 2 | 3 | 4 | 5 | 6;
   oceanPoolVersion?: 1;
@@ -35,17 +37,14 @@ export function recruit(run: Run, texture: string): void {
   if (!definition) throw new Error("Unknown creature");
   run.school.push({ ...definition, id: `run-${++run.serial}`, owner: "player", condition: "healthy" });
 }
-export function createRun(seed: string, version: 1 | 2 = 2): Run {
+export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i, version));
   const roster = enabledTextures();
   const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 6, oceanPoolVersion: 1, charmPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
-  const enabled = new Set(roster);
+  if(startingSchool!==undefined)run.startingSchool=startingSchool;
   run.eventVersion = 1;
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
-  const preferred = ["minnow", "anchovy", "goby", "crab", "blenny", "shrimp", "sea-star", "octopus"];
-  const starting = [...preferred.filter((texture) => enabled.has(texture)), ...REGIONS[0].pool.filter((texture) => enabled.has(texture) && !preferred.includes(texture))].slice(0, 8);
-  // A small enabled regional roster still starts an eight-card school with unique card IDs.
-  for (let i = 0; i < 8 && starting.length; i++) recruit(run, starting[i % starting.length]);
+  for(const texture of startingTextures(roster,startingSchool))recruit(run,texture);
   return run;
 }
 export function activeNode(run: Run): MapNode {
@@ -247,6 +246,7 @@ export function loadRun(): Run | null {
     // Rebuild topology, but preserve existing encounter types when rates change.
     const savedMaps = run.maps;
     if (run.eventVersion !== undefined && run.eventVersion !== 1) return null;
+    if (run.startingSchool !== undefined && !isStartingSchool(run.startingSchool)) return null;
     if (run.voyageVersion !== undefined && run.voyageVersion !== 2) return null;
     run.maps = REGIONS.map((_, i) => generateMap(run.seed, i, run.voyageVersion ?? 1));
     run.maps.forEach((map, i) => map.nodes.forEach((node) => {

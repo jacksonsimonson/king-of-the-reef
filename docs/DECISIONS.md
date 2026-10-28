@@ -1,5 +1,9 @@
 # Design Decisions
 
+## 2026-10-28 — Reef-only starting schools
+
+Offer three eight-creature packages: original Tidepool Guides, guarded Shellguard and precise Reef Tethers. All members are in the Reef pool; no Ocean exception is needed. Balance by membership and useful delivery/counterplay rather than modifying creature strength or giving unequal resources. Keep default callers and existing saved cards unchanged; optional school metadata records provenance only. Honor disabled rosters explicitly instead of silently swapping members. [Design, tuning evidence and limitations](STARTING_SCHOOLS.md) record the remaining modest Tethers matchup advantage and mixed Voyage outcomes.
+
 ## 2026-10-28 — Later-region playtest and rematch clarity
 
 Keep gameplay values unchanged after three complete agent-operated browser matches using actual study-route saves. Ocean tied 3–3, the Ocean boss rematch lost 0–2, and Bermuda lost 1–4; ordinary positional counters existed and tactical mistakes mattered. Correct “tied tide” to “tied match” and explain unchanged boss terrain/rival school plus carried injuries/spending, without implying free recovery or a reroll. Show summary advice only while another boss attempt remains available. See [observations, fixtures and limits](LATER_REGION_PLAYTEST.md).
