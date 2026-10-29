@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import test from "node:test";
 import { OPEN_OCEAN_CARDS } from "../src/game/data/openOceanCards.ts";
-import { STARTERS } from "../src/game/data/starterFish.ts";
+import { BATCH_SIX_STARTERS as STARTERS } from "../src/game/data/starterFish.ts";
 import { OCEAN_POOL, LEGACY_OCEAN_POOL, drawOceanCard, oceanRarity } from "../src/game/data/oceanPool.ts";
 import { movementFor } from "../src/game/fishing/model.ts";
 import { resolvePlacement } from "../src/game/combat.ts";

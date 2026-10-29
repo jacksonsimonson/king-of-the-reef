@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { STARTERS, LEGACY_STARTERS } from '../src/game/data/starterFish.ts';
+import { BATCH_SIX_STARTERS as STARTERS, LEGACY_STARTERS } from '../src/game/data/starterFish.ts';
 import { REEF_ART_CARDS } from '../src/game/data/reefArtCards.ts';
 import { REEF_POOL, REEF_GROUPS, reefRarity, V2_REEF_GROUPS } from '../src/game/data/reefPool.ts';
 import { REEF_DESIGNS } from '../src/game/data/reefDesigns.ts';

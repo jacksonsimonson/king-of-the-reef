@@ -62,7 +62,7 @@ export function canCharmCard(card: FishCard | undefined, charm: CharmId): boolea
 export function exchangeReserve(slot: HandSlot, deck: FishCard[], index: number): boolean {
   if (slot.played || !Number.isInteger(index) || index < 0 || index >= Math.min(3, deck.length)) return false;
   const old = slot.card;
-  slot.card = deck.splice(index, 1)[0]; slot.revealed = false;
+  slot.card = deck.splice(index, 1)[0]; slot.revealed = Boolean(slot.card.known);
   deck.push(old);
   return true;
 }
@@ -76,7 +76,7 @@ export function canDrift(board: readonly (FishCard | null)[], from: number, to: 
 
 export function refillSlot(slot: HandSlot, deck: FishCard[]): void {
   const next = deck.shift();
-  if (next) { slot.card = next; slot.played = false; slot.revealed = false; }
+  if (next) { slot.card = next; slot.played = false; slot.revealed = Boolean(next.known); }
 }
 export const PLAYS_PER_BATTLE = 5;
 export function canPlayFish(hand: HandSlot[], played: number, limit = PLAYS_PER_BATTLE): boolean {
@@ -92,7 +92,7 @@ export function shuffleHand(hand: HandSlot[], deck: FishCard[], rng: () => numbe
   }
   // Keep revealed cards visible when they remain in hand after the shuffle.
   const known = new Set(hand.filter((slot) => slot.revealed).map((slot) => slot.card.id));
-  slots.forEach((slot) => { slot.card = pool.shift()!; slot.revealed = known.has(slot.card.id); });
+  slots.forEach((slot) => { slot.card = pool.shift()!; slot.revealed = known.has(slot.card.id) || Boolean(slot.card.known); });
   deck.splice(0, deck.length, ...pool);
 }
 

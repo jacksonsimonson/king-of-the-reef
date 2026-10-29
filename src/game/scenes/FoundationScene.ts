@@ -1,3 +1,7 @@
+import {abilityDialog} from '../ui/abilityDialog';
+import {placementOptions} from '../abilityOptions.ts';
+import {abilityHandSteps,automatedHandChoice} from '../abilityHands.ts';
+import {freshAbilityMemory,beginAbilityTurn,readyGrowth,growArm,blankSides,type AbilityChoice} from '../battleAbilityState.ts';
 import type { BattleSummary } from '../run/battleSummary';
 import { showBattleSummary } from '../ui/battleSummary';
 import { reefAudio } from "../audio/audio.ts";
@@ -8,7 +12,7 @@ import { chooseRivalMove } from '../rivalAI.ts';
 import { combinedScore, matchCharmSpending, freshTide, tidePlayLimit, type TideScore } from '../twoTide.ts';
 import { random, REGIONS } from '../run/maps.ts';
 import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
-import { canPlaceFish, scoreBoard } from "../abilities";
+import { ABILITIES, canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
 import { battleTerrain, terrainForRules, placementCard, placementDestination, terrainLegend, TERRAIN_INFO } from "../terrain";
 import { STARTERS, type FishCard } from "../data/starterFish";
@@ -43,6 +47,35 @@ interface VoyageBattle {
 }
 
 export class FoundationScene extends Phaser.Scene {
+  private abilityMemory=freshAbilityMemory();
+  private abilityDialog?: HTMLDialogElement;
+  private get abilityState(){return {board:this.board,shocked:this.shocked,terrain:this.terrain,memory:this.abilityMemory};}
+  private async chooseAbility(title:string,options:string[],cancel=false,details?:string[]):Promise<number>{
+    const prompt=abilityDialog(title,options,cancel,details);this.abilityDialog=prompt.element;
+    const result=await prompt.result;this.abilityDialog=undefined;return result;
+  }
+  private async beginAbilityTurn():Promise<void>{
+    this.resolving=true;this.abilityMemory=beginAbilityTurn(this.abilityState,this.turn);
+    for(const fish of readyGrowth(this.abilityState,this.turn)){
+      const sides=blankSides(fish);let pick=0;
+      if(this.turn==='player'&&sides.length){this.render('Spreading Arms · choose a new side.');pick=await this.chooseAbility(fish.name+' · Spreading Arms',['Skip growth',...sides.map(d=>'Grow Standard on '+d)]);}
+      else if(sides.length)pick=1;
+      if(!this.sys.isActive())return;
+      const next=growArm(this.abilityState,fish.id,pick>0?sides[pick-1]:undefined);this.board=next.board;this.abilityMemory=next.memory!;
+    }
+    this.resolving=false;
+  }
+  private async finishAbilityDraw(card:FishCard,slot:HandSlot):Promise<void>{
+    this.resolving=true;
+    const steps=abilityHandSteps({hands:{player:this.playerHand,rival:this.rivalHand},decks:{player:this.playerDeck,rival:this.rivalDeck},memory:this.abilityMemory},card,slot);
+    let step=steps.next();while(!step.done){
+      const request=step.value;
+      const picked=card.owner==='player'?await this.chooseAbility(request.title,request.options,false,request.details):automatedHandChoice(request);
+      if(!this.sys.isActive())return;step=steps.next(Math.max(0,picked));
+    }
+    if(card.ability==='sonar'){const deck=card.owner==='player'?this.rivalDeck:this.playerDeck;this.logCombat('Sonar · next reserve in order: '+deck.slice(0,2).filter(c=>c.known).map(c=>c.name).join(', '));}
+    this.resolving=false;
+  }
   private summary?: BattleSummary;
   private summaryDialog?: HTMLDialogElement;
   private openSummary(): void { if (this.summary) { this.summaryDialog?.remove(); this.summaryDialog = showBattleSummary(this.summary, () => this.resultAction()); } }
@@ -129,7 +162,7 @@ export class FoundationScene extends Phaser.Scene {
     document.querySelector("#game")?.after(this.feedbackPanel);
     this.controls = document.createElement('details'); this.controls.className = 'battle-controls'; this.controls.setAttribute('aria-label', 'Battle controls');
     document.querySelector('#game')?.before(this.controls);
-    const cleanup = () => { this.controls?.remove(); this.summaryDialog?.remove(); };
+    const cleanup = () => { this.abilityDialog?.close(); this.controls?.remove(); this.summaryDialog?.remove(); };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup); this.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedbackPanel?.remove(); });
     this.events.once(Phaser.Scenes.Events.DESTROY, () => { this.feedbackPanel?.remove(); });
@@ -141,6 +174,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private restoreBattle(saved: BattleSave): void {
     const s = structuredClone(saved);
+    this.abilityMemory=s.memory??freshAbilityMemory();
     this.board = s.board; this.playerHand = s.playerHand; this.rivalHand = s.rivalHand;
     this.playerDeck = s.playerDeck; this.rivalDeck = s.rivalDeck; this.plays = s.plays;
     this.shocked = new Set(s.shocked); this.killedIds = new Set(s.killedIds); this.turn = s.turn;
@@ -161,7 +195,7 @@ export class FoundationScene extends Phaser.Scene {
   private checkpoint(): void {
     if (!this.voyageBattle || this.resolving || this.finished && !this.intermission) return;
     const saved: BattleSave = structuredClone({ version: 1, nodeId: this.voyageBattle.nodeId, rules: this.rules,
-      board: this.board, playerHand: this.playerHand, rivalHand: this.rivalHand,
+      board: this.board, memory:this.abilityMemory, playerHand: this.playerHand, rivalHand: this.rivalHand,
       playerDeck: this.playerDeck, rivalDeck: this.rivalDeck, shocked: [...this.shocked], killedIds: [...this.killedIds],
       plays: this.plays, turn: this.turn, rngCalls: this.rngCalls,
       pendingReveal: this.pendingReveal === "card" ? "card" : null,
@@ -189,6 +223,7 @@ export class FoundationScene extends Phaser.Scene {
     }
     if (this.twoTide) this.tideRandom = random(this.tideSeed + ':deal');
     this.resolving = false; this.feedbackLog?.replaceChildren();
+    this.abilityMemory=freshAbilityMemory();
     this.board = Array(this.rules.size * this.rules.size).fill(null);
     const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createEnabledDeck("player"));
     const rivalRound = this.dealRound(this.voyageBattle?.rivalDeck ?? createEnabledDeck("rival"));
@@ -212,6 +247,7 @@ export class FoundationScene extends Phaser.Scene {
       this.turn = nextTide ? 'rival' : 'player';
     }
     this.plays = { player: 0, rival: 0 };
+    this.abilityMemory=beginAbilityTurn(this.abilityState,this.turn);
     this.render(this.turn === 'rival' ? 'Fresh tide. The rival moves first.' : 'Drag a fish to open water, or select it and choose a tile.');
     if (this.turn === 'rival') this.time.delayedCall(550, () => this.playRivalTurn());
     else if (!this.playerHand.length) this.advanceTurn("player");
@@ -281,6 +317,11 @@ export class FoundationScene extends Phaser.Scene {
       if (!this.board[index]) this.drawTerrain(index, x, y);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
+      const marker=this.abilityMemory.decoys.some(t=>t.index===index)?'AFTERIMAGE':this.abilityMemory.snares.some(t=>t.index===index)?'SNARE':null;
+      if(marker)add(this.add.text(x+CELL/2,y+CELL/2,marker,this.textStyle(8,marker==='SNARE'?'#ffcc88':'#c6a4ff')).setOrigin(.5));
+      const tokenFish=this.board[index];
+      if(tokenFish?.ability==='inflate')add(this.add.text(x+CELL/2,y+6,this.abilityMemory.inflated.includes(tokenFish.id)?'DEFLATED':'INFLATED',this.textStyle(8,'#ffdd88')).setOrigin(.5,0));
+      if(tokenFish?.ability==='spreading-arms')add(this.add.text(x+CELL/2,y+6,this.abilityMemory.grown.includes(tokenFish.id)?'GROWN':'GROWING',this.textStyle(8,'#aaffbb')).setOrigin(.5,0));
       const feature = this.terrain.features?.get(index);
       if (feature && this.board[index]) add(this.add.text(x + CELL / 2, y + CELL - 4, TERRAIN_INFO[feature].name, { ...this.textStyle(8, "#c4ece1"), backgroundColor: "#00233a" }).setOrigin(0.5, 1));
       if (this.pendingDrift && this.driftFrom !== null && canDrift(this.board, this.driftFrom, index, this.terrain)) {
@@ -370,13 +411,13 @@ export class FoundationScene extends Phaser.Scene {
     card.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       card.setPosition(dragX, dragY);
       const index = this.boardIndexAt(pointer.x, pointer.y);
-      if (index !== null && canPlaceFish(this.board, index, slot.card, this.terrain)) this.showPlacementPreview(index, slot.card);
+      if (index !== null && canPlaceFish(this.board, index, slot.card, this.terrain,this.abilityMemory)) this.showPlacementPreview(index, slot.card);
       else this.clearPlacementPreview();
     });
     card.on("dragend", () => {
       const placement = this.previewIndex;
       this.clearPlacementPreview();
-      if (placement !== null && canPlaceFish(this.board, placement, slot.card, this.terrain)) this.playPlayerCard(placement);
+      if (placement !== null && canPlaceFish(this.board, placement, slot.card, this.terrain,this.abilityMemory)) this.playPlayerCard(placement);
       else {
         card.setPosition(x, y).setScale(1).setDepth(2);
         this.selectedId = null;
@@ -520,7 +561,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private hasLegalMove(owner: "player" | "rival"): boolean {
     const hand = owner === "player" ? this.playerHand : this.rivalHand;
-    return canPlayFish(hand, this.plays[owner], this.playLimit) && hand.some(slot => !slot.played && this.board.some((_, index) => canPlaceFish(this.board, index, slot.card, this.terrain)));
+    return canPlayFish(hand, this.plays[owner], this.playLimit) && hand.some(slot => !slot.played && this.board.some((_, index) => canPlaceFish(this.board, index, slot.card, this.terrain,this.abilityMemory)));
   }
 
   private canUseCharm(id: CharmId): boolean {
@@ -597,6 +638,7 @@ export class FoundationScene extends Phaser.Scene {
   private finishDrift(index: number): void {
     if (!this.pendingDrift || this.driftFrom === null || !canDrift(this.board, this.driftFrom, index, this.terrain) || !this.spendCharm('drift-shell')) return;
     this.board[index] = this.board[this.driftFrom]; this.board[this.driftFrom] = null;
+    this.abilityMemory.decoys = this.abilityMemory.decoys.filter(token => token.index !== index);
     this.pendingDrift = false; this.driftFrom = null; this.render('Fish repositioned. Play your fish when ready.');
   }
   private chooseDraft(index: number): void {
@@ -667,6 +709,9 @@ export class FoundationScene extends Phaser.Scene {
     const inspect = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Inspect board and revealed rival cards'; inspect.append(summary);
     this.board.forEach((_,i) => { const p = document.createElement('p'); p.textContent = tile(i); inspect.append(p); });
     this.rivalHand.forEach((slot,i) => { if (slot.revealed && !slot.played) { const p = document.createElement('p'); p.textContent = 'Rival card '+(i+1)+': '+cardDescription(slot.card); inspect.append(p); } });
+    for(const [owner,deck] of [['player',this.playerDeck],['rival',this.rivalDeck]] as const)[...deck].filter(c=>c.known).sort((a,b)=>a.name.localeCompare(b.name)).forEach((card)=>{if(card.known){const p=document.createElement('p');p.textContent=owner+' known reserve identity: '+cardDescription(card);inspect.append(p);}});
+    for(const token of this.abilityMemory.decoys){const p=document.createElement('p');p.textContent='Afterimage at '+tileName(token.index,this.rules.size)+'; blocks placement, movement clears it.';inspect.append(p);}
+    for(const token of this.abilityMemory.snares){const p=document.createElement('p');p.textContent=token.owner+' Snare at '+tileName(token.index,this.rules.size);inspect.append(p);}
     root.append(inspect);
     if (focused) { const replacement = [...root.querySelectorAll<HTMLElement>('[data-control]')].find(el => el.dataset.control === focused && !(el as HTMLButtonElement).disabled); (replacement ?? status).focus({preventScroll:true}); }
   }
@@ -676,16 +721,25 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private isLegalPlayerPlacement(index: number): boolean {
-    return Boolean(this.selectedId && this.turn === "player" && !this.resolving && !this.finished && !this.pendingReveal && !this.pendingRally && !this.pendingDraft && !this.pendingDrift && canPlaceFish(this.board, index, this.getSelectedPlayerCard(), this.terrain));
+    return Boolean(this.selectedId && this.turn === "player" && !this.resolving && !this.finished && !this.pendingReveal && !this.pendingRally && !this.pendingDraft && !this.pendingDrift && canPlaceFish(this.board, index, this.getSelectedPlayerCard(), this.terrain,this.abilityMemory));
   }
 
   private async playPlayerCard(index: number): Promise<void> {
     const slot = this.playerHand.find((entry) => !entry.played && entry.card.id === this.selectedId);
-    if (!slot || !canPlaceFish(this.board, index, slot.card, this.terrain) || this.turn !== "player" || this.resolving || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
-    slot.played = true;
-    this.selectedId = null;
+    if (!slot || !canPlaceFish(this.board, index, slot.card, this.terrain,this.abilityMemory) || this.turn !== "player" || this.resolving || this.finished || this.pendingReveal || this.pendingRally || this.pendingDraft || this.pendingDrift) return;
     const playedCard = slot.card;
-    const result = await this.placeCard(index, playedCard);
+    const options=placementOptions(this.abilityState,index,playedCard);let picked=0;
+    if(options.length>1){
+      this.resolving=true;this.render('Choose '+playedCard.name+' ability.');
+      picked=await this.chooseAbility(playedCard.name+' · '+(playedCard.ability?ABILITIES[playedCard.ability].name:'Ability'),options.map(o=>{
+        const result=resolvePlacement(this.abilityState,index,playedCard,this.rules.size,false,o.choice),score=scoreBoard(result.board);
+        return o.label+' · resulting score '+score.player+'–'+score.rival+' · removals '+result.killedIds.length;
+      }),true);
+      if(!this.sys.isActive())return;this.resolving=false;
+      if(picked<0){this.render('Placement canceled. Card kept.');return;}
+    }
+    slot.played=true;this.selectedId=null;
+    const result = await this.placeCard(index, playedCard,options[picked].choice);
     if (!this.sys.isActive()) return;
     this.plays.player++;
     if (triggersRally(playedCard, result.pushedEnemyIds, this.playerDeck)) {
@@ -694,7 +748,8 @@ export class FoundationScene extends Phaser.Scene {
       this.render("Rally — inspect your next card before drawing your replacement.");
       return;
     }
-    refillSlot(slot, this.playerDeck);
+    await this.finishAbilityDraw(playedCard,slot);
+    if(!this.sys.isActive())return;
     if (playedCard.ability === "revelation" && revealTargets(this.rivalHand).length) {
       this.logCombat(playedCard.name + ": Revelation triggered — reveal a rival card.");
       this.pendingReveal = "card";
@@ -708,18 +763,19 @@ export class FoundationScene extends Phaser.Scene {
     const publicPool = STARTERS.filter(c => (REGIONS.find(r => r.id === this.rules.region)!.pool as readonly string[]).includes(c.texture));
     const revealed = this.playerHand.filter(s => !s.played && s.revealed).map(s => s.card);
     const profiles = [...revealed, ...publicPool.filter((_, i) => i % Math.max(1, Math.floor(publicPool.length / 6)) === 0).map(c => ({...c, owner: 'player' as const, condition: 'healthy' as const}))];
-    const choice = chooseRivalMove({board: this.board, shocked: this.shocked, terrain: this.terrain, hand: this.rivalHand,
+    const choice = chooseRivalMove({...this.abilityState, hand: this.rivalHand,
       difficulty: this.rules.difficulty, rivalPlaysLeft: this.playLimit - this.plays.rival,
       playerPlaysLeft: this.hasLegalMove('player') ? this.playLimit - this.plays.player : 0, publicThreats: profiles}, () => this.random());
     if (!choice) return this.advanceTurn('rival');
     const best = {slot: this.rivalHand[choice.slotIndex], index: choice.index};
     best.slot.played = true;
     const playedCard = best.slot.card;
-    const result = await this.placeCard(best.index, playedCard);
+    const result = await this.placeCard(best.index, playedCard,choice.abilityChoice);
     if (!this.sys.isActive()) return;
     this.plays.rival++;
     if (triggersRally(playedCard, result.pushedEnemyIds, this.rivalDeck)) resolveRally(this.rivalDeck, rivalRallyChoice(this.rivalDeck[0]));
-    refillSlot(best.slot, this.rivalDeck);
+    await this.finishAbilityDraw(playedCard,best.slot);
+    if(!this.sys.isActive())return;
     if (playedCard.ability === "revelation") {
       const targets = revealTargets(this.playerHand);
       if (targets.length) revealCard(this.playerHand, targets[Math.floor(this.random() * targets.length)].card.id);
@@ -727,11 +783,13 @@ export class FoundationScene extends Phaser.Scene {
     this.advanceTurn("rival");
   }
 
-  private advanceTurn(previous: "player" | "rival"): void {
+  private async advanceTurn(previous: "player" | "rival"): Promise<void> {
     if (this.checkEnd()) return;
     const playerReady = this.hasLegalMove("player");
     const rivalReady = this.hasLegalMove("rival");
     this.turn = rivalReady && (previous === "player" || !playerReady) ? "rival" : "player";
+    await this.beginAbilityTurn();
+    if(!this.sys.isActive())return;
     this.render(this.turn === "rival" ? "The rival is choosing…" : "Your turn — drag a fish to open water.");
     if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
   }
@@ -781,15 +839,15 @@ export class FoundationScene extends Phaser.Scene {
     await Promise.all(animations);
   }
 
-  private async placeCard(index: number, card: FishCard): Promise<ReturnType<typeof resolvePlacement>> {
+  private async placeCard(index: number, card: FishCard, choice:AbilityChoice={}): Promise<ReturnType<typeof resolvePlacement>> {
     this.resolving = true;
     const beforeScore = this.getScores();
-    const result = resolvePlacement({ board: this.board, shocked: this.shocked, terrain: this.terrain }, index, card, this.rules.size, true);
+    const result = resolvePlacement(this.abilityState, index, card, this.rules.size, true,choice);
     for (const frame of result.frames) {
       if (!this.sys.isActive()) break;
       await this.showCombatFrame(frame);
     }
-    this.board = result.board; this.shocked = result.shocked;
+    this.board = result.board; this.shocked = result.shocked; this.abilityMemory=result.memory;
     for (const id of result.killedIds) this.killedIds.add(id);
     const afterScore = this.getScores();
     if (beforeScore.player !== afterScore.player || beforeScore.rival !== afterScore.rival) this.logCombat(`Reef control: you ${afterScore.player} · rival ${afterScore.rival}.`);

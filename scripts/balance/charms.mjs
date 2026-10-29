@@ -15,7 +15,7 @@ export function useStudyCharm({state,hands,decks,owner,inventory,target,rng}){
     if(!best||value>best.value)best={from,to,value};
    }
    const before=scoreBoard(board);
-   if(best&&best.value>before.player-before.rival){state.board[best.to]=state.board[best.from];state.board[best.from]=null;detail={from:best.from,to:best.to};}
+   if(best&&best.value>before.player-before.rival){state.board[best.to]=state.board[best.from];state.board[best.from]=null;if(state.memory)state.memory.decoys=state.memory.decoys.filter(t=>t.index!==best.to);detail={from:best.from,to:best.to};}
   }else if(charm==='dredger-net'){
    const slot=ordered.find(s=>s.card.texture!==target);if(slot&&decks[owner].length){const options=decks[owner].slice(0,3);let i=options.findIndex(c=>c.texture===target);if(i<0)i=0;if(exchangeReserve(slot,decks[owner],i))detail={card:slot.card.texture};}
   }else if(charm==='current-conch'){

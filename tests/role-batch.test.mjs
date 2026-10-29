@@ -69,5 +69,5 @@ test('saved voyages retain old school, future recruits and queued offers; new vo
    assert.deepEqual(runFishDefinition(loaded,texture).edges,card(texture,old).edges);
   }
  }
- const bad=createRun('FUTURE');bad.cardBalanceVersion=7;localStorage.setItem(SAVE_KEY,JSON.stringify(bad));assert.equal(loadRun(),null);
+ const bad=createRun('FUTURE');bad.cardBalanceVersion=8;localStorage.setItem(SAVE_KEY,JSON.stringify(bad));assert.equal(loadRun(),null);
 });

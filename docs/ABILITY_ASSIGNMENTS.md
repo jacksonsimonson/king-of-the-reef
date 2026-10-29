@@ -1,12 +1,12 @@
 # Battle-ability assignments and relative balance budget
 
-This is the assignment specification for the twenty battle-only abilities in [the shortlist](CARD_ABILITY_IDEAS.md), based on the current roster. It does not itself enable abilities or change saved cards. Exact runtime assignments require implementation, interaction tests, versioned saves and mixed-school comparisons. Balance assessments here are hypotheses, not measured win rates.
+All twenty assignments below are implemented for new Quick Matches and balance-version-seven Voyages. Earlier saved runs retain their previous card definitions. The relative budgets remain design hypotheses; see [implementation rules and comparative evidence](BATTLE_ABILITY_IMPLEMENTATION.md) for measured results and limitations.
 
 Use one innate ability per creature. Keep the common four directional guides unchanged: **Shoal goes to Clownfish**, whose existing two-edge package can pay for it. This replaces the tentative Minnow/Anchovy host. Retain existing Revelation and Rally creatures. No Colossal assignments.
 
 Directions below are absolute card directions. Shield is the existing `weak` edge; Bite is `bigger-fish`; Follow is `follow-current`. An omitted side is blank. Preserve the listed clockwise resolution order except when Battle Plan explicitly reverses it.
 
-| Creature / ability | Current edges | Proposed edges | Why this pays for the ability / remaining weakness |
+| Creature / ability | Previous edges | Implemented edges | Why this pays for the ability / remaining weakness |
 | --- | --- | --- | --- |
 | Flying Fish — Slipstream | Up Dive; right Double | Up Dive; right Standard | Trade penetration for flexible self-positioning. No Shields, no direct reef deployment; occupied landing spaces still stop it. High access budget. |
 | Remora — Towline | Up Shield; right Hook | Up Shield; right Standard | Replace fixed distant pulling with one optional allied pull; keep a close-range job when no distant ally exists. Three exposed approaches, no enemy long-range pull. Moderate support budget. |
@@ -35,7 +35,7 @@ The earlier rule awarded a bonus only after already holding two reefs. On a thre
 
 Instead: **a Network creature off a reef contributes one point while orthogonally adjacent to a reef occupied by an ally**. On a reef it contributes its ordinary reef score instead; no extra Network point. At most one off-reef Network point per owner, regardless of copies. A Sovereign-bearing Network creature cannot supply that off-reef bonus. Taking the reef or moving/removing the coral breaks the connection. This creates a useful alternative scoring formation while requiring two vulnerable board pieces. It never creates a reef or a self-sufficient scoring token. Test it directly against Shoal: support can be placed normally, so it needs an appropriately weak edge profile and open approaches.
 
-## Balance gates before enabling the assignments
+## Balance gates and continuing review
 
 1. **Independent value:** every host must still have an ordinary board job without its ideal ally, hidden card, reserve or token trigger. Low-value final-play abilities need viable edges, not compensation through guaranteed extra points.
 2. **Role scenarios:** test exposed and Shielded reef holders, allied delivery, occupied landing spaces, sparse boards and ordinary counters. Include friendly harm; optional effects must not secretly become unconditional bonuses.

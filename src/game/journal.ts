@@ -18,6 +18,10 @@ export const ROLE_HELP = {
 export type SchoolRole = keyof typeof ROLE_HELP;
 /** A browsing aid derived from actual mechanics, not the planned design-role inventory. */
 export function creatureRole(fish: Pick<FishCard, 'edges' | 'ability'>): SchoolRole {
+  if (['shoal', 'reef-network'].includes(fish.ability ?? '')) return 'Scorer';
+  if (['inflate', 'borrowed-armor', 'afterimage'].includes(fish.ability ?? '')) return 'Defender';
+  if (['sonar', 'relay', 'grooming', 'muster', 'gentle-giant'].includes(fish.ability ?? '')) return 'Support';
+  if (['false-lure', 'snare-line'].includes(fish.ability ?? '')) return 'Disruptor';
   if (fish.ability === 'sovereign' || fish.ability === 'reefborn') return 'Scorer';
   if (fish.ability === 'anchor' || fish.ability === 'bulwark') return 'Defender';
   if (fish.ability === 'revelation' || fish.ability === 'rally' || fish.ability === 'escort') return 'Support';

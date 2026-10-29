@@ -1,10 +1,10 @@
 # Twenty creature-led ability candidates
 
-Proposal only: no gameplay, creature assignments or balance values change. This replaces the previous eight-idea sketch. All twenty finalists now affect battle only: no rewards, fishing, route previews or post-match recovery. Reviewed the 167-entry catalog, authored regional roles, existing abilities and the relative balancing framework in CREATURE_BALANCE.md. Named hosts exist in the roster; thematic associations are creative interpretations, not zoological claims or approved assignments.
+Status: all twenty are now implemented using the [final creature assignments](ABILITY_ASSIGNMENTS.md) and [versioned rules and test evidence](BATTLE_ABILITY_IMPLEMENTATION.md). The brainstorming and screening below are retained as design history. This replaces the previous eight-idea sketch. All twenty finalists now affect battle only: no rewards, fishing, route previews or post-match recovery. Reviewed the 167-entry catalog, authored regional roles, existing abilities and the relative balancing framework in CREATURE_BALANCE.md. Named hosts exist in the roster; thematic associations are creative interpretations, not zoological claims. Final approved assignments are linked above.
 
 ## From forty candidates to twenty
 
-The initial pool contains the twenty finalists and twenty cuts below. First remove rare-condition dependencies, redundant existing mechanics and action/score exploits. Then tighten rules, add ordinary counters and check system coverage. The revised finalists cover movement, defense, delayed growth, attack control, scoring, information, hand/reserve management, adaptation, temporary obstacles, allied maintenance, threat zones and edge sequencing. Only two primarily move creatures. Five former run-level ideas are replaced below; the original forty-concept screening remains recorded as history. These are design-screened proposals, not simulation-tested winners.
+The initial pool contains the twenty finalists and twenty cuts below. First remove rare-condition dependencies, redundant existing mechanics and action/score exploits. Then tighten rules, add ordinary counters and check system coverage. The revised finalists cover movement, defense, delayed growth, attack control, scoring, information, hand/reserve management, adaptation, temporary obstacles, allied maintenance, threat zones and edge sequencing. Only two primarily move creatures. Five former run-level ideas are replaced below; the original forty-concept screening remains recorded as history. This screening preceded implementation; comparative results are reported separately above.
 
 Abilities must replace part of a creature's existing power budget, not decorate its already balanced edges for free. Keep basic guides without abilities available. Later regions introduce complexity rather than universal numerical upgrades. Numbers below are provisional experiments; use relative comparisons, not fixed point costs.
 
@@ -119,8 +119,8 @@ Specify ordering against terrain, edges, Wake, whirlpools and replacement draws 
 
 ## Battle-only refinement
 
-Regrowth, Cleaning Station, Wreck Salvage, Patient Guide and Chartmaker are removed from the shortlist because their benefits occurred outside combat. Their replacements are Spreading Arms, Grooming, Snare Line, Muster and Battle Plan. The count remains twenty. No new abilities are implemented.
+Regrowth, Cleaning Station, Wreck Salvage, Patient Guide and Chartmaker are removed from the shortlist because their benefits occurred outside combat. Their replacements are Spreading Arms, Grooming, Snare Line, Muster and Battle Plan. The count remains twenty. All twenty replacements/finalists are now implemented; see the implementation report above.
 
 ## Proposed creature assignments
 
-[Twenty concrete hosts, before/after edges and relative balance gates](ABILITY_ASSIGNMENTS.md) specify the proposed roster pass. Clownfish replaces the tentative Minnow/Anchovy host; Reef Network is refined to affect ordinary outcomes. These specifications do not themselves enable runtime abilities.
+[Twenty concrete hosts, before/after edges and relative balance gates](ABILITY_ASSIGNMENTS.md) specify the proposed roster pass. Clownfish replaces the tentative Minnow/Anchovy host; Reef Network is refined to affect ordinary outcomes. These assignments now ship under balance version seven.

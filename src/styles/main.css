@@ -229,3 +229,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visib
 .journal-warning { color: #ffd582; }
 .journal-list { margin-top: 12px; }
 .journal-toolbar > button { align-self: end; }
+
+.ability-dialog { width: min(720px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; box-sizing: border-box; }
+.ability-dialog select { font: inherit; width: 100%; padding: 12px; color: #f2e9c9; background: #071e2a; }
+.ability-dialog p { line-height: 1.5; overflow-wrap: anywhere; }

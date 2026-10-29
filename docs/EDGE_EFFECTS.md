@@ -67,3 +67,8 @@ Shock disables edges, not full-card abilities. Placement terrain applies first, 
 Real placements record ordered board snapshots; rival evaluation uses the same resolver without recording. Cards slide for movement, fade out when removed, and fade in at whirlpool exits. Placement and status/ability changes pulse in opacity without scaling sprites. The resolution banner names the current effect, and inputs stay locked until playback completes. Reef scoring, replacement draws and follow-up choices then continue normally.
 
 A collapsible combat log below the board keeps the latest 40 events, including named cards, labeled board coordinates, defensive blocks, terrain, Spines retaliation, Shock, and reef score changes. No log is persisted between matches. The Motion toggle skips animation delays; it defaults to reduced motion when requested by the operating system. Art retains integer coordinates and native size.
+
+
+## Twenty additional innate battle abilities
+
+See [assigned creatures and edge reductions](ABILITY_ASSIGNMENTS.md) and [runtime timing, counterplay and evidence](BATTLE_ABILITY_IMPLEMENTATION.md). Full-card choices share the same pure resolver for player previews, AI and simulations. Basic edge defenses, occupied destinations, terrain and friendly-fire rules remain in force unless an ability explicitly bypasses them.

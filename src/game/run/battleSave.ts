@@ -1,3 +1,4 @@
+import {validAbilityMemory,type AbilityMemory} from '../battleAbilityState.ts';
 import { ABILITIES } from '../abilities.ts';
 import { STARTERS, type FishCard } from '../data/starterFish.ts';
 import type { HandSlot } from '../combat.ts';
@@ -16,6 +17,7 @@ export function voyageMatchFormat(saved?: BattleSave): 'classic' | 'two-tide' { 
 
 /** Only stable decision points are saved. Animation frames are never checkpoints. */
 export interface BattleSave {
+  memory?: AbilityMemory;
   version: 1; nodeId: string; board: Array<FishCard | null>;
   playerHand: HandSlot[]; rivalHand: HandSlot[]; playerDeck: FishCard[]; rivalDeck: FishCard[];
   shocked: string[]; killedIds: string[]; plays: { player: number; rival: number };
@@ -29,11 +31,13 @@ export function validBattleSave(value: unknown, nodeId: string): value is Battle
   const s = value as BattleSave;
   if (s.rules !== undefined && !validRules(s.rules)) return false;
   const size = s.rules?.size ?? 5, limit = s.twoTide && s.rules ? tidePlayLimit(s.rules.region) : s.rules?.plays ?? 5;
+  if(s.memory!==undefined&&!validAbilityMemory(s.memory,size))return false;
   const integer = (n: number, max: number) => Number.isInteger(n) && n >= 0 && n <= max;
   const card = (f: FishCard) => f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.species === 'string'
     && STARTERS.some(base => base.texture === f.texture) && ['player', 'rival'].includes(f.owner) && f.condition === 'healthy'
     && Array.isArray(f.edges) && f.edges.length <= 4 && new Set(f.edges.map(e => e?.direction)).size === f.edges.length
     && f.edges.every(e => e && ['up', 'right', 'down', 'left'].includes(e.direction) && ['standard', 'double', 'weak', 'bigger-fish', 'swap', 'hook', 'wave', 'shock', 'spines', 'ram', 'follow-current', 'bounce', 'dive'].includes(e.effect))
+    && (f.known === undefined || typeof f.known === 'boolean')
     && (f.ability === undefined || Object.hasOwn(ABILITIES, f.ability))
     && (f.battleAbilities === undefined || Array.isArray(f.battleAbilities) && f.battleAbilities.every(a => Object.hasOwn(ABILITIES, a)));
   const hand = (slots: HandSlot[], owner: string) => Array.isArray(slots) && slots.length <= 5 && slots.every(slot => slot && typeof slot.played === 'boolean' && (slot.revealed === undefined || typeof slot.revealed === 'boolean') && card(slot.card) && slot.card.owner === owner);
