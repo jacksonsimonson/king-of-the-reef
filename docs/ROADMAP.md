@@ -61,7 +61,9 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
-- [Starting-school choices](STARTING_SCHOOLS.md) implemented: reef-only Tidepool Guides, Shellguard and Reef Tethers, with native-size previews, explicit weaknesses and equal resources. Tested through 960 two-tide matchups, 432 simulated Voyages and browser departure/save flows. Existing runs retain their actual cards. Keep human preference/pacing checks separate from provisional automated balance evidence.
+- Four additional Tide Charms implemented: Guardian Ribbon, Cuttle Ink, Surge Bottle and Undertow Lure. New Voyages use the expanded 16-item pool; prior shop pools remain stable. [New card-ability candidates](CARD_ABILITY_IDEAS.md) are proposals only, awaiting selection and prototypes. Recruiting/trimming UI expansion is deferred.
+
+- [Starting-school choices](STARTING_SCHOOLS.md) shelved at the owner’s request; the original departure screen and fixed school are restored. Historical validation: reef-only Tidepool Guides, Shellguard and Reef Tethers, with equal resources. Tested through 960 two-tide matchups, 432 simulated Voyages and browser departure/save flows. Existing runs retain their actual cards. Keep human preference/pacing checks separate from provisional automated balance evidence.
 
 - [Later-region browser playtest](LATER_REGION_PLAYTEST.md) complete: three full matches with actual carried schools, including a stalled-route boss rematch. Verified tactical counters and settlement; corrected combined-draw wording and clarified persistent boss-rematch resources. No balance values changed. Human comprehension/pacing and varied-seed, charm-equipped encounters remain untested.
 

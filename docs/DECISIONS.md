@@ -1,5 +1,9 @@
 # Design Decisions
 
+## 2026-10-28 — Shelve school selection; expand tactical items
+
+Restore the pre-picker departure and New Voyage screens, including the original fixed starter school. Preserve existing saved cards and school metadata; retain the school definitions and evidence for later use. Add four consumable Tide Charms through the existing hand-targeted flow, with no new inventory category or permanent upgrades. Version the shop pool as 3 so prior four- and twelve-charm offers and purchase IDs remain stable. Keep new full-card ability concepts in the backlog until selected.
+
 ## 2026-10-28 — Reef-only starting schools
 
 Offer three eight-creature packages: original Tidepool Guides, guarded Shellguard and precise Reef Tethers. All members are in the Reef pool; no Ocean exception is needed. Balance by membership and useful delivery/counterplay rather than modifying creature strength or giving unequal resources. Keep default callers and existing saved cards unchanged; optional school metadata records provenance only. Honor disabled rosters explicitly instead of silently swapping members. [Design, tuning evidence and limitations](STARTING_SCHOOLS.md) record the remaining modest Tethers matchup advantage and mixed Voyage outcomes.

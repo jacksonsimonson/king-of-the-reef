@@ -13,6 +13,10 @@ This file captures possibilities without promising that they will be implemented
 
 ## Combat ideas
 
+### Full-card ability candidates
+
+**Status:** Exploring. [Twenty creature-led finalists from forty concepts](CARD_ABILITY_IDEAS.md) now cover battle only: movement, defense, growth, attack control, scoring, information, hand management, adaptation, support, zones and sequencing. Recommended first prototypes: Inflate, Gentle Giant, Sonar, Shoal and Grooming. [Concrete host assignments and proposed edge tradeoffs](ABILITY_ASSIGNMENTS.md) now cover all twenty; runtime implementation and comparative balance validation remain pending. The document records the twenty cuts and why they were rejected or deferred.
+
 ### Weight classes
 
 **Status:** Exploring
@@ -112,7 +116,7 @@ Give each Colossal a coherent themed deck that supports its identity and battle 
 
 - Fish collection journal
 - Alternate anglers
-- Unlockable starting schools — defer until the existing roster has completed its role and balance pass
+- Starting-school choices — shelved after PR #42 at the owner’s request; preserve definitions and existing saved schools for later reconsideration
 - Difficulty modifiers
 - Regional species pools
 - Cosmetic aquarium

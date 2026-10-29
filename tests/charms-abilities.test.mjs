@@ -14,7 +14,7 @@ const terrain = () => ({ rocks: new Set(), whirlpools: [0, 24], features: new Ma
 const state = (entries = {}) => ({ board: Object.assign(Array(25).fill(null), entries), shocked: new Set(), terrain: terrain() });
 
 test('the expansion leaves creature assignments unchanged and provides distinct ability patterns', () => {
-  assert.equal(CHARM_IDS.length, 12);
+  assert.equal(CHARM_IDS.length, 16);
   assert.equal(NEW_ABILITIES.length, 8);
   assert.ok(STARTERS.every(card => !NEW_ABILITIES.includes(card.ability)));
   const signatures = NEW_ABILITIES.map(id => {
@@ -157,12 +157,12 @@ test('legacy charm stock stays fixed and new voyages persist expanded stock acro
   run.current = run.maps[0].nodes.find(n => n.next.includes(node.id)).id; run.pending = node.id;
   const stock = shopOffers(run); run.charms = [...CHARM_IDS];
   saveRun(run); const loaded = loadRun();
-  assert.equal(loaded.charmPoolVersion, 2); assert.deepEqual(shopOffers(loaded), stock); assert.deepEqual(loaded.charms, CHARM_IDS);
+  assert.equal(loaded.charmPoolVersion, 3); assert.deepEqual(shopOffers(loaded), stock); assert.deepEqual(loaded.charms, CHARM_IDS);
   delete run.charmPoolVersion; saveRun(run); const legacy = loadRun();
   assert.ok(shopOffers(legacy).filter(o => o.kind === 'charm').every(o => LEGACY_CHARM_IDS.includes(o.charm)));
   const seen = new Set();
   for (let i = 0; i < 1000; i++) for (const offer of generateShop(String(i), 'shop', 0, ['minnow', 'anchovy'])) if (offer.kind === 'charm') seen.add(offer.charm);
   assert.deepEqual([...seen].sort(), [...CHARM_IDS].sort());
-  run.charmPoolVersion = 3; saveRun(run); assert.equal(loadRun(), null);
+  run.charmPoolVersion = 4; saveRun(run); assert.equal(loadRun(), null);
   values.delete(SAVE_KEY);
 });
