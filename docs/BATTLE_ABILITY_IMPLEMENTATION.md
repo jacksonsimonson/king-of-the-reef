@@ -67,3 +67,6 @@ The Shoreline formation benefits from its scoring/support package; the Ocean for
 Observed final check: `npm.cmd run verify` passed workflow configuration, 279 tests, type-check and build (the existing bundle-size warning remains). `git diff --check` passed. Both balance scripts were rerun on the final rules with the reported results unchanged.
 
 Browser: exercised native text controls, True North cancellation and rotation, False Lure hidden-slot selection followed by reveal/exchange, Snare Line placement, Relay replacement selection, rival responses, completion of tide one and reset into tide two. Inspected the final Gentle Giant dialog visually after the last UI update. This was a functional smoke test with an isolated twenty-host roster, not strategic human playtesting of all twenty abilities. Drag input, narrow/mobile viewports, all individual ability dialogs and a full new-version Voyage were not manually exercised. Temporary playtest fixtures stay under ignored `.cache/` on an isolated local origin, leaving the user's current Voyage save intact.
+
+
+Follow-up: the [Shoreline scoring / Ocean coverage study](SCORING_COVERAGE_STUDY.md) expands the opponent schools, isolates scoring bonuses and tests single-edge restoration prototypes. It retains the current version-seven assignments.
