@@ -1,5 +1,7 @@
 # Starting schools
 
+**Shelved on 2026-10-28 at the owner’s request.** The departure and New Voyage screens use the original fixed school again. Existing runs keep their actual cards and optional provenance. Definitions, tests and the historical evidence below remain available for reconsideration; the picker is not currently exposed.
+
 New Voyages offer three eight-creature schools. All creatures belong to the Shoreline/Reef pool; **none uses an Open Ocean or Bermuda card**. Each starts with eight healthy, uniquely identified copies, 24 shells, three resolve and no charms. The seed, maps, encounter offers and reward rules are unaffected by the choice. Schools are starting packages, not permanent restrictions on recruiting.
 
 Every school shares Minnow, Anchovy, Goby and Tidepool Blenny for familiar directional setup. Its remaining four creatures establish its playstyle:

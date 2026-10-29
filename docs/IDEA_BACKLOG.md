@@ -13,6 +13,10 @@ This file captures possibilities without promising that they will be implemented
 
 ## Combat ideas
 
+### Full-card ability candidates
+
+**Status:** Exploring. [Eight candidate rules, tradeoffs and thematic fits](CARD_ABILITY_IDEAS.md) include Slipstream, Formation, Towline, Backwash, Breakwater, Territorial, Relay and Broadside. Prototype the first three before assigning them to the roster. These are not playable abilities yet.
+
 ### Weight classes
 
 **Status:** Exploring
@@ -112,7 +116,7 @@ Give each Colossal a coherent themed deck that supports its identity and battle 
 
 - Fish collection journal
 - Alternate anglers
-- Unlockable starting schools — defer until the existing roster has completed its role and balance pass
+- Starting-school choices — shelved after PR #42 at the owner’s request; preserve definitions and existing saved schools for later reconsideration
 - Difficulty modifiers
 - Regional species pools
 - Cosmetic aquarium

@@ -1,0 +1,20 @@
+# Candidate full-card abilities
+
+Design ideas only: none of these is implemented or assigned to a creature. Existing abilities and roster roles remain unchanged. These are options for ordinary positioning and reef control, not effects requiring rare statuses. Relative costs below describe tradeoffs against current tools; they are not fixed power scores.
+
+| Candidate | Proposed rule | Ordinary choice and counterplay | Relative budget / thematic fit |
+| --- | --- | --- | --- |
+| Slipstream | After its edges, optionally move this creature one orthogonal step into an empty safe tile, including a reef. No new edge or terrain triggers. | Choose between delivering itself and keeping its useful position. The destination must stay open. | High: reusable access to Drift Shell's placement benefit; sparse offensive edges. Agile reef fish or rays. |
+| Formation | Scores one extra point on a reef only while orthogonally adjacent to an ally. Bonus does not stack with Sovereign. | Support a holder or use that supporting creature elsewhere; rivals can break the pair. | Below unconditional Sovereign, but still high. Schooling fish with modest displacement. |
+| Towline | After its edges, optionally pull one allied creature two tiles away into the intervening empty tile. No enemy targets or chained activations. | Build a delivery lane; blocking the gap or anchoring the ally prevents the pull. | Compare with multiple Hook edges, allowing a chosen direction but only one ally. Shrimp or cooperative reef fish. |
+| Backwash | After its edges, optionally pull one adjacent enemy into this creature's former tile while this creature retreats one step directly away into empty safe water. | Give up your own position to dislodge a holder. The retreat square can be blocked. | High, compare with Swap plus self-movement; requires weak or few offensive edges. Evasive squid. |
+| Breakwater | Adjacent allies stop at the board boundary instead of being pushed off it; they can still be displaced inside the board or eaten. | Protect flank formations while leaving reef displacement available. Move or remove the protector first. | Moderate support budget; no blanket Shield immunity. Broad-bodied guardian creatures. |
+| Territorial | While alone on a reef with no orthogonally adjacent creature, resist forced movement. Predation still works. | Keep space around the holder; either side can place a neighbor to switch the protection off. | Below unconditional Anchor; avoid pairing with strong scoring multipliers. Territorial damselfish. |
+| Relay | After placement, look at the next two reserve creatures; choose which is drawn next and leave the other on top. No extra cards or placements. | Improve the next turn without guaranteeing a perfect hand. Less valuable near an exhausted reserve. | Compare with Rally: unconditional selection needs a smaller edge budget. Shoaling scouts. |
+| Broadside | On play, choose either its horizontal edges or its vertical edges to resolve; chosen offensive edges act twice in their normal order. | Select an axis and accept lost attacks on the other one. Defenses and blocked lanes still matter. | High and risky; start with Standard-only edges, explicitly exclude predation/Swap until tested. A strong, deliberate gimmick card. |
+
+## Suggested prototypes
+
+Start with **Slipstream**, **Formation**, and **Towline**. They make different decisions visible on ordinary boards: moving yourself, protecting a formation, and delivering an ally. Test against current Drift Shell, Sovereign and Hook creatures rather than inventing an absolute ability price.
+
+Before any assignment, specify optional-choice UI and cancellation, edge/terrain/whirlpool ordering, Shock and Anchor interactions, both owners, 5×5 through 7×7 boards, and stable saves. Test favorable setups and ordinary counterplay, then mixed schools across both tide starters. No effect retriggers solely because its bearer moved unless expressly designed that way. Keep bonuses temporary to the tide; no permanent collection upgrades are implied.

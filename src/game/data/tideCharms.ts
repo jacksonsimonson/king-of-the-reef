@@ -4,6 +4,10 @@ import { grantAbility, hasAbility } from "../abilities.ts";
 import { blocksPlacement, type Terrain } from "../terrain.ts";
 
 export const CHARMS = {
+  "guardian-ribbon": {"name":"Guardian Ribbon","price":46,"color":"#8dd5b5","description":"Grant Escort to a hand fish for this tide. On play, shield empty sides of adjacent allies before edges. Shields can also block friendly pushes.","icon":["00000000000","00000000000","00100000100","00110001100","00011111000","00001110000","00011111000","00110001100","00100000100","00000000000","00000000000"]},
+  "cuttle-ink": {"name":"Cuttle Ink","price":50,"color":"#c1a4e8","description":"Grant Ambush to a hand fish for this tide. On play, shock adjacent enemies before edges, ignoring defenses. Does not disable full-card abilities.","icon":["00000000000","00000000000","00001110000","00011111000","00111111100","00011111000","00001110000","00010101000","00100100100","00000000000","00000000000"]},
+  "surge-bottle": {"name":"Surge Bottle","price":54,"color":"#82cfe8","description":"Grant Wake to a hand fish for this tide. After its edges, push adjacent enemies outward once. Ignores defenses; Anchor, kelp, rocks and occupied destinations still stop movement.","icon":["00000000000","00000000000","00001110000","00001010000","00011111000","00110101100","00101010100","00110101100","00011111000","00000000000","00000000000"]},
+  "undertow-lure": {"name":"Undertow Lure","price":38,"color":"#e8bf83","description":"Replace a hand fish’s Standard pushes with Hooks for this tide. Pull across a one-tile gap instead of pushing adjacent creatures. Other edges stay unchanged.","icon":["00000000000","00000000000","00000110000","00000110000","00000110000","00000110100","00110110100","00110011100","00011111000","00000000000","00000000000"]},
   "spear-shell": { name: "Spear Shell", price: 42, color: "#9ddcdf", description: "Select a hand fish. Fill its empty sides with Standard pushes for this battle.", icon: ["00001100000","00001100000","00112211000","00112211000","11222222110","11222222110","00001100000","00001100000","00001100000","00001100000","00000000000"] },
   "breaker-tooth": { name: "Breaker Tooth", price: 46, color: "#e5b68a", description: "Select a hand fish. Upgrade its Standard edges to Double pushes for this battle.", icon: ["11110011110","11110011110","11221122110","11221122110","11222222110","11222222110","00112211000","00112211000","00001100000","00001100000","00000000000"] },
   "barbed-wreath": { name: "Barbed Wreath", price: 42, color: "#d6a4ba", description: "Select a hand fish. Fill its empty sides with retaliating Spines for this battle.", icon: ["11001100110","11001100110","00112211000","00112211000","11222222110","11222222110","00112211000","00112211000","11001100110","11001100110","00000000000"] },
@@ -19,7 +23,9 @@ export const CHARMS = {
 } as const;
 export type CharmId = keyof typeof CHARMS;
 export const LEGACY_CHARM_IDS: CharmId[] = ["current-conch", "spyglass-pearl", "nautilus-dial", "coral-mail"];
-export const CHARM_IDS = [...LEGACY_CHARM_IDS, ...Object.keys(CHARMS).filter(id => !LEGACY_CHARM_IDS.includes(id as CharmId))] as CharmId[];
+// Frozen order preserves seeded offers and purchase IDs in version-two saves.
+export const V2_CHARM_IDS: CharmId[] = [...LEGACY_CHARM_IDS, "spear-shell", "breaker-tooth", "barbed-wreath", "dredger-net", "drift-shell", "anchor-stone", "reef-beacon", "duelist-pearl"];
+export const CHARM_IDS: CharmId[] = [...V2_CHARM_IDS, "guardian-ribbon", "cuttle-ink", "surge-bottle", "undertow-lure"];
 export const CHARM_CAPACITY = 3;
 export function availableCharms(charms: readonly CharmId[]): CharmId[] { return charms.slice(0, CHARM_CAPACITY); }
 export function randomCharms(rng: () => number = Math.random): CharmId[] {
@@ -34,9 +40,13 @@ export function charmCard(card: FishCard, charm: CharmId): FishCard {
   if (charm === "anchor-stone") return grantAbility(card, "anchor");
   if (charm === "reef-beacon") return grantAbility(card, "reefborn");
   if (charm === "duelist-pearl") return grantAbility(card, "piercing");
+  if (charm === "guardian-ribbon") return grantAbility(card, "escort");
+  if (charm === "cuttle-ink") return grantAbility(card, "ambush");
+  if (charm === "surge-bottle") return grantAbility(card, "wake");
   const edges = card.edges.map((edge) => ({ ...edge }));
   if (charm === "nautilus-dial") edges.forEach((edge) => { edge.direction = CLOCKWISE[(CLOCKWISE.indexOf(edge.direction) + 1) % 4]; });
   else if (charm === "breaker-tooth") edges.forEach(edge => { if (edge.effect === "standard") edge.effect = "double"; });
+  else if (charm === "undertow-lure") edges.forEach(edge => { if (edge.effect === "standard") edge.effect = "hook"; });
   else if (["coral-mail", "spear-shell", "barbed-wreath"].includes(charm)) {
     const effect = charm === "coral-mail" ? "weak" : charm === "spear-shell" ? "standard" : "spines";
     for (const direction of CLOCKWISE) if (!edges.some(edge => edge.direction === direction)) edges.push({ direction, effect });

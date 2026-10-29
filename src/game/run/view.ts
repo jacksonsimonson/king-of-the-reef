@@ -5,8 +5,6 @@ import { voyageEvent, eventChoiceAvailable } from './events.ts';
 import { reefAudio } from "../audio/audio.ts";
 import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
-import { startingSchoolPicker } from '../ui/startingSchoolPicker';
-import { STARTING_SCHOOLS, type StartingSchoolId } from './startingSchools.ts';
 import { tidePlayLimit } from '../twoTide';
 import { voyageMatchFormat } from './battleSave';
 import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
@@ -45,9 +43,9 @@ export class VoyageView {
   }
   destroy(): void { this.fishing?.destroy(); this.fishing = undefined; this.observer?.disconnect(); this.root.replaceChildren(); }
   private save(): void { if (this.run) this.storageOk = persistRun(this.run); }
-  private start(seed?: string, school?: StartingSchoolId): void {
+  private start(seed?: string): void {
     const id = seed?.trim().slice(0, 64) || crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase();
-    this.viewingMap = false; this.run = createRun(id,2,school); this.preview = 0; this.selected = null; this.save(); this.render();
+    this.viewingMap = false; this.run = createRun(id); this.preview = 0; this.selected = null; this.save(); this.render();
   }
   private render(): void {
     reefAudio.setTrack(`map-${(this.run?.region ?? 0) as 0 | 1 | 2}`);
@@ -79,8 +77,7 @@ export class VoyageView {
       const intro = element("div", "voyage-intro");
       intro.append(element("p", "voyage-kicker", "THREE SEAS. ONE SCHOOL."), element("h3", "", "Leave the shore. Find the impossible."), element("p", "", "Choose branching currents, catch new creatures, and challenge the Colossals of the reef, the abyss, and the Triangle."));
       const seed = element("input"); seed.placeholder = "Optional voyage seed"; seed.maxLength = 64; seed.setAttribute("aria-label", "Voyage seed");
-      const picker=startingSchoolPicker();
-      intro.append(picker.element,seed, button("Begin voyage →", () => this.start(seed.value,picker.selection())));
+      intro.append(seed, button("Begin voyage →", () => this.start(seed.value)));
       this.root.append(intro);
     }
     const tabs = element("div", "voyage-regions");
@@ -93,8 +90,6 @@ export class VoyageView {
     const regionHeading = element("div", "voyage-region-heading");
     regionHeading.append(element("h3", "", region.name), element("p", "", region.subtitle));
     if (run) {
-      const school=STARTING_SCHOOLS.find(s=>s.id===run.startingSchool);
-      if(school)regionHeading.append(element('p','','Started with '+school.name));
       const resources = element("div", "voyage-resources");
       for (const [icon, label] of [["resolve", `${run.resolve}/3 Resolve`], ["shell", `${run.shells} Shells`], ["school", `${run.school.filter((f) => f.condition === "healthy").length}/${run.school.length} Ready`]]) {
         const resource = element("span", "resource");
@@ -385,11 +380,10 @@ export class VoyageView {
       () => { this.fishing = undefined; this.selected = null; this.render(); });
   }
   private newRunDialog(): void {
-    const dialog = element("dialog", "voyage-dialog starting-school-dialog");
+    const dialog = element("dialog", "voyage-dialog");
     dialog.append(element("h3", "", "Chart a new voyage?"), element("p", "", "This replaces your saved voyage with three newly generated maps."));
     const seed = element("input"); seed.placeholder = "Optional seed"; seed.maxLength = 64; seed.setAttribute("aria-label", "New voyage seed");
-    const picker=startingSchoolPicker();
-    dialog.append(picker.element,seed, button("Start new voyage", () => { dialog.close(); dialog.remove(); this.start(seed.value,picker.selection()); }), button("Keep sailing", () => { dialog.close(); dialog.remove(); }));
+    dialog.append(seed, button("Start new voyage", () => { dialog.close(); dialog.remove(); this.start(seed.value); }), button("Keep sailing", () => { dialog.close(); dialog.remove(); }));
     dialog.addEventListener("close", () => dialog.remove(), { once: true });
     this.root.append(dialog); dialog.showModal();
   }

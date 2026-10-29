@@ -229,14 +229,3 @@ button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visib
 .journal-warning { color: #ffd582; }
 .journal-list { margin-top: 12px; }
 .journal-toolbar > button { align-self: end; }
-
-.starting-school-picker { margin-block: 20px; }
-.starting-school-picker label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-.starting-school-picker select { font: inherit; color: #f2e9c9; background: #071e2a; padding: 12px; border: 3px solid #547b76; width: 100%; max-width: 100%; }
-.starting-school-picker p { line-height: 1.5; }
-.starting-school-cards { display: grid; grid-template-columns: repeat(4, minmax(156px, 1fr)); gap: 16px; margin-block: 20px; }
-.starting-school-cards figure { margin: 0; padding: 12px; min-width: 132px; border: 2px solid #547b76; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.starting-school-cards figcaption { text-align: center; line-height: 1.5; }
-.starting-school-dialog { width: min(960px, calc(100vw - 32px)); max-width: 960px; max-height: calc(100dvh - 32px); overflow: auto; box-sizing: border-box; }
-@media (max-width: 900px) { .starting-school-cards { grid-template-columns: repeat(2, minmax(156px, 1fr)); } }
-@media (max-width: 480px) { .starting-school-cards { grid-template-columns: minmax(156px, 1fr); } }

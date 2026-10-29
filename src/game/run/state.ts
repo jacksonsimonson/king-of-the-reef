@@ -19,7 +19,7 @@ export interface Run {
   reefPoolVersion: 1 | 2 | 3;
   cardBalanceVersion?: 1 | 2 | 3 | 4 | 5 | 6;
   oceanPoolVersion?: 1;
-  charmPoolVersion?: 1 | 2;
+  charmPoolVersion?: 1 | 2 | 3;
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
   charms: CharmId[];
   shop?: { nodeId: string; purchased: string[] };
@@ -40,7 +40,7 @@ export function recruit(run: Run, texture: string): void {
 export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i, version));
   const roster = enabledTextures();
-  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 6, oceanPoolVersion: 1, charmPoolVersion: 2, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 6, oceanPoolVersion: 1, charmPoolVersion: 3, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   if(startingSchool!==undefined)run.startingSchool=startingSchool;
   run.eventVersion = 1;
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
@@ -259,7 +259,7 @@ export function loadRun(): Run | null {
     // Preserve schools from the earlier recovery model.
     run.school.forEach((fish) => { if ((fish.condition as string) === "knocked-out") fish.condition = "killed"; });
     if (![run.shells, run.resolve, run.serial].every(Number.isFinite)) return null;
-    if (run.charmPoolVersion !== undefined && ![1, 2].includes(run.charmPoolVersion)) return null;
+    if (run.charmPoolVersion !== undefined && ![1, 2, 3].includes(run.charmPoolVersion)) return null;
     run.charms ??= []; // Older voyages have no Tide Charms yet.
     if (!Array.isArray(run.charms) || !run.charms.every(isCharm)) return null;
     // Older voyages predate roster selection and retain the original full pool.
