@@ -272,3 +272,8 @@ Implement all twenty approved hosts and edge tradeoffs as one PR, tested in inte
 ## 2026-10-29 — Keep scoring formations and Ocean edges after controlled follow-up
 
 [5,760 fresh simulated tides and exhaustive attack/counter scenarios](SCORING_COVERAGE_STUDY.md) attribute most of the Shoreline scoring uplift to Reef Network while confirming ordinary routes to break its three-point Clownfish formation. Ocean remains weaker than its old armed mirror but near even against the other tested current schools. Small one-edge restoration prototypes give limited or seed-sensitive gains; Angler Bite also raises casualties and friendly-fire risk. Ship the reproducible study and regression tests without changing gameplay or save versions. Follow up on deliberate formation protection and Pelagic Octopus role usefulness in human play.
+
+
+## 2026-10-29 — Consolidate all twenty ability cards into one mixed-school pass
+
+After #45, complete the [all-20 study](ALL_ABILITY_SCHOOL_STUDY.md) in one PR: varied regional schools, ability-heavy lineups, all-twenty stress decks, all 16 charms, both seats/starters, fresh seeds and an Expert smoke test. Retain all current version-seven assignments; no new save version. Record observed choices, immediate differences, reveals and delayed events instead of equating deck inclusion with activation. Include Octopus and Snare interpretation in this same report; avoid a sequence of single-card balance PRs without new gameplay evidence.

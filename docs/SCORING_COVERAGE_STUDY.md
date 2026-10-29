@@ -83,3 +83,6 @@ Flying Fish loses penetration in exchange for flexible self-access. Orca gains d
 ## Validation and limits
 
 Four focused regression tests cover scoring counterplay across board sizes/owners, charm and duplicate interactions, allied delivery versus lethal restoration, and terminal AI responses. Full verification: 283 tests, workflow checks, type-check and build passed; existing bundle-size warning remains. Production gameplay and UI are unchanged, so no new browser playtest is claimed. Full-Voyage recruitment/economy, Expert-vs-Expert full matches, human adaptation, narrow-screen controls and match pacing were not tested here.
+
+
+Completed follow-up: [all twenty ability creatures tested together in mixed schools](ALL_ABILITY_SCHOOL_STUDY.md), including Octopus, in one consolidated pass.
