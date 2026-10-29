@@ -267,3 +267,8 @@ Use balance version 4 for the expanded region, preserving version-3 crab-preview
 ## 2026-10-29 — Twenty creature-led battle abilities
 
 Implement all twenty approved hosts and edge tradeoffs as one PR, tested in internal rule and comparative batches. Use balance version seven and freeze version six for existing schools, recruits and rivals. Preserve ordinary board roles, one innate ability per host and the full-Shock Eel gimmick. Add no extra placements or permanent school mutations. Optional board choices preview the deterministic result before commitment; hidden-card decisions resolve afterward. Temporary growth, armor, Inflate usage, decoys, snares and reveals reset with the tide. Keep relative power ranges provisional; the [implementation study](BATTLE_ABILITY_IMPLEMENTATION.md) records opposing regional formation trends instead of claiming universal balance.
+
+
+## 2026-10-29 — Keep scoring formations and Ocean edges after controlled follow-up
+
+[5,760 fresh simulated tides and exhaustive attack/counter scenarios](SCORING_COVERAGE_STUDY.md) attribute most of the Shoreline scoring uplift to Reef Network while confirming ordinary routes to break its three-point Clownfish formation. Ocean remains weaker than its old armed mirror but near even against the other tested current schools. Small one-edge restoration prototypes give limited or seed-sensitive gains; Angler Bite also raises casualties and friendly-fire risk. Ship the reproducible study and regression tests without changing gameplay or save versions. Follow up on deliberate formation protection and Pelagic Octopus role usefulness in human play.
