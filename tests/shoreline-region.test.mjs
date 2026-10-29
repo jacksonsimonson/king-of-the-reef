@@ -66,6 +66,6 @@ test('whole-region versions retain saved definitions and seeded offers without c
    saveRun(run);const loaded=loadRun();assert.ok(loaded);assert.deepEqual(loaded.school,run.school);assert.deepEqual(offers(loaded),catches);assert.deepEqual(shopOffers(loaded),stock);
    for(const f of rivalDeckFor(loaded))assert.deepEqual(f.edges,catalog.find(c=>c.texture===f.texture).edges);
   }
-  assert.equal(createRun('CURRENT').cardBalanceVersion,6);
+  assert.equal(createRun('CURRENT').cardBalanceVersion,7);
  }finally{if(previous)Object.defineProperty(globalThis,'localStorage',previous);else delete globalThis.localStorage;}
 });

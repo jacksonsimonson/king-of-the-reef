@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {STARTERS,BATCH_FIVE_STARTERS,BATCH_FOUR_STARTERS,BATCH_THREE_STARTERS,BATCH_TWO_STARTERS,BATCH_ONE_STARTERS,PRE_BALANCE_STARTERS} from '../src/game/data/starterFish.ts';
+import { BATCH_SIX_STARTERS as STARTERS,BATCH_FIVE_STARTERS,BATCH_FOUR_STARTERS,BATCH_THREE_STARTERS,BATCH_TWO_STARTERS,BATCH_ONE_STARTERS,PRE_BALANCE_STARTERS} from '../src/game/data/starterFish.ts';
 import {BERMUDA_ROLES} from '../src/game/data/bermudaRoles.ts';
 import {SHORELINE_ROLES} from '../src/game/data/shorelineRoles.ts';
 import {OCEAN_ROLES} from '../src/game/data/oceanRoles.ts';
@@ -93,6 +93,6 @@ test('saved versions preserve every Bermuda recruit, rival and seeded offer',()=
    saveRun(run);const loaded=loadRun();assert.ok(loaded);assert.deepEqual(loaded.school,run.school);assert.deepEqual(offers(loaded),catches);assert.deepEqual(shopOffers(loaded),stock);
    for(const f of rivalDeckFor(loaded))assert.deepEqual(f.edges,catalog.find(c=>c.texture===f.texture).edges);
   }
-  assert.equal(createRun('CURRENT').cardBalanceVersion,6);
+  assert.equal(createRun('CURRENT').cardBalanceVersion,7);
  }finally{if(previous)Object.defineProperty(globalThis,'localStorage',previous);else delete globalThis.localStorage;}
 });

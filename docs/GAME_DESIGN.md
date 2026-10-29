@@ -140,3 +140,8 @@ The current playable build includes three regional board sizes, rival difficulty
 The optional [two-tide Quick Match prototype](TWO_TIDE_PROTOTYPE.md) uses two rounds of 4/5/6 plays per side in Shoreline/Ocean/Bermuda, refreshed resources, swapped starters and combined reef scores. New Voyage battles use the same regional two-tide format, with one combined result, deferred injuries and charm consumption, and checkpoints in either tide or the intermission. Existing single-tide checkpoints finish unchanged; Quick Match still offers Classic.
 
 The [full Voyage combat/economy study](FULL_VOYAGE_BALANCE.md) follows carried schools through real battles and settlement. Its 192-run comparison does not justify resource buffs; boss-repeat and player-policy limitations remain explicit. Post-match summaries expose tide scores, casualties, charm consumption and actual rewards for follow-up playtests.
+
+
+### Creature-led battle abilities
+
+The [twenty ability assignments](ABILITY_ASSIGNMENTS.md) add battle-only roles with explicit edge reductions. The [implementation and comparative study](BATTLE_ABILITY_IMPLEMENTATION.md) defines timing, counters, temporary state, old-save compatibility and current balance limitations. These form part of this design document; future changes should use the same relative-budget framework.

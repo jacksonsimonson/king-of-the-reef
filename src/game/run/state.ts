@@ -1,5 +1,5 @@
 import { drawOceanCard, LEGACY_OCEAN_POOL } from "../data/oceanPool.ts";
-import { STARTERS, BATCH_FIVE_STARTERS, BATCH_FOUR_STARTERS, BATCH_THREE_STARTERS, BATCH_TWO_STARTERS, BATCH_ONE_STARTERS, PRE_BALANCE_STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
+import { STARTERS, BATCH_SIX_STARTERS, BATCH_FIVE_STARTERS, BATCH_FOUR_STARTERS, BATCH_THREE_STARTERS, BATCH_TWO_STARTERS, BATCH_ONE_STARTERS, PRE_BALANCE_STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
 import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
@@ -17,7 +17,7 @@ export interface Run {
   roster: string[];
   startingSchool?: StartingSchoolId;
   reefPoolVersion: 1 | 2 | 3;
-  cardBalanceVersion?: 1 | 2 | 3 | 4 | 5 | 6;
+  cardBalanceVersion?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   oceanPoolVersion?: 1;
   charmPoolVersion?: 1 | 2 | 3;
   fishing?: { nodeId: string; texture: string; snapshot: FishingSnapshot };
@@ -30,7 +30,7 @@ export interface Run {
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export const BOSS_REMATCH_GUIDANCE = "Rematches keep the same terrain and rival school. Injuries and spent charms carry over; there is no recovery between attempts. Try different placements or save a counter for the last play.";
 export function runFishDefinition(run: Run, texture: string) {
-  return (run.reefPoolVersion < 3 ? LEGACY_STARTERS : run.cardBalanceVersion === 6 ? STARTERS : run.cardBalanceVersion === 5 ? BATCH_FIVE_STARTERS : run.cardBalanceVersion === 4 ? BATCH_FOUR_STARTERS : run.cardBalanceVersion === 3 ? BATCH_THREE_STARTERS : run.cardBalanceVersion === 2 ? BATCH_TWO_STARTERS : run.cardBalanceVersion === 1 ? BATCH_ONE_STARTERS : PRE_BALANCE_STARTERS).find((fish) => fish.texture === texture);
+  return (run.reefPoolVersion < 3 ? LEGACY_STARTERS : run.cardBalanceVersion === 7 ? STARTERS : run.cardBalanceVersion === 6 ? BATCH_SIX_STARTERS : run.cardBalanceVersion === 5 ? BATCH_FIVE_STARTERS : run.cardBalanceVersion === 4 ? BATCH_FOUR_STARTERS : run.cardBalanceVersion === 3 ? BATCH_THREE_STARTERS : run.cardBalanceVersion === 2 ? BATCH_TWO_STARTERS : run.cardBalanceVersion === 1 ? BATCH_ONE_STARTERS : PRE_BALANCE_STARTERS).find((fish) => fish.texture === texture);
 }
 export function recruit(run: Run, texture: string): void {
   const definition = runFishDefinition(run, texture);
@@ -40,7 +40,7 @@ export function recruit(run: Run, texture: string): void {
 export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i, version));
   const roster = enabledTextures();
-  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 6, oceanPoolVersion: 1, charmPoolVersion: 3, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
+  const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 7, oceanPoolVersion: 1, charmPoolVersion: 3, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   if(startingSchool!==undefined)run.startingSchool=startingSchool;
   run.eventVersion = 1;
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
@@ -264,7 +264,7 @@ export function loadRun(): Run | null {
     if (!Array.isArray(run.charms) || !run.charms.every(isCharm)) return null;
     // Older voyages predate roster selection and retain the original full pool.
     run.roster ??= [...ORIGINAL_FISH_TEXTURES];
-    if (run.cardBalanceVersion !== undefined && ![1, 2, 3, 4, 5, 6].includes(run.cardBalanceVersion)) return null;
+    if (run.cardBalanceVersion !== undefined && ![1, 2, 3, 4, 5, 6, 7].includes(run.cardBalanceVersion)) return null;
     run.reefPoolVersion ??= 1;
     if (run.oceanPoolVersion !== undefined && run.oceanPoolVersion !== 1) return null;
     if (![1, 2, 3].includes(run.reefPoolVersion)) return null;

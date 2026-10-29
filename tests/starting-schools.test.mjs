@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {STARTING_SCHOOLS,schoolAvailable,startingTextures} from '../src/game/run/startingSchools.ts';
 import {createRun,saveRun,loadRun,SAVE_KEY,recruit} from '../src/game/run/state.ts';
-import {STARTERS} from '../src/game/data/starterFish.ts';
+import {STARTERS,BATCH_SIX_STARTERS} from '../src/game/data/starterFish.ts';
 import {REGIONS} from '../src/game/run/maps.ts';
 import {saveEnabledTextures} from '../src/game/data/roster.ts';
 import {resolvePlacement} from '../src/game/combat.ts';
@@ -48,7 +48,7 @@ test('each school can deliver a holder to a reef using its intended tools',()=>{
   ['shellguard','frogfish','mantis-shrimp',12,10],
   ['tethers','christmas-tree-worm','shrimp',6,16],
  ]){
-  const school=createRun('DELIVERY',2,id).school,board=state(),holder=school.find(c=>c.texture===target);
+  const school=createRun('DELIVERY',2,id).school.map(c=>({...c,...BATCH_SIX_STARTERS.find(f=>f.texture===c.texture),id:c.id})),board=state(),holder=school.find(c=>c.texture===target);
   board.board[from]=holder;const moved=resolvePlacement(board,to,school.find(c=>c.texture===actor),5);
   assert.equal(moved.board[11]?.id,holder.id,`${id} delivers onto B3`);
   if(id==='shellguard'){

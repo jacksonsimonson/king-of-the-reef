@@ -1,3 +1,4 @@
+import {freshAbilityMemory, prepareAbilityCard, applyPostAbility, rotateCard, SIDES, type AbilityChoice, type AbilityMemory} from './battleAbilityState.ts';
 import type { CombatFrame } from "./combatFeedback.ts";
 import { hasAbility } from "./abilities.ts";
 import type { Direction, EdgeEffect, FishCard } from "./data/starterFish.ts";
@@ -8,7 +9,7 @@ export const DIRECTIONS: Record<Direction, { row: number; column: number; opposi
   up: { row: -1, column: 0, opposite: "down" }, right: { row: 0, column: 1, opposite: "left" },
   down: { row: 1, column: 0, opposite: "up" }, left: { row: 0, column: -1, opposite: "right" },
 };
-export interface BattleState { board: Array<FishCard | null>; shocked: ReadonlySet<string>; terrain?: Terrain }
+export interface BattleState { board: Array<FishCard | null>; shocked: ReadonlySet<string>; terrain?: Terrain; memory?: AbilityMemory }
 export interface HandSlot { card: FishCard; played: boolean; revealed?: boolean }
 export function revealTargets(hand: readonly HandSlot[]): HandSlot[] {
   return hand.filter((slot) => !slot.played && !slot.revealed);
@@ -16,7 +17,7 @@ export function revealTargets(hand: readonly HandSlot[]): HandSlot[] {
 export function revealCard(hand: HandSlot[], id: string): boolean {
   const slot = revealTargets(hand).find((entry) => entry.card.id === id);
   if (!slot) return false;
-  slot.revealed = true;
+  slot.revealed = true; slot.card={...slot.card,known:true};
   return true;
 }
 
@@ -34,7 +35,8 @@ export function edgeBlocks(target: FishCard, incoming: Direction, effect: EdgeEf
 }
 
 /** Returns a new board/status set. Cards and the input state are never mutated. */
-export function resolvePlacement(state: BattleState, placedIndex: number, card: FishCard, size = Math.sqrt(state.board.length), record = false): { frames: CombatFrame[]; board: Array<FishCard | null>; shocked: Set<string>; killedIds: string[]; pushedEnemyIds: string[] } {
+export function resolvePlacement(state: BattleState, placedIndex: number, card: FishCard, size = Math.sqrt(state.board.length), record = false, choice: AbilityChoice = {}): { memory: AbilityMemory; frames: CombatFrame[]; board: Array<FishCard | null>; shocked: Set<string>; killedIds: string[]; pushedEnemyIds: string[] } {
+  let memory = structuredClone(state.memory ?? freshAbilityMemory());
   const frames: CombatFrame[] = [];
   let notes: string[] = [];
   let previous = state.board;
@@ -50,9 +52,10 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
   const board = [...state.board];
   const shocked = new Set(state.shocked);
   const pushedEnemies = new Set<string>();
-  if (!Number.isInteger(placedIndex) || placedIndex < 0 || placedIndex >= board.length || board[placedIndex] || (state.terrain && blocksPlacement(state.terrain, placedIndex))) throw new Error("Placement requires an empty water tile");
+  if (!Number.isInteger(placedIndex) || placedIndex < 0 || placedIndex >= board.length || board[placedIndex] || memory.decoys.some(t=>t.index===placedIndex) || (state.terrain && blocksPlacement(state.terrain, placedIndex))) throw new Error("Placement requires an empty water tile");
   const feature = state.terrain?.features?.get(placedIndex);
   const poolEntry = state.terrain?.whirlpools.includes(placedIndex) ? placedIndex : null;
+  if (hasAbility(card,"true-north") && Number.isInteger(choice.rotation)) card = rotateCard(card, choice.rotation!);
   card = placementCard(card, placedIndex, state.terrain);
   if (feature === "mirror") blocked(card.name + " reversed its edges on the mirror tile.");
   board[placedIndex] = card;
@@ -63,6 +66,11 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
   board[placedIndex] = card;
   if (entrance !== placedIndex) checkpoint("Tide channel");
   else if (feature?.startsWith("channel-")) { blocked("Landing blocked; fish stays on the channel."); checkpoint("Tide channel"); }
+  card = prepareAbilityCard({...state,board,memory},placedIndex,card,choice); board[placedIndex]=card;
+  const snared=memory.snares.some(t=>t.index===entrance&&t.owner!==card.owner);
+  memory.snares=memory.snares.filter(t=>!(t.index===entrance&&t.owner!==card.owner));
+  let skipSnare=snared;
+  if(hasAbility(card,"spreading-arms"))memory.growth.push({id:card.id,owner:card.owner,ready:memory.turns[card.owner]+1});
   const before = [...board];
   const offset = (index: number, dr: number, dc: number): number | null => {
     const row = Math.floor(index / size) + dr, column = index % size + dc;
@@ -76,12 +84,25 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     return fixed;
   };
   const defended = (target: FishCard, direction: Direction, effect: EdgeEffect) => {
-    const stopped = edgeBlocks(target, direction, effect, shocked, card);
+    const focused=hasAbility(card,'focused-strike')&&effect==='double'&&choice.direction===direction;
+    const packed=hasAbility(card,'pack-hunt')&&effect==='bigger-fish'&&target.owner!==card.owner&&SIDES.some(d=>{const i=neighbor(board.findIndex(c=>c?.id===target.id),d);return i!==null&&board[i]?.owner===card.owner&&board[i]?.id!==card.id;});
+    const stopped = (focused||packed)&&!hasAbility(target,'bulwark') ? false : edgeBlocks(target, direction, effect, shocked, card);
     if (stopped) blocked(target.name + " blocked " + effect + " with " + (hasAbility(target, "bulwark") ? "Bulwark." : "a defending edge."));
     return stopped;
   };
+  const inflate=(target:FishCard)=>{
+    if(target.owner===card.owner||!hasAbility(target,'inflate')||memory.inflated.includes(target.id))return false;
+    memory.inflated.push(target.id);blocked(target.name+' blocked movement with Inflate.');return true;
+  };
   const sink = () => {
+    memory.decoys=memory.decoys.filter(t=>!board[t.index]);
     for (const [index, type] of state.terrain?.features ?? []) if (type === "trench") board[index] = null;
+  };
+  const leaveDecoy = (victim: FishCard, index: number, remover: FishCard['owner']) => {
+    if (!hasAbility(victim, 'afterimage') || board[index] || rock(index) || state.terrain?.features?.get(index) === 'trench') return;
+    memory.decoys = memory.decoys.filter(token => token.index !== index);
+    memory.decoys.push({ index, owner: remover, expires: memory.turns[remover] + 1 });
+    blocked(victim.name + ' left an Afterimage.');
   };
   if (feature === "vent") {
     for (const direction of Object.keys(DIRECTIONS) as Direction[]) {
@@ -116,11 +137,15 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
   }
   checkpoint("Full-card ability");
   let source = placedIndex;
-  for (const edge of card.edges) {
+  const ordered=hasAbility(card,'battle-plan')&&choice.reverse?[...card.edges].reverse():card.edges;
+  for (const edge of ordered) {
+    const edgeBefore=[...board];
     try {
     sink();
     if (board[source]?.id !== card.id || shocked.has(card.id)) break;
     if (edge.effect === "weak" || edge.effect === "spines") continue;
+    if(skipSnare){skipSnare=false;blocked('Snare Line skipped '+edge.effect+'.');continue;}
+    if(hasAbility(card,'gentle-giant')&&choice.direction===edge.direction){blocked('Gentle Giant skipped '+edge.effect+'.');continue;}
     if (edge.effect === "ram") {
       const line: number[] = [];
       for (let index = neighbor(source, edge.direction); index !== null && board[index]; index = neighbor(index, edge.direction)) line.push(index);
@@ -129,12 +154,13 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
         if (anchored(index) || defended(target, edge.direction, "ram")) continue;
         const destination = neighbor(index, edge.direction);
         if (rock(destination) || (destination !== null && board[destination])) { blocked("Movement blocked by " + (rock(destination) ? "a rock." : "an occupied tile.")); continue; }
+        if(inflate(target))continue;
         board[index] = null;
         if (destination !== null) board[destination] = target;
         sink();
         if (target.owner !== card.owner) pushedEnemies.add(target.id);
         if (index === neighbor(source, edge.direction) && target.owner !== card.owner && !shocked.has(target.id)
-          && target.edges.some(e => e.direction === DIRECTIONS[edge.direction].opposite && e.effect === "spines")) { board[source] = null; blocked(target.name + " retaliated with Spines."); }
+          && target.edges.some(e => e.direction === DIRECTIONS[edge.direction].opposite && e.effect === "spines")) { board[source] = null; leaveDecoy(card, source, target.owner); blocked(target.name + " retaliated with Spines."); }
       }
       continue;
     }
@@ -152,6 +178,7 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
           const target = board[index];
           if (!target || anchored(index) || defended(target, edge.direction, "wave")) continue;
           const destination = offset(index, dr, dc);
+          if ((destination===null||!rock(destination)&&!board[destination])&&inflate(target))continue;
           if (destination === null) board[index] = null;
           else if (!rock(destination) && !board[destination]) { board[destination] = target; board[index] = null; }
           sink();
@@ -178,7 +205,7 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
       if (board[adjacent]) continue;
       const index = neighbor(adjacent, edge.direction);
       const target = index === null ? null : board[index];
-      if (target && !anchored(index!) && !defended(target, edge.direction, "hook")) {
+      if (target && !anchored(index!) && !defended(target, edge.direction, "hook") && !inflate(target)) {
         board[adjacent] = target; board[index!] = null;
       }
       continue;
@@ -188,12 +215,13 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     if (edge.effect === "shock") { shocked.add(target.id); continue; }
     if (anchored(adjacent) && edge.effect !== "bigger-fish") { bounce(); continue; }
     if (edge.effect === "swap") {
-      if (anchored(source)) continue;
+      if (anchored(source)||inflate(target)) continue;
       board[source] = target; board[adjacent] = card; source = adjacent;
       continue;
     }
     const destination = neighbor(adjacent, edge.direction);
     if (rock(destination) || (destination !== null && board[destination])) { blocked("Movement blocked by " + (rock(destination) ? "a rock." : "an occupied tile.")); bounce(); continue; }
+    if(edge.effect!=="bigger-fish"&&inflate(target)){bounce();continue;}
     const directPush = ["standard", "double", "follow-current", "bounce"].includes(edge.effect);
     if (target.owner !== card.owner && directPush) pushedEnemies.add(target.id);
     board[adjacent] = null;
@@ -201,13 +229,19 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     // Retaliation follows a successful direct enemy push, even when it kills the Urchin.
     if (directPush && target.owner !== card.owner
       && !shocked.has(target.id) && target.edges.some((e) => e.direction === DIRECTIONS[edge.direction].opposite && e.effect === "spines")) {
-      board[source] = null; blocked(target.name + " retaliated with Spines.");
+      board[source] = null; leaveDecoy(card, source, target.owner); blocked(target.name + " retaliated with Spines.");
     }
     if (edge.effect === "follow-current" && board[source]?.id === card.id) {
       board[source] = null; board[adjacent] = card; source = adjacent;
     }
     bounce();
-    } finally { sink(); checkpoint(card.name + " · " + edge.effect + " " + edge.direction); }
+    } finally {
+      sink();
+      for(const [index,victim] of edgeBefore.entries())if(victim&&victim.owner!==card.owner&&hasAbility(victim,'afterimage')&&!board.some(c=>c?.id===victim.id)&&!board[index]&&!rock(index)&&state.terrain?.features?.get(index)!=='trench'){
+        leaveDecoy(victim, index, card.owner);
+      }
+      checkpoint(card.name + " · " + edge.effect + " " + edge.direction);
+    }
   }
   sink();
   if (board[source]?.id === card.id && hasAbility(card, "wake")) {
@@ -222,6 +256,10 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     }
   }
   checkpoint("Wake");
+  const post=applyPostAbility({...state,board,shocked,memory},source,card,choice);
+  board.splice(0,board.length,...post.board);shocked.clear();post.shocked.forEach(id=>shocked.add(id));memory=post.memory!;
+  source=board.findIndex(c=>c?.id===card.id);checkpoint('Full-card ability');
+
   if (state.terrain && poolEntry !== null && board[poolEntry]?.id === card.id) {
     const [a, b] = state.terrain.whirlpools;
     const exit = poolEntry === a ? b : a;
@@ -232,5 +270,6 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     }
   }
   checkpoint("Whirlpool");
-  return { frames, board, shocked, killedIds: removedCardIds(before, board), pushedEnemyIds: [...pushedEnemies] };
+  memory.decoys=memory.decoys.filter(t=>!board[t.index]&&!(t.owner===card.owner&&t.expires<=memory.turns[card.owner]));
+  return { memory, frames, board, shocked, killedIds: removedCardIds(before, board), pushedEnemyIds: [...pushedEnemies] };
 }

@@ -1,3 +1,5 @@
+import {beginAbilityTurn,readyGrowth,growArm,blankSides,freshAbilityMemory} from '../../src/game/battleAbilityState.ts';
+import {abilityHandSteps,automatedHandChoice} from '../../src/game/abilityHands.ts';
 import {useStudyCharm} from './charms.mjs';
 import {BATCH_ONE_STARTERS as STARTERS,STARTERS as CURRENT_STARTERS,PRE_BALANCE_STARTERS} from '../../src/game/data/starterFish.ts';
 import {chooseRivalMove} from '../../src/game/rivalAI.ts';
@@ -46,28 +48,30 @@ export function match({region=0,seed='study',school=0,first='player',legacy=fals
  const plays={player:0,rival:0},trace=[],charmLog=[];
  const inventories={player:[...loadout],rival:charmMode==='both'?[...loadout]:[]};
  const checkpoints=[],killedIds=new Set();let frameCount=0;
- const legal=owner=>plays[owner]<rules.plays&&hands[owner].some(slot=>!slot.played&&state.board.some((_,i)=>canPlaceFish(state.board,i,slot.card,state.terrain)));
+ const legal=owner=>plays[owner]<rules.plays&&hands[owner].some(slot=>!slot.played&&state.board.some((_,i)=>canPlaceFish(state.board,i,slot.card,state.terrain,state.memory)));
  const sequence=Array.from({length:rules.plays},(_,round)=>initiative==='snake'&&round%2?[other(first),first]:[first,other(first)]).flat();
  function* turns(){if(!customDecks){yield* sequence;return;}let owner=first;while(legal('player')||legal('rival')){if(!legal(owner))owner=other(owner);yield owner;owner=other(owner);}}
  let turn=-1;
  for(const owner of turns()){turn++;
   if(!legal('player')&&!legal('rival'))break;
   if(!legal(owner))continue;
+  state.memory=beginAbilityTurn(state,owner);for(const c of readyGrowth(state,owner))state=growArm(state,c.id,blankSides(c)[0]);
   const opponent=other(owner),rng=customDecks?actionRng:random(seed+':decision:'+owner+':'+plays[owner]);
   const used=useStudyCharm({state,hands,decks,owner,inventory:inventories[owner],target:target??focal,rng:customDecks?actionRng:random(seed+':charm:'+owner+':'+plays[owner])});if(used)charmLog.push({...used,turn});
   const pool=roster.filter(c=>REGIONS[region].pool.includes(c.texture));
   const publicThreats=[...hands[opponent].filter(s=>!s.played&&s.revealed).map(s=>perspective(s.card,owner)),...pool.filter((_,i)=>i%Math.max(1,Math.floor(pool.length/6))===0).map(c=>({...c,owner:'player',condition:'healthy'}))];
-  const choice=chooseRivalMove({...state,board:state.board.map(c=>perspective(c,owner)),hand:hands[owner].map(s=>({...s,card:perspective(s.card,owner)})),difficulty:owner==='player'&&playerDifficulty?playerDifficulty:rules.difficulty,rivalPlaysLeft:rules.plays-plays[owner],playerPlaysLeft:legal(opponent)?rules.plays-plays[opponent]:0,publicThreats},rng);
+  const memory=structuredClone(state.memory??freshAbilityMemory());if(owner==='player'){[memory.turns.player,memory.turns.rival]=[memory.turns.rival,memory.turns.player];for(const list of [memory.growth,memory.snares,memory.decoys])for(const token of list)token.owner=other(token.owner);memory.lureUsed=memory.lureUsed.map(other);}
+  const choice=chooseRivalMove({...state,memory,board:state.board.map(c=>perspective(c,owner)),hand:hands[owner].map(s=>({...s,card:perspective(s.card,owner)})),difficulty:owner==='player'&&playerDifficulty?playerDifficulty:rules.difficulty,rivalPlaysLeft:rules.plays-plays[owner],playerPlaysLeft:legal(opponent)?rules.plays-plays[opponent]:0,publicThreats},rng);
   if(!choice)throw new Error('Policy failed to select a legal move');
   const slot=hands[owner][choice.slotIndex],card=slot.card,before=scoreBoard(state.board);
   const available=hands[owner].filter(s=>!s.played).map(s=>s.card.texture);
-  const result=resolvePlacement(state,choice.index,card,rules.size,collectFrames);
+  const result=resolvePlacement(state,choice.index,card,rules.size,collectFrames,choice.abilityChoice);
   for(const id of result.killedIds)killedIds.add(id);frameCount+=result.frames?.length??0;
   const after=scoreBoard(result.board), own=new Set(state.board.filter(c=>c?.owner===owner).map(c=>c.id));own.add(card.id);
   trace.push({owner,card:card.texture,index:choice.index,available,delta:(after[owner]-after[opponent])-(before[owner]-before[opponent]),allyKilled:result.killedIds.filter(id=>own.has(id)).length,enemyKilled:result.killedIds.filter(id=>!own.has(id)).length,allyShocked:[...result.shocked].filter(id=>!state.shocked.has(id)&&id.startsWith(owner+'-')).length,enemyShocked:[...result.shocked].filter(id=>!state.shocked.has(id)&&id.startsWith(opponent+'-')).length,last:plays[owner]+1===rules.plays});
   state={...result,terrain:state.terrain};slot.played=true;plays[owner]++;
   if(triggersRally(card,result.pushedEnemyIds,decks[owner]))resolveRally(decks[owner],rivalRallyChoice(decks[owner][0]));
-  refillSlot(slot,decks[owner]);
+  const steps=abilityHandSteps({hands,decks,memory:state.memory},card,slot);let step=steps.next();while(!step.done)step=steps.next(automatedHandChoice(step.value));
   if(turn%2===1)checkpoints.push(scoreBoard(state.board));
   if(card.ability==='revelation'){const targets=revealTargets(hands[opponent]);if(targets.length)revealCard(hands[opponent],targets[Math.floor(rng()*targets.length)].card.id);}
  }

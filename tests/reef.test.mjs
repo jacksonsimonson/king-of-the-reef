@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { STARTERS } from "../src/game/data/starterFish.ts";
+import { BATCH_SIX_STARTERS as STARTERS } from "../src/game/data/starterFish.ts";
 import { REEF_GROUPS, REEF_POOL, drawReefCard } from "../src/game/data/reefPool.ts";
 import { resolvePlacement, revealTargets, revealCard } from "../src/game/combat.ts";
 import { random } from "../src/game/run/maps.ts";

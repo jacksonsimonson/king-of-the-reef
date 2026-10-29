@@ -25,7 +25,7 @@ test('playtest capture receives detached encounter saves without changing simula
 });
 test('Voyage resource ledger reconciles purchases, recruitment, recovery and actual combat shortages',()=>{
  const run=voyage({seed:'RESOURCE-LEDGER',maxBossAttempts:2,catchRate:.6});
- assert.equal(run.balanceVersion,6);
+ assert.equal(run.balanceVersion,7);
  const complete=run.visits.filter(v=>v.after);
  assert.equal(24+complete.reduce((n,v)=>n+v.after.shells-v.shells,0),run.shells);
  assert.equal(8+complete.reduce((n,v)=>n+v.recruited.length-v.removed,0),run.school.length);

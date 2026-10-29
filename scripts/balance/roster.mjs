@@ -5,6 +5,8 @@ export const EDGE_WEIGHTS = {
   standard:[1,1], weak:[.75,1.25], double:[1.25,1.75], 'bigger-fish':[1.5,2.5], swap:[1.5,2.5], hook:[1.25,2], wave:[1.5,3], shock:[1,2], spines:[.5,1.25], ram:[1.25,2.5], 'follow-current':[1.75,2.75], bounce:[1.5,2.5], dive:[1.25,2.25],
 };
 export const ABILITY_WEIGHTS = {
+  // Provisional relative ranges for complete-card comparison, never runtime costs.
+  slipstream:[1.5,3],towline:[1,2.5],inflate:[.75,2],'borrowed-armor':[.75,1.5],'spreading-arms':[.25,1],'focused-strike':[1,2.5],'pack-hunt':[.75,2.5],'gentle-giant':[.5,1.5],shoal:[1.5,3],'reef-network':[1.5,3],sonar:[.25,1],relay:[.5,1.5],'false-lure':[.75,2],mimicry:[1,2.5],'true-north':[1,3],afterimage:[.25,1.25],grooming:[.5,2],'snare-line':[.5,1.5],muster:[.25,1],'battle-plan':[.75,2.5],
   revelation:[.25,.75], rally:[.25,1], anchor:[1,2.5], reefborn:[2,4], bulwark:[2,4], piercing:[1,3], escort:[.75,2], ambush:[1.5,3], wake:[1.5,3.5], sovereign:[2,4],
 };
 export const PILOT = ['minnow','blenny','boxfish','electric-eel','sea-urchin','ocean-sunfish','yellowfin-tuna','flying-fish','phantom-shark','invisible-ink-squid'];

@@ -1,4 +1,5 @@
 import { REEF_ART_CARDS } from "./reefArtCards.ts";
+import { ABILITY_ASSIGNMENTS } from "./abilityAssignments.ts";
 import type { CardAbility } from "../abilities.ts";
 import { REEF_DESIGNS } from "./reefDesigns.ts";
 
@@ -26,6 +27,8 @@ export interface FishCard {
   owner: Owner;
   condition: "healthy" | "killed";
   ability?: CardAbility;
+  /** Publicly revealed identity during this tide only. */
+  known?: boolean;
   /** Temporary charm grants; never written back to the permanent school. */
   battleAbilities?: CardAbility[];
 }
@@ -72,7 +75,7 @@ export const PRE_OCEAN_STARTERS: Omit<FishCard, "owner" | "condition">[] = [...L
   ...fish, edges: REEF_DESIGNS[fish.texture]?.edges ?? fish.edges,
 }));
 
-export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [
+export const BATCH_SIX_STARTERS: Omit<FishCard, "owner" | "condition">[] = [
   ...PRE_OCEAN_STARTERS,
   ...OPEN_OCEAN_CARDS.map(fish => ({
     id: fish.id, name: fish.name, texture: fish.texture, species: "Open Ocean",
@@ -83,6 +86,8 @@ export const STARTERS: Omit<FishCard, "owner" | "condition">[] = [
     edges: BERMUDA_DESIGNS[fish.texture].edges,
   })),
 ];
+
+export const STARTERS = BATCH_SIX_STARTERS.map(fish => ABILITY_ASSIGNMENTS[fish.texture] ? {...fish,...ABILITY_ASSIGNMENTS[fish.texture]} : fish);
 
 // Catalog that shipped before roster snapshots; keep its order stable for legacy saves.
 export const ORIGINAL_FISH_TEXTURES = STARTERS.slice(0, 27).map((fish) => fish.texture);
@@ -130,7 +135,7 @@ const PRE_BERMUDA_BALANCE_EDGES: Record<string, CardEdge[]> = {
   "stormback-whale": [{"direction":"up","effect":"wave"},{"direction":"right","effect":"bigger-fish"},{"direction":"down","effect":"wave"},{"direction":"left","effect":"ram"}],
   "black-squall": [{"direction":"up","effect":"wave"},{"direction":"right","effect":"follow-current"},{"direction":"down","effect":"bounce"},{"direction":"left","effect":"shock"}],
 };
-export const BATCH_FIVE_STARTERS = STARTERS.map(fish => PRE_BERMUDA_BALANCE_EDGES[fish.texture] ? { ...fish, edges: PRE_BERMUDA_BALANCE_EDGES[fish.texture] } : fish);
+export const BATCH_FIVE_STARTERS = BATCH_SIX_STARTERS.map(fish => PRE_BERMUDA_BALANCE_EDGES[fish.texture] ? { ...fish, edges: PRE_BERMUDA_BALANCE_EDGES[fish.texture] } : fish);
 const PRE_OCEAN_BALANCE_EDGES: Record<string, CardEdge[]> = {
   "orca": [
     {

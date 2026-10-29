@@ -47,5 +47,5 @@ test('batch two preserves unversioned and batch-one voyages, offers and rival re
    const encounter={...loaded,roster:[texture]};assert.ok(rivalDeckFor(encounter).every(c=>JSON.stringify(c.edges)===JSON.stringify(expected.edges)));
   }
  }
- assert.equal(createRun('NEW').cardBalanceVersion,6);
+ assert.equal(createRun('NEW').cardBalanceVersion,7);
 });
