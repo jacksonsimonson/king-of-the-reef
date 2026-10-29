@@ -40,11 +40,11 @@ Before edges, optionally skip one offensive edge for this placement. Keep its de
 
 ## Scoring
 
-### 9. Shoal — Minnow or Anchovy, Shoreline
-Choose one initial host, not the whole family. Score two on a reef while beside at least one ally, otherwise one. No stacking with Sovereign or multiple neighbors. Spend another creature supporting the holder or use it elsewhere; displacing either member breaks the bonus. Compare with unconditional Sovereign. Preserve weak defenses and indirect access, and keep the other basic guides simple.
+### 9. Shoal — Clownfish, Shoreline
+Assign to Clownfish, removing its left Standard edge to retain an upward guide and pay for scoring. Keep Minnow, Anchovy, Sardine and Goby unchanged. Score two on a reef while beside at least one ally, otherwise one. No stacking with Sovereign or multiple neighbors. Spend another creature supporting the holder or use it elsewhere; displacing either member breaks the bonus. Compare with unconditional Sovereign. Preserve weak defenses and indirect access, and keep the other basic guides simple.
 
 ### 10. Reef Network — Staghorn Coral, advanced Shoreline
-While occupying a reef with an ally occupying a different reef, provide one extra point. Maximum one Network bonus per owner per tide across all copies; a Sovereign-bearing host cannot supply it. Rewards distributed control rather than adjacent clustering; taking either reef breaks the bonus. Fits a branching colony. Compare with Sovereign/Shoal. This rewards an already strong position, so comeback and last-play tests are mandatory; avoid strong self-delivery or armor.
+While off a reef and beside a reef occupied by an ally, contribute one point. On a reef, use ordinary reef scoring instead, never an additional Network point. Maximum one off-reef Network point per owner across copies; a Sovereign-bearing host cannot supply it. Taking the occupied reef or moving/removing the coral breaks the connection. This replaces the earlier two-held-reefs bonus, which usually increased an already-winning margin. Fits a branching colony supporting a reef holder. Compare with Shoal: the support can be placed normally, so remove its left Spines and keep exposed approaches. Test against direct reef deployment and scoring combinations before enabling.
 
 ## Information, draws and hand disruption
 
@@ -120,3 +120,7 @@ Specify ordering against terrain, edges, Wake, whirlpools and replacement draws 
 ## Battle-only refinement
 
 Regrowth, Cleaning Station, Wreck Salvage, Patient Guide and Chartmaker are removed from the shortlist because their benefits occurred outside combat. Their replacements are Spreading Arms, Grooming, Snare Line, Muster and Battle Plan. The count remains twenty. No new abilities are implemented.
+
+## Proposed creature assignments
+
+[Twenty concrete hosts, before/after edges and relative balance gates](ABILITY_ASSIGNMENTS.md) specify the proposed roster pass. Clownfish replaces the tentative Minnow/Anchovy host; Reef Network is refined to affect ordinary outcomes. These specifications do not themselves enable runtime abilities.

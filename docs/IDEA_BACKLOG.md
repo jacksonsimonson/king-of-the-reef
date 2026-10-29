@@ -15,7 +15,7 @@ This file captures possibilities without promising that they will be implemented
 
 ### Full-card ability candidates
 
-**Status:** Exploring. [Twenty creature-led finalists from forty concepts](CARD_ABILITY_IDEAS.md) now cover battle only: movement, defense, growth, attack control, scoring, information, hand management, adaptation, support, zones and sequencing. Recommended first prototypes: Inflate, Gentle Giant, Sonar, Shoal and Grooming. Host assignments and prototypes remain proposals; no new abilities are playable yet. The document records the twenty cuts and why they were rejected or deferred.
+**Status:** Exploring. [Twenty creature-led finalists from forty concepts](CARD_ABILITY_IDEAS.md) now cover battle only: movement, defense, growth, attack control, scoring, information, hand management, adaptation, support, zones and sequencing. Recommended first prototypes: Inflate, Gentle Giant, Sonar, Shoal and Grooming. [Concrete host assignments and proposed edge tradeoffs](ABILITY_ASSIGNMENTS.md) now cover all twenty; runtime implementation and comparative balance validation remain pending. The document records the twenty cuts and why they were rejected or deferred.
 
 ### Weight classes
 
