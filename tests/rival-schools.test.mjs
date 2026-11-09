@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import {STARTERS} from '../src/game/data/starterFish.ts';
 import {REGIONS} from '../src/game/run/maps.ts';
 import {createRun,rivalDeckFor,activeNode,battleResult,saveRun,loadRun,SAVE_KEY} from '../src/game/run/state.ts';
-import {RIVAL_STYLES,weightedRivalSchool,schoolRating,styleWeight} from '../src/game/run/rivalSchools.ts';
+import {RIVAL_STYLES,weightedRivalSchool,schoolRating,styleWeight,rivalStyleInfo} from '../src/game/run/rivalSchools.ts';
 const poolFor=r=>STARTERS.filter(c=>REGIONS[r].pool.includes(c.texture));
 test('regional schools are reproducible, varied, unique and similarly budgeted; elites rate higher',()=>{
  for(let r=0;r<3;r++){
   const pool=poolFor(r), seen=new Set();let normal=0,elite=0;
   for(const style of Object.keys(RIVAL_STYLES)) for(let seed=0;seed<40;seed++){
-   const key='distribution:'+seed, cards=weightedRivalSchool(pool,key,style), strong=weightedRivalSchool(pool,key,style,true);
-   assert.deepEqual(cards,weightedRivalSchool(pool,key,style));assert.equal(cards.length,10);assert.equal(new Set(cards.map(c=>c.texture)).size,10);
+   const key='distribution:'+seed, cards=weightedRivalSchool(pool,key,style,false,r), strong=weightedRivalSchool(pool,key,style,true,r);
+   assert.deepEqual(cards,weightedRivalSchool(pool,key,style,false,r));assert.equal(cards.length,10);assert.equal(new Set(cards.map(c=>c.texture)).size,10);
    assert.equal(new Set(cards.map(c=>c.id)).size,10);
    assert.ok(cards.every(c=>pool.some(p=>p.texture===c.texture)&&c.owner==='rival'&&c.condition==='healthy'));
    cards.forEach(c=>seen.add(c.texture));normal+=schoolRating(cards);elite+=schoolRating(strong);
@@ -20,17 +20,17 @@ test('regional schools are reproducible, varied, unique and similarly budgeted; 
  }
 });
 test('style weights bias relevant cards without excluding others, and tiny pools recycle safely',()=>{
- for(const style of ['holders','hunters','currents']){
+ for(const style of ['defenders','attackers','positioners','disablers']){
   let themed=0,plain=0;const pool=poolFor(0);
   for(let seed=0;seed<100;seed++){
    themed+=weightedRivalSchool(pool,String(seed),style).filter(c=>styleWeight(c,style)>1).length;
-   plain+=weightedRivalSchool(pool,String(seed),'balanced').filter(c=>styleWeight(c,style)>1).length;
+   plain+=weightedRivalSchool(pool,String(seed),'neutral').filter(c=>styleWeight(c,style)>1).length;
   }
   assert.ok(themed>plain,style);
  }
- const pool=poolFor(0).slice(0,2);const cards=weightedRivalSchool(pool,'tiny','hunters');
+ const pool=poolFor(0).slice(0,2);const cards=weightedRivalSchool(pool,'tiny','attackers');
  assert.equal(cards.length,10);assert.ok(cards.every(c=>pool.some(p=>p.texture===c.texture)));
- assert.throws(()=>weightedRivalSchool([],'empty','balanced'));
+ assert.throws(()=>weightedRivalSchool([],'empty','neutral'));
 });
 test('elites are optional, respect saved encounters and pay the advertised premium',()=>{
  let count=0;
@@ -57,4 +57,20 @@ test('production integration respects enabled regional cards and leaves Colossal
  }
  run.roster=STARTERS.map(c=>c.texture);run.pending=run.maps[2].nodes.find(n=>n.type==='boss').id;
  const boss=rivalDeckFor(run);delete run.rivalSchoolVersion;assert.deepEqual(rivalDeckFor(run),boss);
+});
+
+test('attack and disable preferences are distinct while neutral has no bias',()=>{
+ const bite={edges:[{direction:'up',effect:'bigger-fish'}]}, shock={edges:[{direction:'up',effect:'shock'}]};
+ assert.ok(styleWeight(bite,'attackers')>styleWeight(shock,'attackers'));
+ assert.ok(styleWeight(shock,'disablers')>styleWeight(bite,'disablers'));
+ assert.equal(styleWeight(bite,'neutral'),styleWeight(shock,'neutral'));
+});
+
+test('later areas specialize the broad styles without excluding local creatures',()=>{
+ for(let region=0;region<3;region++)for(const style of Object.keys(RIVAL_STYLES)){
+  const pool=poolFor(region);const weights=pool.map(c=>styleWeight(c,style,region));
+  assert.ok(weights.every(w=>w>=1));
+  assert.ok(region===0||pool.some(c=>styleWeight(c,style,region)>styleWeight(c,style,0)),region+':'+style);
+  assert.ok(rivalStyleInfo(style,region).name.startsWith(RIVAL_STYLES[style].name));
+ }
 });

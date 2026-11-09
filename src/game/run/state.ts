@@ -96,7 +96,7 @@ export function rivalDeckFor(run: Run): FishCard[] {
   if (run.rivalSchoolVersion === 1 && node.type === 'battle') {
     const pool = [...new Set(regionPool(run))].filter(texture => run.roster.includes(texture))
       .map(texture => ({ ...runFishDefinition(run, texture)!, owner: 'rival' as const, condition: 'healthy' as const }));
-    return weightedRivalSchool(pool, run.seed + ':' + node.id + ':weighted-rival', rivalStyle(run.seed, node.id), node.elite === true);
+    return weightedRivalSchool(pool, run.seed + ':' + node.id + ':weighted-rival', rivalStyle(run.seed, node.id), node.elite === true, run.region);
   }
   const enabled = new Set(run.roster);
   const pool = regionPool(run).filter((texture) => enabled.has(texture));

@@ -281,3 +281,13 @@ After #45, complete the [all-20 study](ALL_ABILITY_SCHOOL_STUDY.md) in one PR: v
 ## 2026-11-09 — Weighted regional rival schools
 
 Use broad playstyle biases over the entire enabled regional pool, not fixed themed decks. Version new voyages to preserve old seeded encounters. Compare random schools against a shared relative recruitment budget; optional elites modestly favor higher-rated creatures and award eight extra shells, with no stat or turn cheats. Keep the provisional recruitment heuristic separate from component-load balance budgets. See [Voyage rules and paired simulation evidence](VOYAGE.md#weighted-rival-schools-and-optional-elites). Colossal decks remain deferred.
+
+## 2026-11-09 — General rival styles and a cleaner game presentation
+
+Rival labels should describe broad battle tendencies: Neutral, Attackers, Defenders, Disablers, and Positioners. Separate offensive removal from disabling enemy options. They bias card selection, not AI difficulty or a scripted play sequence.
+
+After the weighted-rival PR, prioritize a presentation cleanup. Add a Game Guide tab at the bottom of the main menu, with navigable sections covering battle rules, edges and abilities, terrain, charms, Voyage encounters/economy, and controls. Move repetitive instructions, long rule explanations, and developer/balance language there. During play retain concise objectives, current state, actionable choices, consequences/costs, and optional inspection/help. Keep combat history and detailed controls collapsible, preserve accessible controls, and do not hide information required to make a fair decision. Aim for a finished game's presentation rather than a constantly visible manual.
+
+Regional progression refines these five broad tendencies: Shoreline teaches the categories, Open Ocean adds a mild specialty preference, and Bermuda adds a stronger specialty preference. All retain the same regional budget targets and random local pool. Specialties must fit mechanics actually present in that region; Open Ocean disruption uses pulls/lures, not nonexistent Shock cards.
+
+Keep broad and specialized rival-type names internal only; never expose them in the game UI. Preserve a wide variety in every area through full-pool eligibility, no fixed signature cards, and gentle 1.6 broad-style multipliers with 1.2/1.4 regional specialty multipliers. Players see normal versus elite and the actual reward, not archetype labels or generator explanations.

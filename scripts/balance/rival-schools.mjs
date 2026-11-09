@@ -7,9 +7,9 @@ for(let region=0;region<3;region++)for(const style of Object.keys(RIVAL_STYLES))
  const pool=STARTERS.filter(c=>REGIONS[region].pool.includes(c.texture));
  const rows=[];
  for(let seed=start;seed<start+count;seed++){
-  const player=weightedRivalSchool(pool,'player:'+seed,'balanced').map((c,i)=>({...c,id:'player-'+i,owner:'player'}));
+  const player=weightedRivalSchool(pool,'player:'+seed,'neutral',false,region).map((c,i)=>({...c,id:'player-'+i,owner:'player'}));
   for(const elite of [false,true]){
-   const rival=weightedRivalSchool(pool,'rival:'+seed,style,elite);
+   const rival=weightedRivalSchool(pool,'rival:'+seed,style,elite,region);
    for(const first of ['player','rival'])for(const swapped of [false,true]){
     const owned=(cards,owner)=>cards.map((c,i)=>({...c,id:owner+'-'+i,owner}));
     const customDecks=swapped?{player:owned(rival,'player'),rival:owned(player,'rival')}:{player,rival};

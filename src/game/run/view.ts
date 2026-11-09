@@ -1,4 +1,3 @@
-import { RIVAL_STYLES, rivalStyle } from './rivalSchools.ts';
 import { FishingSession } from "../fishing/view.ts";
 import { recordDiscoveries } from '../journal.ts';
 import { openJournal } from '../ui/journal.ts';
@@ -208,9 +207,7 @@ export class VoyageView {
     const info = SPACE_INFO[node.type];
     panel.append(element("h3", "", node.type === "boss" ? REGIONS[run.region].boss : node.elite ? "Elite battle" : info.name), element("p", "", info.description));
     if (node.type === 'battle' && run.rivalSchoolVersion === 1) {
-      const style = RIVAL_STYLES[rivalStyle(run.seed, node.id)];
-      panel.append(element('p', '', style.name + ': ' + style.description + ' Random creatures from this region; exact school stays hidden.'));
-      if (node.elite) panel.append(element('p', '', 'Elite: a stronger local school. Victory earns eight extra shells.')) ;
+      if (node.elite) panel.append(element('p', '', 'Elite victory: +8 shells.')) ;
       if (!run.pending) panel.append(element('p', '', 'Win: ' + battleWinReward(run, node) + ' shells. Tie: ' + (run.voyageVersion === 2 ? 6 : 4) + ' shells. Loss: −1 resolve.'));
     }
     if (!run.pending) {

@@ -72,11 +72,21 @@ After the combined result, a scrolling match summary shows both tide scores, act
 
 ## Weighted rival schools and optional elites
 
-New voyages use rival-school version 1. Ordinary and elite battles draw ten creatures from the current area's enabled roster, with saved card definitions. No creature repeats until that pool is exhausted. Each node has a seeded broad style: Mixed current (no preference), Reef keepers (defense/scoring), Hunting party (predation/disruption), or Current riders (movement/displacement). Every local creature remains eligible; a matching creature receives twice the base selection weight. There are no authored decks or mandatory signature cards.
+New voyages use rival-school version 1. Ordinary and elite battles draw ten creatures from the current area's enabled roster, with saved card definitions. No creature repeats until that pool is exhausted. Each node has one of five seeded broad styles. Shoreline introduces Neutral, Attackers, Defenders, Disablers, and Positioners. Open Ocean and Bermuda specialize these tendencies with additional selection weights, using creatures already present in the area. Styles change school composition, not AI difficulty or a scripted move sequence. Every local creature remains eligible; a broad-style match receives 1.6 times the base selection weight, multiplied by 1.2 for an Open Ocean specialty or 1.4 for a Bermuda specialty. Neutral has no broad bias; later Neutral schools favor flexible support tools. There are no authored decks or mandatory signature cards.
+
+| Broad style / Shoreline | Open Ocean | Bermuda |
+| --- | --- | --- |
+| Neutral — general mix | Coordinated — reserve/information/support abilities | Adaptable — flexible innate tools |
+| Attackers — kill or knock creatures out of position | Pack Hunters — predators and allied pressure | Ambushers — predators and surprise tools |
+| Defenders — protect positions and punish attacks | Armored — Shields and resistance to displacement | Retaliators — Spines and lingering defenses |
+| Disablers — reduce enemy options | Interference — Hooks and Anglerfish's lure | Saboteurs — Shock and Rust Lobster's snare |
+| Positioners — move creatures to control reefs | Current Specialists — Hooks, Waves and following currents | Tricksters — swaps, rebounds and directional flexibility |
+
+These are preferences rather than promised mechanics in every hand. In particular, Open Ocean currently has no Shock edges; its disruption specialty uses its existing pullers and lure instead of inventing a Shock roster. Restricted enabled pools can dilute any specialty.
 
 Selection uses a provisional, relative recruitment rating in src/game/run/rivalSchools.ts, independent of the design framework's component-load budgets and card rarity. Directional coverage, diminishing returns for repeated effects, and innate utility inform the rating. Sixteen random candidate schools are compared to a shared regional average rating, with a strong penalty for fewer than three positioners when the pool permits. This limits random difficulty spikes without requiring a rigid role quota. A restricted pool can repeat cards and may not meet the usual composition target. These ratings are hypotheses, not universal strength scores; changing abilities calls for rerunning the matchup study.
 
-Elites favor higher-rated cards and target the regional average plus 0.45 regional standard deviations. They retain the same board, plays, regional AI, and rules. New long maps can mark one battle at each of steps 8 and 14 as elite, only where every immediate predecessor also connects to a normal alternative. Some maps therefore have fewer than two elites. The gold icon, Elite battle label, style, and reward preview appear before committing. Wins pay 22/24/26 shells (eight more than normal); ties still pay six and losses cost one resolve. Saved node types and elite markers survive reload. Older voyages retain their original generator; Colossal placeholder decks and Quick Match are unchanged.
+Elites favor higher-rated cards and target the regional average plus 0.45 regional standard deviations. They retain the same board, plays, regional AI, and rules. New long maps can mark one battle at each of steps 8 and 14 as elite, only where every immediate predecessor also connects to a normal alternative. Some maps therefore have fewer than two elites. The gold icon, Elite battle label, and reward preview appear before committing. Rival archetype names and descriptions are internal only and never appear in the player UI. All five broad categories remain available in every area; specialty weights are deliberately gentle (at most 2.24 times base) to preserve mixed schools. Wins pay 22/24/26 shells (eight more than normal); ties still pay six and losses cost one resolve. Saved node types and elite markers survive reload. Older voyages retain their original generator; Colossal placeholder decks and Quick Match are unchanged.
 
 ### Validation and balance evidence
 
@@ -88,23 +98,26 @@ node scripts/balance/rival-schools.mjs 4200 16
 node scripts/balance/rival-schools.mjs 5200 2 expert
 ~~~
 
-The main comparison covers 3,072 Tactical tides: 32 seed groups × three regions × four styles × normal/elite × both starting orders × both ownership assignments. Each generated opponent faces a separately generated balanced local school. Opposing starts share terrain and deal seeds; ownership also swaps to control directional advantages. Each row below averages 128 tides per difficulty across both batches. Positive margin favors the balanced comparison school; negative favors the styled opponent.
+The main comparison covers 3,840 Tactical tides: 32 seed groups × three regions × five styles × normal/elite × both starting orders × both ownership assignments. Each generated opponent faces a separately generated balanced local school. Opposing starts share terrain and deal seeds; ownership also swaps to control directional advantages. Each row below averages 128 tides per difficulty across both batches. Positive margin favors the balanced comparison school; negative favors the styled opponent.
 
 | Region | Style | Normal mean margin | Elite mean margin |
 | --- | --- | ---: | ---: |
-| Shoreline | balanced | -0.148 | -0.195 |
-| Shoreline | holders | -0.094 | -0.219 |
-| Shoreline | hunters | -0.063 | -0.094 |
-| Shoreline | currents | -0.094 | -0.266 |
-| Open Ocean | balanced | -0.063 | -0.242 |
-| Open Ocean | holders | 0.125 | -0.250 |
-| Open Ocean | hunters | 0.086 | -0.094 |
-| Open Ocean | currents | -0.094 | 0.016 |
-| Bermuda | balanced | 0.133 | -0.172 |
-| Bermuda | holders | 0.000 | -0.383 |
-| Bermuda | hunters | 0.141 | -0.031 |
-| Bermuda | currents | 0.016 | -0.477 |
+| Shoreline | neutral | -0.148 | -0.195 |
+| Shoreline | attackers | -0.102 | -0.094 |
+| Shoreline | defenders | 0.031 | -0.078 |
+| Shoreline | disablers | 0.070 | -0.156 |
+| Shoreline | positioners | -0.156 | -0.180 |
+| Open Ocean | neutral | 0.008 | -0.086 |
+| Open Ocean | attackers | 0.000 | -0.102 |
+| Open Ocean | defenders | -0.063 | -0.008 |
+| Open Ocean | disablers | -0.086 | -0.141 |
+| Open Ocean | positioners | -0.141 | -0.227 |
+| Bermuda | neutral | 0.031 | -0.164 |
+| Bermuda | attackers | 0.219 | 0.094 |
+| Bermuda | defenders | 0.039 | -0.094 |
+| Bermuda | disablers | 0.039 | -0.250 |
+| Bermuda | positioners | 0.016 | -0.461 |
 
-Normal styles remain near parity in this sample. Elites improve the aggregate opponent margin in every region, but not every style or seed batch: higher recruitment rating is not a guaranteed win. No creature edges or abilities were changed. A further 192 Expert tides on two fresh seeds completed as a policy smoke check, not a precise estimate. An earlier 384-tide exploratory sample used both starts without ownership swaps and is excluded from the table.
+Normal styles remain near parity in this sample. Elites improve the aggregate opponent margin in every region, but not every style or seed batch: higher recruitment rating is not a guaranteed win. No creature edges or abilities were changed. A further 240 Expert tides on two fresh seeds completed as a policy smoke check, not a precise estimate. Earlier prototype samples are excluded from this final table.
 
-Generation tests exercise 480 region/style/seed combinations, all regional creatures' observed eligibility, unique IDs, duplicate avoidance, style bias, budget spread, elite rating, tiny pools, roster filtering, legacy generation, save/reload, optional routes, and reward settlement. Browser smoke testing uses an isolated seed: elite preview, entry, visible battle title, a player placement, rival response, and saved-battle resume. This is not a full-Voyage economy test or proof of equal human difficulty. Simulations omit charms and long-run injury/recruitment decisions; repeated seed variants are correlated. Next useful validation is full-Voyage integration with recruiting, injuries, charms, and elite route choices.
+Generation tests exercise 600 region/style/seed combinations, all regional creatures' observed eligibility, unique IDs, duplicate avoidance, style bias, budget spread, elite rating, tiny pools, roster filtering, legacy generation, save/reload, optional routes, and reward settlement. Browser smoke testing uses an isolated seed: elite preview, entry, visible battle title, a player placement, rival response, and saved-battle resume. The final UI check confirmed that rival-type names and generator explanations are absent; only the elite distinction and reward remain. This is not a full-Voyage economy test or proof of equal human difficulty. Simulations omit charms and long-run injury/recruitment decisions; repeated seed variants are correlated. Next useful validation is full-Voyage integration with recruiting, injuries, charms, and elite route choices.
