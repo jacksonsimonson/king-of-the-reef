@@ -8,10 +8,12 @@ import {match} from './matches.mjs';
 import {chooseRecruit,recruitGain,trimCandidate} from './school-policy.mjs';
 
 /** Seeded route decisions and real combat/settlement; fishing success is an explicit assumption. */
-export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle,startingSchoolId}={}){
+export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle,startingSchoolId,elitePolicy='neutral',checkpoint=run=>run,settle=(run,scores,killed,spent)=>{const score=combinedScore(scores);battleResult(run,score.player,score.rival,killed,spent);}}={}){
  assert.ok(['baseline','recruit','trim','both'].includes(schoolPolicy));
  const deliberate=['recruit','both'].includes(schoolPolicy),trimming=['trim','both'].includes(schoolPolicy);
- const run=createRun(seed,2,startingSchoolId),battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
+ assert.ok(['neutral','seek','avoid'].includes(elitePolicy));
+ let run=createRun(seed,2,startingSchoolId);
+ const battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
  const startingSchool=run.school.map(c=>c.texture),balanceVersion=run.cardBalanceVersion;
  const healthy=()=>run.school.filter(c=>c.condition==='healthy').length;
  for(let guard=0;run.status==='active'&&guard<100;guard++){
@@ -21,10 +23,12 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
     if(route==='recovery')return ({hydration:run.resolve<3||healthy()<8?10:2,fishing:7,event:5,shop:run.shells>=8?6:1,battle:0,release:1,boss:0})[n.type]??0;
     return ({battle:8,fishing:6,event:5,shop:run.shells>=8?7:1,hydration:run.resolve===1?10:2,release:1,boss:0})[n.type]??0;
    };
-   candidates.sort((a,b)=>rank(b)-rank(a)||a.id.localeCompare(b.id));assert.ok(candidates.length);assert.ok(enterNode(run,candidates[0].id));
+   const priority=n=>rank(n)+(n.elite?(elitePolicy==='seek'?20:elitePolicy==='avoid'?-20:0):0);
+   candidates.sort((a,b)=>priority(b)-priority(a)||a.id.localeCompare(b.id));assert.ok(candidates.length);assert.ok(enterNode(run,candidates[0].id));
   }
+  run=checkpoint(run);
   const node=activeNode(run),region=run.region;
-  const visit={region,nodeId:node.id,column:node.column,type:node.type,school:run.school.length,healthy:healthy(),shells:run.shells,resolve:run.resolve};visits.push(visit);
+  const visit={region,nodeId:node.id,column:node.column,type:node.type,elite:!!node.elite,school:run.school.length,healthy:healthy(),shells:run.shells,resolve:run.resolve};visits.push(visit);
   const previousIds=new Set(run.school.map(c=>c.id)),previousInjured=new Set(run.school.filter(c=>c.condition==='killed').map(c=>c.id));
   if(node.type==='battle'||node.type==='boss'){
    const count=(attempts.get(node.id)??0)+1;attempts.set(node.id,count);
@@ -40,10 +44,10 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
    const tides=[match({...args,first:'player'})];if(format==='two-tide')tides.push(match({...args,first:'rival'}));
    const score=combinedScore(tides.map(t=>t.score)),killed=[...new Set(tides.flatMap(t=>t.killedIds))],spent=tides.reduce((ledger,t)=>matchCharmSpending(opening,t.inventories.player,ledger),[]);
    const shells=run.shells,resolve=run.resolve;
-   battleResult(run,score.player,score.rival,killed,spent);
+   settle(run,tides.map(t=>t.score),killed,spent);
    const dead=killed.filter(id=>run.school.some(c=>c.id===id));
    visit.battleRestored=run.school.filter(c=>c.condition==='healthy'&&(previousInjured.has(c.id)||dead.includes(c.id))).length;
-   battles.push({region,boss:node.type==='boss',attempt:count,before,school:run.school.length,after:healthy(),regionalHealthy,distinctHealthy,playLimit,repeatedOpening,score,dead:dead.length,injuredAfter:run.school.length-healthy(),restored:visit.battleRestored,spent:spent.length,playerPlays:tides.reduce((n,t)=>n+t.plays.player,0),rivalPlays:tides.reduce((n,t)=>n+t.plays.rival,0),frames:tides.reduce((n,t)=>n+t.frameCount,0),shellDelta:run.shells-shells,resolveDelta:run.resolve-resolve,playedTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').map(x=>x.card)))],availableTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').flatMap(x=>x.available)))]});
+   battles.push({region,elite:!!node.elite,rivalTextures:args.customDecks.rival.map(c=>c.texture),charmIds:opening,boss:node.type==='boss',attempt:count,before,school:run.school.length,after:healthy(),regionalHealthy,distinctHealthy,playLimit,repeatedOpening,score,dead:dead.length,injuredAfter:run.school.length-healthy(),restored:visit.battleRestored,spent:spent.length,playerPlays:tides.reduce((n,t)=>n+t.plays.player,0),rivalPlays:tides.reduce((n,t)=>n+t.plays.rival,0),frames:tides.reduce((n,t)=>n+t.frameCount,0),shellDelta:run.shells-shells,resolveDelta:run.resolve-resolve,playedTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').map(x=>x.card)))],availableTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').flatMap(x=>x.available)))]});
   }else if(node.type==='hydration'){
    const selected=run.school.filter(c=>c.condition==='killed').slice(0,3).map(c=>c.id);healed+=selected.length;assert.ok(resolveVisit(run,'rest',selected));
   }else if(node.type==='fishing'){
@@ -77,5 +81,6 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
   assert.ok(run.shells>=0&&run.resolve>=0&&run.charms.length<=3);
  }
  assert.ok(run.status!=='active'||capped,'Study guard reached without a terminal outcome or declared boss cap');
- return {seed,format,route,playerDifficulty,catchRate,schoolPolicy,balanceVersion,startingSchool,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),school:run.school.map(c=>({texture:c.texture,condition:c.condition})),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
+ run=checkpoint(run);
+ return {seed,format,elitePolicy,rivalSchoolVersion:run.rivalSchoolVersion,route,playerDifficulty,catchRate,schoolPolicy,balanceVersion,startingSchool,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),school:run.school.map(c=>({texture:c.texture,condition:c.condition})),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
 }
