@@ -2,7 +2,7 @@ import type { FishCard } from "../data/starterFish.ts";
 import { REGIONS } from "../run/maps.ts";
 import { drawSeascape } from "../run/art.ts";
 import { cardElement } from "../ui/cardElement.ts";
-import { AREA_MOVEMENT, FishingModel, MOVEMENTS, STEP, ZONE_WIDTH, type FishingSnapshot } from "./model.ts";
+import { FishingModel, MOVEMENTS, STEP, ZONE_WIDTH, type FishingSnapshot } from "./model.ts";
 
 export class FishingSession {
   private dialog = document.createElement("dialog");
@@ -31,15 +31,12 @@ export class FishingSession {
     const info = document.createElement("div"); info.className = "fishing-info";
     const name = document.createElement("h4"); name.textContent = fish.name;
     const pattern = document.createElement("p"); pattern.className = "fishing-pattern"; pattern.textContent = MOVEMENTS[this.model.movement].name;
-    const description = document.createElement("p"); description.textContent = MOVEMENTS[this.model.movement].description;
-    const difficulty = document.createElement("p"); difficulty.textContent = "Water Movement: " + AREA_MOVEMENT[snapshot.region] + "x";
-    const controls = document.createElement("p"); controls.textContent = "Hold Left / Right to move your zone. Release to stop. Keep the fish inside to fill the catch meter within 60 seconds.";
-    info.append(cardElement(fish), name, pattern, description, difficulty);
+    info.append(cardElement(fish), name, pattern);
     const stage = document.createElement("div"); stage.className = "fishing-stage";
     this.canvas.width = 672; this.canvas.height = 320; this.canvas.className = "fishing-canvas";
     this.canvas.tabIndex = 0; this.canvas.setAttribute("aria-label", "Fishing lane. Use Left and Right arrows to follow the fish. Escape pauses.");
     this.scenery.width = 672; this.scenery.height = 320; drawSeascape(this.scenery, snapshot.region, seed);
-    stage.append(this.canvas, controls); layout.append(info, stage);
+    stage.append(this.canvas); layout.append(info, stage);
     this.status.className = "fishing-status"; this.status.setAttribute("role", "status");
     this.progress.max = 1; this.progress.value = this.model.progress; this.progress.setAttribute("aria-label", "Catch progress");
     this.action.className = "voyage-button"; this.action.type = "button";
@@ -99,8 +96,8 @@ export class FishingSession {
   };
   private updateStatus(): void {
     const labels = {
-      playing: ["Pause", "One Attempt. Keep The Fish In Your Zone. Escape Pauses."],
-      paused: ["Resume", "Paused. Your Attempt Will Resume From Here."],
+      playing: ["Pause", "Fishing"],
+      paused: ["Resume", "Paused"],
       caught: ["Return To Map", this.fish.name + " Caught! Added To Your School."],
     };
     [this.action.textContent, this.status.textContent] = labels[this.phase];

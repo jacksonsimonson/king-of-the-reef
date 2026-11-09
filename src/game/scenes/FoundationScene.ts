@@ -14,7 +14,7 @@ import { random, REGIONS } from '../run/maps.ts';
 import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { ABILITIES, canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
-import { battleTerrain, terrainForRules, placementCard, placementDestination, terrainLegend, TERRAIN_INFO } from "../terrain";
+import { battleTerrain, terrainForRules, placementCard, placementDestination, TERRAIN_INFO } from "../terrain";
 import { STARTERS, type FishCard } from "../data/starterFish";
 import { createEnabledDeck } from "../data/roster";
 import { drawFishCard } from "../ui/drawFishCard";
@@ -151,8 +151,8 @@ export class FoundationScene extends Phaser.Scene {
     const toggle = document.createElement("button"); toggle.className = "voyage-button";
     const setLabel = () => { toggle.textContent = this.motionReduced ? "Motion: Reduced" : "Motion: Animated"; toggle.setAttribute("aria-pressed", String(this.motionReduced)); };
     setLabel(); toggle.onclick = () => { this.motionReduced = !this.motionReduced; setLabel(); };
-    const details = document.createElement("details"); details.open = true;
-    const summary = document.createElement("summary"); summary.textContent = "Combat log · latest 40 events";
+    const details = document.createElement("details");
+    const summary = document.createElement("summary"); summary.textContent = "Combat log";
     this.feedbackLog = document.createElement("ol"); this.feedbackLog.setAttribute("aria-label", "Combat log");
     details.append(summary, this.feedbackLog); this.feedbackPanel.append(toggle, details);
     if (this.voyageBattle) {
@@ -205,7 +205,7 @@ export class FoundationScene extends Phaser.Scene {
       charms: this.charms, spentCharms: this.spentCharms, killedIds: [...this.matchKilled],
     });
     const ok = this.voyageBattle.onCheckpoint(saved);
-    if (this.saveStatus) this.saveStatus.textContent = ok ? "Battle saved. Leaving during an animation resumes the previous decision." : "Battle could not be saved. Keep this page open to preserve your progress.";
+    if (this.saveStatus) this.saveStatus.textContent = ok ? "Saved" : "Battle could not be saved. Keep this page open to preserve your progress.";
   }
 
   private resultAction(): void {
@@ -349,7 +349,6 @@ export class FoundationScene extends Phaser.Scene {
       add(cancel);
     }
 
-    add(this.add.text(this.scale.width - 194, board.y + 310, terrainLegend(this.terrain), this.textStyle(8, "#b8d7dc")).setWordWrapWidth(168).setLineSpacing(6));
     if (this.pendingDrift) {
       const cancel = this.add.text(38, board.y + 500, "CANCEL DRIFT", this.textStyle(8, "#eed49b")).setInteractive({ useHandCursor: true });
       cancel.on("pointerdown", () => { this.pendingDrift = false; this.driftFrom = null; this.render("Drift canceled. Charm kept."); }); add(cancel);
@@ -357,7 +356,7 @@ export class FoundationScene extends Phaser.Scene {
     this.renderControls(message);
     if (this.finished) this.drawResult(scores.player, scores.rival);
     else {
-      const detail = this.add.text(40, this.scale.height - 68, "Hover a card to read its edges and ability.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 80);
+      const detail = this.add.text(40, this.scale.height - 68, "", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 80);
       add(detail);
       this.events.removeAllListeners("card-hover");
       this.events.on("card-hover", (fish: FishCard) => detail.setText(cardDescription(fish) + (this.shocked.has(fish.id) ? " SHOCKED: all edges disabled for this battle." : "")));
@@ -464,7 +463,7 @@ export class FoundationScene extends Phaser.Scene {
     this.boardDrawings.set(fish.id, drawing);
     if (this.pendingDrift && fish.owner === "player") drawing.on("pointerdown", () => {
       this.driftFrom = this.board.findIndex(card => card?.id === fish.id);
-      this.render("Choose an adjacent gold-bordered tile, or another friendly fish.");
+      this.render("Drift · Select destination");
     });
   }
 
@@ -538,7 +537,7 @@ export class FoundationScene extends Phaser.Scene {
 
   private drawCharms(x: number, y: number): void {
     this.ui?.add(this.add.text(x, y, "TIDE CHARMS", this.textStyle(16, "#eed49b")));
-    this.ui?.add(this.add.text(x, y + 24, `${availableCharms(this.charms).length}/${CHARM_CAPACITY} · USE BEFORE YOUR FISH`, this.textStyle(8, "#8aa8b5")));
+    this.ui?.add(this.add.text(x, y + 24, `${availableCharms(this.charms).length}/${CHARM_CAPACITY}`, this.textStyle(8, "#8aa8b5")));
     availableCharms(this.charms).forEach((id, index) => {
       const count = 1;
       const active = this.canUseCharm(id);
@@ -684,22 +683,22 @@ export class FoundationScene extends Phaser.Scene {
         this.playerDeck.slice(0,3).forEach((fish,i) => button('draft-'+i, cardDescription(fish), () => this.chooseDraft(i)));
       } else if (this.pendingDrift) {
         const friends = this.board.flatMap((f,i) => f?.owner === 'player' ? [[String(i),tile(i)] as [string,string]] : []);
-        select('drift-from', 'Fish to move', [['','Choose a fish'],...friends], this.driftFrom === null ? '' : String(this.driftFrom), value => { this.driftFrom = value === '' ? null : Number(value); this.render('Choose an adjacent empty destination.'); });
+        select('drift-from', 'Fish to move', [['','Choose a fish'],...friends], this.driftFrom === null ? '' : String(this.driftFrom), value => { this.driftFrom = value === '' ? null : Number(value); this.render('Drift · Select destination'); });
         if (this.driftFrom !== null) this.board.forEach((_,i) => { if (canDrift(this.board,this.driftFrom!,i,this.terrain)) button('drift-'+i, 'Move to '+tile(i), () => this.finishDrift(i)); });
       } else {
-        select('hand','Hand card', [['','Choose a fish'], ...this.playerHand.filter(s => !s.played).map(s => [s.card.id,s.card.name] as [string,string])], this.selectedId ?? '', id => { this.selectedId = id || null; this.render('Inspect a target, then choose Place.'); });
+        select('hand','Hand card', [['','Choose a fish'], ...this.playerHand.filter(s => !s.played).map(s => [s.card.id,s.card.name] as [string,string])], this.selectedId ?? '', id => { this.selectedId = id || null; this.render('Select a target.'); });
         const card = this.getSelectedPlayerCard();
         if (card) {
           text(cardDescription(card));
           const legal = this.board.flatMap((_,i) => this.isLegalPlayerPlacement(i) ? [[String(i),tile(i)] as [string,string]] : []);
           if (!legal.some(([i]) => Number(i) === this.targetIndex)) this.targetIndex = Number(legal[0]?.[0] ?? 0);
           if (legal.length) {
-            select('target','Placement target', legal, String(this.targetIndex), value => { this.targetIndex = Number(value); this.render('Target selected. Choose Place to commit.'); });
+            select('target','Placement target', legal, String(this.targetIndex), value => { this.targetIndex = Number(value); this.render('Target selected.'); });
             const destination = placementDestination(this.board,this.targetIndex,this.terrain);
-            text('Target: '+tile(this.targetIndex)+(destination !== this.targetIndex ? ' Channel moves to '+tileName(destination,this.rules.size)+' before edges.' : '')+' Effects resolve before any whirlpool travel.');
+            text('Target: '+tile(this.targetIndex)+(destination !== this.targetIndex ? ' Channel moves to '+tileName(destination,this.rules.size)+' before edges.' : ''));
             button('place','Place at '+tileName(this.targetIndex,this.rules.size), () => { void this.playPlayerCard(this.targetIndex); });
             this.showPlacementPreview(this.targetIndex,card);
-          } else text('This fish has no legal placement. Choose another card or use a charm.');
+          } else text('No legal placement for this creature.');
         }
         availableCharms(this.charms).forEach((id,i) => button('charm-'+i, CHARMS[id].name+': '+CHARMS[id].description, () => this.useCharm(id), !this.canUseCharm(id)));
       }
@@ -745,7 +744,7 @@ export class FoundationScene extends Phaser.Scene {
     if (triggersRally(playedCard, result.pushedEnemyIds, this.playerDeck)) {
       this.logCombat(playedCard.name + ": Rally triggered — choose your next draw.");
       this.pendingRally = slot;
-      this.render("Rally — inspect your next card before drawing your replacement.");
+      this.render("Rally · Reserve choice");
       return;
     }
     await this.finishAbilityDraw(playedCard,slot);
@@ -790,7 +789,7 @@ export class FoundationScene extends Phaser.Scene {
     this.turn = rivalReady && (previous === "player" || !playerReady) ? "rival" : "player";
     await this.beginAbilityTurn();
     if(!this.sys.isActive())return;
-    this.render(this.turn === "rival" ? "The rival is choosing…" : "Your turn — drag a fish to open water.");
+    this.render(this.turn === "rival" ? "The rival is choosing…" : "Your turn");
     if (this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
   }
 
@@ -873,7 +872,7 @@ export class FoundationScene extends Phaser.Scene {
     drawFishCard({ scene: this, container: modal, fish: top, x, y: y - 40, size: HAND_CARD_SIZE })
       .setInteractive().on("pointerover", () => this.events.emit("card-hover", top));
     modal.add(this.add.text(x, y + 64, top.name, this.textStyle(16, "#b8ffd0")).setOrigin(0.5));
-    modal.add(this.add.text(x, y + 96, "Choose before drawing your replacement.", this.textStyle(8, "#b8d7dc")).setOrigin(0.5));
+    modal.add(this.add.text(x, y + 96, "", this.textStyle(8, "#b8d7dc")).setOrigin(0.5));
     (["keep", "bottom"] as const).forEach((choice, index) => {
       const bx = x - 144 + index * 288;
       const button = this.add.rectangle(bx, y + 144, 256, 48, 0x28545a).setStrokeStyle(2, 0x81e8ed).setInteractive({ useHandCursor: true });
@@ -898,7 +897,7 @@ export class FoundationScene extends Phaser.Scene {
     if (this.twoTide) { this.tideScores.push(this.getScores()); for (const id of this.killedIds) this.matchKilled.add(id); }
     const score = this.twoTide ? combinedScore(this.tideScores) : this.getScores();
     if (this.intermission) {
-      this.render('Next tide: board and resources reset; rival starts.');
+      this.render('Tide 2 · Rival starts');
       return;
     }
     reefAudio.play(score.player > score.rival ? "victory" : score.player < score.rival ? "defeat" : "reward");
