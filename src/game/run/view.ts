@@ -3,7 +3,6 @@ import { recordDiscoveries } from '../journal.ts';
 import { openJournal } from '../ui/journal.ts';
 import { voyageEvent, eventChoiceAvailable } from './events.ts';
 import { reefAudio } from "../audio/audio.ts";
-import { MOVEMENTS, movementFor } from "../fishing/model.ts";
 import { cardElement } from "../ui/cardElement";
 import { tidePlayLimit } from '../twoTide';
 import { voyageMatchFormat } from './battleSave';
@@ -163,7 +162,7 @@ export class VoyageView {
       const item = element('span'), icon = element('canvas'); drawIcon(icon, 'battle', '#ffd582');
       item.append(icon, element('span', '', 'Elite battle')); legend.append(item);
     }
-    footer.append(legend, element("p", "voyage-seed", run ? `SEED ${run.seed} · ${this.storageOk ? "AUTO-SAVED" : "SAVE UNAVAILABLE — KEEP THIS TAB OPEN"}` : "A different chart for every voyage"));
+    footer.append(legend, element("p", "voyage-seed", run ? (this.storageOk ? "AUTO-SAVED" : "SAVE UNAVAILABLE — KEEP THIS TAB OPEN") : "A different chart for every voyage"));
     this.root.append(footer);
     const detail = element("section", "voyage-detail"); detail.id = "voyage-detail"; detail.setAttribute("aria-live", "polite"); this.root.append(detail);
     this.renderDetail();
@@ -184,11 +183,11 @@ export class VoyageView {
       const entry = element("div", "charm-entry");
       const id = available[index];
       if (id) entry.append(charmCanvas(id), element("strong", "", CHARMS[id].name), element("p", "", CHARMS[id].description));
-      else entry.append(element("strong", "", "Empty Slot"), element("p", "", "Room for one Tide Charm."));
+      else entry.append(element("strong", "", "Empty Slot"));
       slots.append(entry);
     }
     section.append(slots);
-    if (run.charms.length > CHARM_CAPACITY) section.append(element("p", "", `${run.charms.length - CHARM_CAPACITY} charms from an older save are waiting. Using a held charm makes the next one available.`));
+    if (run.charms.length > CHARM_CAPACITY) section.append(element("p", "", `${run.charms.length - CHARM_CAPACITY} reserve charms`));
     return section;
   }
   private renderDetail(): void {
@@ -285,7 +284,7 @@ export class VoyageView {
         const pick = button("", () => {
           if (beginFishing(run, texture)) { this.save(); this.openFishing(false); }
         }, "catch-choice");
-        pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", "Try · " + MOVEMENTS[movementFor(texture)].name));
+        pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", "Fish"));
         actions.append(pick);
       }
       actions.append(button(run.camp ? "Leave Camp →" : "Skip", () => this.resolve("leave")));
@@ -322,7 +321,7 @@ export class VoyageView {
         picks.push(pick); actions.append(pick);
       }
       if (hydration && !choices.length) panel.append(element("p", "", "All creatures healthy · +1 resolve available"));
-      if (node.type === "camp") panel.append(element("p", "care-selection", `Release phase · Keep at least ${campMinimum(run)} ready creatures`));
+      if (node.type === "camp") panel.append(element("p", "care-selection", `Keep at least ${campMinimum(run)} ready creatures`));
       panel.append(status); update();
       const controls = element("div", "care-controls"); controls.append(confirm);
       if (!hydration) controls.append(button(node.type === "camp" ? "Continue to Fishing →" : "Keep My School", () => this.resolve(node.type === "camp" ? "fish" : "leave")));

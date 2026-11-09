@@ -188,7 +188,7 @@ export class FoundationScene extends Phaser.Scene {
     }
     for (let i = 0; i < s.rngCalls; i++) this.random();
     this.logCombat("Battle resumed from the last saved decision.");
-    this.render(this.intermission ? 'Tide 1 complete. Next tide restores resources; rival starts.' : this.pendingRally ? "Rally — choose your next draw." : this.pendingReveal ? "Revelation — reveal a rival card." : this.turn === "rival" ? "Battle resumed. The rival is choosing…" : "Battle resumed. Your turn.");
+    this.render(this.intermission ? 'Tide 1 complete' : this.pendingRally ? "Rally — choose your next draw." : this.pendingReveal ? "Revelation — reveal a rival card." : this.turn === "rival" ? "Battle resumed. The rival is choosing…" : "Battle resumed. Your turn.");
     if (!this.finished && this.turn === "rival") this.time.delayedCall(550, () => this.playRivalTurn());
   }
 
@@ -248,7 +248,7 @@ export class FoundationScene extends Phaser.Scene {
     }
     this.plays = { player: 0, rival: 0 };
     this.abilityMemory=beginAbilityTurn(this.abilityState,this.turn);
-    this.render(this.turn === 'rival' ? 'Fresh tide. The rival moves first.' : 'Drag a fish to open water, or select it and choose a tile.');
+    this.render(this.turn === 'rival' ? 'Fresh tide. The rival moves first.' : 'Your turn');
     if (this.turn === 'rival') this.time.delayedCall(550, () => this.playRivalTurn());
     else if (!this.playerHand.length) this.advanceTurn("player");
   }
@@ -271,7 +271,7 @@ export class FoundationScene extends Phaser.Scene {
     }
 
     add(pixelPanel(this, this.scale.width / 2, 48, this.scale.width - 32, 80));
-    add(this.add.text(40, 22, `KING OF THE REEF · ${this.rules.difficulty.toUpperCase()} · ${this.rules.size}×${this.rules.size}`, this.textStyle(24, "#eed49b")));
+    add(this.add.text(40, 22, "KING OF THE REEF", this.textStyle(24, "#eed49b")));
     add(this.add.text(40, 65, message, this.textStyle(16, "#b8ffd0")).setWordWrapWidth(1200));
     add(this.add.text(this.scale.width - 40, 26, `YOU ${scores.player}  ·  ${scores.rival} RIVAL`, this.textStyle(16, "#ffb8d8")).setOrigin(1, 0));
     add(this.add.text(this.scale.width - 40, 58, `FISH PLAYED ${this.plays.player}/${this.playLimit}  ·  ${this.plays.rival}/${this.playLimit}`, this.textStyle(16, "#b8d7dc")).setOrigin(1, 0));
@@ -591,7 +591,7 @@ export class FoundationScene extends Phaser.Scene {
     if (!this.canUseCharm(id)) return;
     if (id === "spyglass-pearl") {
       this.pendingReveal = "charm";
-      this.render("Spyglass Pearl — choose a hidden rival card. Your fish play is still available.");
+      this.render("Spyglass Pearl — choose a hidden rival card.");
       return;
     }
     if (id === "dredger-net") { this.pendingDraft = true; this.render("Dredger Net — choose a replacement from your next three reserve cards."); return; }
@@ -605,7 +605,7 @@ export class FoundationScene extends Phaser.Scene {
       slot.card = charmCard(slot.card, id);
     }
     this.logCombat(CHARMS[id].name + " used.");
-    this.render(`${CHARMS[id].name} used. Play your fish when ready.`);
+    this.render(`${CHARMS[id].name} used.`);
   }
 
   private drawDraft(): void {
@@ -631,14 +631,14 @@ export class FoundationScene extends Phaser.Scene {
     const source = this.pendingReveal; this.pendingReveal = null;
     if (source === 'charm') {
       if (!this.spendCharm('spyglass-pearl')) { slot.revealed = false; this.render('No Spyglass Pearl available.'); return; }
-      this.render('Rival card revealed. Play your fish when ready.');
+      this.render('Rival card revealed.');
     } else this.advanceTurn('player');
   }
   private finishDrift(index: number): void {
     if (!this.pendingDrift || this.driftFrom === null || !canDrift(this.board, this.driftFrom, index, this.terrain) || !this.spendCharm('drift-shell')) return;
     this.board[index] = this.board[this.driftFrom]; this.board[this.driftFrom] = null;
     this.abilityMemory.decoys = this.abilityMemory.decoys.filter(token => token.index !== index);
-    this.pendingDrift = false; this.driftFrom = null; this.render('Fish repositioned. Play your fish when ready.');
+    this.pendingDrift = false; this.driftFrom = null; this.render('Fish repositioned.');
   }
   private chooseDraft(index: number): void {
     const slot = this.playerHand.find(entry => !entry.played && entry.card.id === this.selectedId);

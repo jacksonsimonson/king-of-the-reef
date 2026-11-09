@@ -2,7 +2,7 @@ import type { FishCard } from "../data/starterFish.ts";
 import { REGIONS } from "../run/maps.ts";
 import { drawSeascape } from "../run/art.ts";
 import { cardElement } from "../ui/cardElement.ts";
-import { FishingModel, MOVEMENTS, STEP, ZONE_WIDTH, type FishingSnapshot } from "./model.ts";
+import { FishingModel, STEP, ZONE_WIDTH, type FishingSnapshot } from "./model.ts";
 
 export class FishingSession {
   private dialog = document.createElement("dialog");
@@ -30,8 +30,7 @@ export class FishingSession {
     const layout = document.createElement("div"); layout.className = "fishing-layout";
     const info = document.createElement("div"); info.className = "fishing-info";
     const name = document.createElement("h4"); name.textContent = fish.name;
-    const pattern = document.createElement("p"); pattern.className = "fishing-pattern"; pattern.textContent = MOVEMENTS[this.model.movement].name;
-    info.append(cardElement(fish), name, pattern);
+    info.append(cardElement(fish), name);
     const stage = document.createElement("div"); stage.className = "fishing-stage";
     this.canvas.width = 672; this.canvas.height = 320; this.canvas.className = "fishing-canvas";
     this.canvas.tabIndex = 0; this.canvas.setAttribute("aria-label", "Fishing lane. Hold Right to accelerate against the leftward pull. Left pulls back faster. Release retains momentum. Escape pauses.");
@@ -98,7 +97,7 @@ export class FishingSession {
     const labels = {
       playing: ["Pause", "Fishing"],
       paused: ["Resume", "Paused"],
-      caught: ["Return To Map", this.fish.name + " Caught! Added To Your School."],
+      caught: ["Continue", this.fish.name + " Caught! Added To Your School."],
     };
     [this.action.textContent, this.status.textContent] = labels[this.phase];
   }
@@ -122,7 +121,7 @@ export class FishingSession {
     ctx.fillStyle = "#355565"; ctx.fillRect(x, 232, width, 16);
     ctx.fillStyle = "#eed49b"; ctx.fillRect(x, 232, Math.round(width * this.model.progress), 16);
     ctx.font = '16px "Reef Pixel"'; ctx.textAlign = "center";
-    ctx.fillText("FOLLOW THE FISH", 336, 72); ctx.fillText("CATCH " + Math.round(this.model.progress * 100) + "% · " + Math.max(0, Math.ceil(60 - this.model.elapsed)) + "s", 336, 276);
+    ctx.fillText("CATCH " + Math.round(this.model.progress * 100) + "% · " + Math.max(0, Math.ceil(60 - this.model.elapsed)) + "s", 336, 276);
     if (this.phase !== "playing") {
       ctx.fillStyle = "#061d2cee"; ctx.fillRect(240, 112, 192, 72);
       ctx.fillStyle = "#eed49b"; ctx.fillText(this.phase === "paused" ? "PAUSED" : "CAUGHT!", 336, 156);

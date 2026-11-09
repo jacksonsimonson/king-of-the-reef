@@ -129,7 +129,6 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
 .fishing-info { width: 280px; flex: 0 0 280px; line-height: 24px; }
 .fishing-info h4 { font-size: 24px; line-height: 32px; margin: 16px 0; color: var(--gold); font-weight: 400; }
 .fishing-info p { margin: 8px 0; }
-.fishing-pattern { color: #73ddae; }
 .fishing-stage { width: 672px; flex: 0 0 672px; }
 .fishing-stage p { line-height: 24px; margin-top: 16px; }
 .fishing-canvas { display: block; width: 672px; height: 320px; max-width: none; image-rendering: pixelated; }

@@ -24,8 +24,7 @@ export function openJournal(run: Run | null, initial: 'journal' | 'school' = 'jo
   const tabs = el('nav', '', 'journal-toolbar'); tabs.setAttribute('aria-label', 'Collection views');
   const journal = el('button', 'Collection journal', 'voyage-button'), school = el('button', 'Your school', 'voyage-button');
   school.disabled = !run; tabs.append(journal, school);
-  const summary = el('p'), roles = el('p'), note = el('p');
-  note.textContent = 'Roles are browsing guides based on current mechanics, not power ratings. Inspect directions and abilities before choosing a fish.';
+  const summary = el('p'), roles = el('p');
   const controls = el('div', '', 'journal-toolbar');
   const searchLabel = el('label', 'Search name or mechanic');
   const search = el('input'); search.type = 'search'; search.placeholder = 'Name, Shield, Shock…'; searchLabel.append(search); controls.append(searchLabel);
@@ -99,7 +98,7 @@ export function openJournal(run: Run | null, initial: 'journal' | 'school' = 'jo
   };
   journal.onclick = () => { mode = 'journal'; selected = []; filter.health = ''; health.querySelector('select')!.value = ''; draw(); };
   school.onclick = () => { mode = 'school'; selected = []; draw(); };
-  dialog.append(close, title, tabs, summary, roles, note);
+  dialog.append(close, title, tabs, summary, roles);
   if (!discoveries.saved) dialog.append(el('p', 'Journal storage unavailable. Discoveries are kept for this tab only until saving works again.', 'journal-warning'));
   dialog.append(controls, count, inspect, list, comparison);
   dialog.addEventListener('close', () => { dialog.remove(); origin?.focus(); }, { once: true });
