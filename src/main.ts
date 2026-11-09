@@ -74,7 +74,7 @@ function syncView(): void {
     if (playView) playView.dataset.region = battle ? REGIONS[run.region].id : "shoreline";
     const heading = playView?.querySelector(".view-title");
     const back = playView?.querySelector<HTMLAnchorElement>(".nav-link");
-    if (heading) heading.textContent = battle ? `${REGIONS[run.region].name} · ${activeNode(run).type === "boss" ? REGIONS[run.region].boss : "Battle"}` : "Quick Match";
+    if (heading) heading.textContent = battle ? `${REGIONS[run.region].name} · ${activeNode(run).type === "boss" ? REGIONS[run.region].boss : activeNode(run).elite ? "Elite Battle" : "Battle"}` : "Quick Match";
     if (back) { back.href = battle ? "#voyage" : "#menu"; back.textContent = battle ? "Voyage Map" : "Main Menu"; }
     const rules = battle ? (run.battle?.rules ?? (run.battle ? {...regionalRules(run.region, `${run.seed}:${run.pending}`), size: 5 as const, plays: 5 as const, legacyTerrain: true} : regionalRules(run.region, `${run.seed}:${run.pending}`))) : quickRules ?? regionalRules(0, 'gallery');
     const config = createGameConfig(showGallery ? nextView as "gallery" | "gallery-roster" : "play", rules.size);
