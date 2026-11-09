@@ -10,6 +10,7 @@ import { enabledTextures } from "../data/roster.ts";
 import { validBattleSave, type BattleSave } from "./battleSave.ts";
 import { voyageEvent, eventChoiceAvailable } from './events.ts';
 import { startingTextures, isStartingSchool, type StartingSchoolId } from './startingSchools.ts';
+import { tidePlayLimit } from '../twoTide.ts';
 
 export interface Run {
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
@@ -28,6 +29,8 @@ export interface Run {
   voyageVersion?: 2;
   eventVersion?: 1;
   rivalSchoolVersion?: 1;
+  campVersion?: 1;
+  camp?: { nodeId: string; phase: "release" | "fishing"; attempts: number };
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export const BOSS_REMATCH_GUIDANCE = "Rematches keep the same terrain and rival school. Injuries and spent charms carry over; there is no recovery between attempts. Try different placements or save a counter for the last play.";
@@ -39,7 +42,8 @@ export function recruit(run: Run, texture: string): void {
   if (!definition) throw new Error("Unknown creature");
   run.school.push({ ...definition, id: `run-${++run.serial}`, owner: "player", condition: "healthy" });
 }
-export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId): Run {
+/** The playable departure opts into camps; the default preserves historical study fixtures. */
+export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId, withCamp = false): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i, version));
   const roster = enabledTextures();
   const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 7, oceanPoolVersion: 1, charmPoolVersion: 3, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
@@ -49,7 +53,24 @@ export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: Sta
   if (version === 2) maps.forEach(map => addEliteSpaces(map, seed));
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
   for(const texture of startingTextures(roster,startingSchool))recruit(run,texture);
+  if (withCamp) {
+    run.campVersion = 1;
+    maps.forEach(map => { map.nodes[0].type = 'camp'; });
+    arriveAtCamp(run);
+  }
   return run;
+}
+function arriveAtCamp(run: Run): void {
+  if (run.campVersion !== 1) return;
+  run.pending = run.current;
+  run.camp = {nodeId: run.current, phase: 'release', attempts: 0};
+}
+export function campMinimum(run: Run): number { return tidePlayLimit(REGIONS[run.region].id) + 2; }
+export function canCampRelease(run: Run, id: string): boolean {
+  const fish = run.school.find(f => f.id === id);
+  return Boolean(run.status === 'active' && run.camp?.nodeId === run.pending && run.camp?.phase === 'release'
+    && !run.fishing && fish && run.school.length > campMinimum(run)
+    && (fish.condition === 'killed' || run.school.filter(f => f.condition === 'healthy').length > campMinimum(run)));
 }
 export function activeNode(run: Run): MapNode {
   return run.maps[run.region].nodes.find((node) => node.id === (run.pending ?? run.current))!;
@@ -73,7 +94,7 @@ function encounterDepth(run: Run): number {
 export function offers(run: Run): string[] {
   const enabled = new Set(run.roster);
   const pool: string[] = regionPool(run).filter((texture) => enabled.has(texture));
-  const rng = random(`${run.seed}:${run.pending}:offers`);
+  const rng = random(`${run.seed}:${run.pending}:offers${run.camp ? ":camp:" + run.camp.attempts : ""}`);
   if (run.region === 0) {
     const result: string[] = [];
     while (result.length < 3) result.push(drawReefCard(rng, [...result, ...REGIONS[0].pool.filter((texture) => !enabled.has(texture))], run.reefPoolVersion));
@@ -112,9 +133,10 @@ export function rivalDeckFor(run: Run): FishCard[] {
 function finishNode(run: Run, message: string): void {
   if (!run.pending) return;
   run.current = run.pending;
-  run.visited.push(run.pending);
+  if (!run.visited.includes(run.pending)) run.visited.push(run.pending);
   run.pending = null;
   delete run.shop;
+  delete run.camp;
   run.log = message;
 }
 export function canRelease(run: Run, id: string): boolean {
@@ -149,20 +171,26 @@ export function consumeCharm(run: Run, id: CharmId): boolean {
   return true;
 }
 export function beginFishing(run: Run, texture: string): boolean {
-  if (run.status !== "active" || !run.pending || run.fishing || activeNode(run).type !== "fishing" || !offers(run).includes(texture)) return false;
-  const seed = Math.floor(random(run.seed + ":" + run.pending + ":fishing")() * 4294967296);
+  if (run.status !== "active" || !run.pending || run.fishing || !((activeNode(run).type === "fishing") || (activeNode(run).type === "camp" && run.camp?.phase === "fishing" && run.camp.attempts < 2)) || !offers(run).includes(texture)) return false;
+  const seed = Math.floor(random(run.seed + ":" + run.pending + ":fishing" + (run.camp ? ":" + run.camp.attempts : ""))() * 4294967296);
   run.fishing = { nodeId: run.pending, texture, snapshot: new FishingModel(movementFor(texture), REGIONS[run.region].id, seed).snapshot() };
   return true;
 }
 export function finishFishing(run: Run, snapshot: FishingSnapshot): boolean {
   const attempt = run.fishing;
-  if (!attempt || run.status !== "active" || run.pending !== attempt.nodeId || activeNode(run).type !== "fishing"
+  if (!attempt || run.status !== "active" || run.pending !== attempt.nodeId || !["fishing", "camp"].includes(activeNode(run).type)
+    || activeNode(run).type === 'camp' && (run.camp?.phase !== 'fishing' || run.camp.attempts >= 2)
     || !validSnapshot(snapshot) || snapshot.status === "playing" || snapshot.movement !== movementFor(attempt.texture)
     || snapshot.region !== REGIONS[run.region].id
     || (snapshot.status === "caught" ? snapshot.progress < 1 : snapshot.progress > 0 && snapshot.elapsed < 60)) return false;
   const name = STARTERS.find((fish) => fish.texture === attempt.texture)!.name;
   if (snapshot.status === "caught") recruit(run, attempt.texture);
   delete run.fishing;
+  if (run.camp) {
+    run.camp.attempts++;
+    run.log = name + (snapshot.status === "caught" ? " Caught! Joined Your School." : " Escaped.");
+    return true;
+  }
   finishNode(run, snapshot.status === "caught" ? name + " Caught! Joined Your School." : name + " Escaped. This Fishing Stop Is Used Up.");
   return true;
 }
@@ -170,7 +198,16 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
   if (!run.pending || run.status !== "active") return false;
   const node = activeNode(run);
   if (node.type === "battle" || node.type === "boss") return false;
-  if (node.type === "fishing") {
+  if (node.type === "camp") {
+    if (!run.camp || run.fishing) return false;
+    if (choice === "leave") { finishNode(run, "You set out from Fish Camp."); return true; }
+    if (choice === "fish" && run.camp.phase === "release") { run.camp.phase = "fishing"; return true; }
+    if (!canCampRelease(run, choice)) return false;
+    const fish = run.school.find(f => f.id === choice)!;
+    run.school = run.school.filter(f => f.id !== choice);
+    run.log = fish.name + " was released.";
+    return true;
+  } else if (node.type === "fishing") {
     if (choice !== "leave" || run.fishing) return false;
     finishNode(run, "You Skipped This Fishing Stop.");
   } else if (node.type === "shop") {
@@ -248,7 +285,8 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
         run.resolve = Math.min(3, run.resolve + 1);
       }
       run.current = run.maps[run.region].nodes[0].id;
-      run.visited.push(run.current);
+      if (!run.visited.includes(run.current)) run.visited.push(run.current);
+      arriveAtCamp(run);
       run.log = `The Colossal yields. Welcome to ${REGIONS[run.region].name}.${run.voyageVersion === 2 ? " Passage restored up to three killed fish and one resolve." : ""}`;
     }
   }
@@ -259,6 +297,7 @@ export function loadRun(): Run | null {
     if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
     // Rebuild topology, but preserve existing encounter types when rates change.
     const savedMaps = run.maps;
+    if (run.campVersion !== undefined && run.campVersion !== 1) return null;
     if (run.rivalSchoolVersion !== undefined && run.rivalSchoolVersion !== 1) return null;
     if (run.eventVersion !== undefined && run.eventVersion !== 1) return null;
     if (run.startingSchool !== undefined && !isStartingSchool(run.startingSchool)) return null;
@@ -266,11 +305,15 @@ export function loadRun(): Run | null {
     run.maps = REGIONS.map((_, i) => generateMap(run.seed, i, run.voyageVersion ?? 1));
     run.maps.forEach((map, i) => map.nodes.forEach((node) => {
       const saved = savedMaps?.[i]?.nodes?.find((n) => n.id === node.id);
-      if (saved && Object.hasOwn(SPACE_INFO, saved.type)) node.type = saved.type;
+      if (saved && Object.hasOwn(SPACE_INFO, saved.type) && saved.type !== "camp") node.type = saved.type;
+      if (run.campVersion === 1 && node.column === 0) node.type = "camp";
       if (run.rivalSchoolVersion === 1 && node.type === 'battle' && saved?.elite === true) node.elite = true;
     }));
     if (!run.maps[run.region].nodes.some((node) => node.id === run.current)) return null;
-    if (run.pending && !run.maps[run.region].nodes.find((node) => node.id === run.current)?.next.includes(run.pending)) return null;
+    const inCamp = run.campVersion === 1 && run.pending === run.current && activeNode(run).type === "camp";
+    if (run.camp && (run.status !== 'active' || !inCamp || run.camp.nodeId !== run.pending || !["release", "fishing"].includes(run.camp.phase) || !Number.isInteger(run.camp.attempts) || run.camp.attempts < 0 || run.camp.attempts > 2 || run.camp.phase === "release" && run.camp.attempts !== 0)) return null;
+    if (inCamp && !run.camp) return null;
+    if (run.pending && !inCamp && !run.maps[run.region].nodes.find((node) => node.id === run.current)?.next.includes(run.pending)) return null;
     if (!run.school.every((fish) => STARTERS.some((s) => s.texture === fish.texture) && ["healthy", "killed", "knocked-out"].includes(fish.condition))) return null;
     // Preserve schools from the earlier recovery model.
     run.school.forEach((fish) => { if ((fish.condition as string) === "knocked-out") fish.condition = "killed"; });
@@ -288,7 +331,8 @@ export function loadRun(): Run | null {
     if (run.shop && (run.shop.nodeId !== run.pending || activeNode(run).type !== "shop"
       || !Array.isArray(run.shop.purchased) || new Set(run.shop.purchased).size !== run.shop.purchased.length
       || !run.shop.purchased.every((id) => shopOffers(run).some((offer) => offer.id === id)))) return null;
-    if (run.fishing && (run.fishing.nodeId !== run.pending || activeNode(run).type !== "fishing"
+    if (run.fishing && (run.fishing.nodeId !== run.pending || !['fishing', 'camp'].includes(activeNode(run).type)
+      || activeNode(run).type === "camp" && (run.camp?.phase !== "fishing" || run.camp.attempts >= 2)
       || !offers(run).includes(run.fishing.texture) || !validSnapshot(run.fishing.snapshot)
       || run.fishing.snapshot.movement !== movementFor(run.fishing.texture) || run.fishing.snapshot.region !== REGIONS[run.region].id)) return null;
     if (run.battle && (!run.pending || run.status !== "active" || !["battle", "boss"].includes(activeNode(run).type) || !validBattleSave(run.battle, run.pending))) return null;

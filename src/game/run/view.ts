@@ -12,7 +12,7 @@ import { shopOffers, battleWinReward, runFishDefinition } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
-import { activeNode, beginFishing, finishFishing, canRelease, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, buyOffer, type Run } from "./state.ts";
+import { activeNode, beginFishing, finishFishing, canRelease, canCampRelease, campMinimum, createRun, enterNode, loadRun, offers, reachable, resolveVisit, saveRun, buyOffer, type Run } from "./state.ts";
 
 let memory: Run | null = null;
 export function currentRun(): Run | null {
@@ -45,7 +45,7 @@ export class VoyageView {
   private save(): void { if (this.run) this.storageOk = persistRun(this.run); }
   private start(seed?: string): void {
     const id = seed?.trim().slice(0, 64) || crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase();
-    this.viewingMap = false; this.run = createRun(id); this.preview = 0; this.selected = null; this.save(); this.render();
+    this.viewingMap = false; this.run = createRun(id, 2, undefined, true); this.preview = 0; this.selected = null; this.save(); this.render();
   }
   private render(): void {
     reefAudio.setTrack(`map-${(this.run?.region ?? 0) as 0 | 1 | 2}`);
@@ -99,7 +99,7 @@ export class VoyageView {
       regionHeading.append(resources);
     }
     this.root.append(regionHeading);
-    const displayRun = run ?? createRun("WELCOME");
+    const displayRun = run ?? createRun("WELCOME", 2, undefined, true);
     const map = displayRun.maps[this.preview];
     const viewport = element("div", "voyage-map-scroll");
     const stage = element("div", "voyage-map");
@@ -155,7 +155,7 @@ export class VoyageView {
     if (focusNode) viewport.scrollLeft = Math.max(0, parseInt(buttons.get(focusNode.id)!.style.left) - viewport.clientWidth / 3);
     const footer = element("div", "voyage-footer");
     const legend = element("div", "voyage-legend");
-    (["battle", "fishing", "shop", "event", "hydration", "release", "boss"] as Space[]).forEach((type) => {
+    (["camp", "battle", "fishing", "shop", "event", "hydration", "release", "boss"] as Space[]).forEach((type) => {
       const item = element("span"); const icon = element("canvas"); drawIcon(icon, type, SPACE_INFO[type].color);
       item.append(icon, element("span", "", SPACE_INFO[type].name)); legend.append(item);
     });
@@ -235,6 +235,7 @@ export class VoyageView {
     const resources = element("p", "encounter-resources", run.shells + " Shells · " + run.resolve + "/3 Resolve · " + run.school.filter(f => f.condition === "healthy").length + "/" + run.school.length + " Ready");
     const status = element("p", "encounter-status", node.type === "shop" ? `${run.shop?.purchased.length ?? 0} / 3 Offers Purchased · ${this.storageOk ? "Auto-saved" : "Save unavailable"}` : ""); status.setAttribute("role", "status");
     panel.append(resources); if (status.textContent) panel.append(status);
+    if (run.camp?.attempts && !run.fishing) panel.append(element('p', 'encounter-status', run.log));
     if (!this.storageOk) panel.append(element("p", "encounter-status", "Save unavailable — keep this tab open."));
     this.renderEncounterActions(panel, run, node);
     screen.append(nav, artFrame, panel); this.root.append(screen);
@@ -277,8 +278,9 @@ export class VoyageView {
       }
       panel.append(stock);
       actions.append(button("Sail On", () => this.resolve("leave")));
-    } else if (node.type === "fishing") {
-      for (const texture of offers(run)) {
+    } else if (node.type === "fishing" || node.type === "camp" && run.camp?.phase === "fishing") {
+      if (run.camp) panel.append(element("p", "care-selection", `${2 - run.camp.attempts} / 2 fishing attempts remaining`));
+      for (const texture of run.camp && run.camp.attempts >= 2 ? [] : offers(run)) {
         const fish = runFishDefinition(run, texture)!;
         const pick = button("", () => {
           if (beginFishing(run, texture)) { this.save(); this.openFishing(false); }
@@ -286,8 +288,8 @@ export class VoyageView {
         pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("small", "", "Try · " + MOVEMENTS[movementFor(texture)].name));
         actions.append(pick);
       }
-      actions.append(button("Skip", () => this.resolve("leave")));
-    } else if (node.type === "hydration" || node.type === "release") {
+      actions.append(button(run.camp ? "Leave Camp →" : "Skip", () => this.resolve("leave")));
+    } else if (node.type === "hydration" || node.type === "release" || node.type === "camp") {
       const hydration = node.type === "hydration";
       const choices = hydration ? run.school.filter((f) => f.condition === "killed") : run.school;
       const selected = new Set<string>();
@@ -307,7 +309,7 @@ export class VoyageView {
         picks.forEach((pick) => {
           const checked = selected.has(pick.dataset.cardId!);
           pick.setAttribute("aria-pressed", String(checked));
-          pick.disabled = (!checked && selected.size >= limit) || (!hydration && !canRelease(run, pick.dataset.cardId!));
+          pick.disabled = (!checked && selected.size >= limit) || (!hydration && !(node.type === "camp" ? canCampRelease(run, pick.dataset.cardId!) : canRelease(run, pick.dataset.cardId!)));
         });
       };
       for (const fish of choices) {
@@ -320,9 +322,10 @@ export class VoyageView {
         picks.push(pick); actions.append(pick);
       }
       if (hydration && !choices.length) panel.append(element("p", "", "All creatures healthy · +1 resolve available"));
+      if (node.type === "camp") panel.append(element("p", "care-selection", `Release phase · Keep at least ${campMinimum(run)} ready creatures`));
       panel.append(status); update();
       const controls = element("div", "care-controls"); controls.append(confirm);
-      if (!hydration) controls.append(button("Keep My School", () => this.resolve("leave")));
+      if (!hydration) controls.append(button(node.type === "camp" ? "Continue to Fishing →" : "Keep My School", () => this.resolve(node.type === "camp" ? "fish" : "leave")));
       actions.append(controls);
     }
     else if (node.type === "event" && run.eventVersion === 1) {

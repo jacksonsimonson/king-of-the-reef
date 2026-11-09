@@ -4,13 +4,15 @@ Fishing spaces offer three seeded local creatures. Choose **Try** on one creatur
 
 ## Controls And Outcome
 
-- Hold **Left / Right** to move the catch zone along a horizontal lane. Release to stop; holding both cancels movement. Mouse movement, clicks, Up and Down do not move the zone.
+- Hold **Right** to accelerate against a constant leftward pull. Release to coast, slow down and accelerate back left. **Left** pulls back faster. Changing direction takes time; holding both cancels input thrust but leaves the leftward pull. The weighted zone stops at the lane boundaries. Mouse movement, clicks, Up and Down do not move it.
 - Keep the fish entirely inside the zone to increase catch progress. Progress decreases when it is outside.
 - Progress starts at 30%, with a one-second grace period. Fill it to 100% to recruit the selected card. Reach zero, or the displayed 60-second limit, and the fish escapes.
-- Escape automatically closes fishing, consumes that map stop, and gives no card. There is no retry and no abandon control.
+- An escaped fish automatically closes fishing, consumes the attempt, and gives no card. Ordinary fishing stops have one attempt; [Fish Camp](FISH_CAMP.md) has two separate attempts. There is no retry of a spent attempt and no abandon control.
 - Skip is available only before trying. Once committed, there is no alternative target selection.
 - Pause/Resume and the Escape key pause without abandoning. Losing window focus or hiding the tab also pauses. Escape cannot dismiss an unfinished catch.
-- Save the full attempt periodically and when pausing or navigating away. Reloading resumes the same target, positions, progress and random sequence, paused until the player resumes. Success recruits once and advances the map; failure advances without recruitment.
+- Save the full attempt periodically and when pausing or navigating away, including zone momentum. Reloading resumes the same target, positions, progress and random sequence, paused until the player resumes. Ordinary stops advance after either outcome; camp returns to its remaining-attempt counter. Existing saved attempts without a control version keep direct controls for that attempt; new attempts use weighted controls.
+
+Weighted controls use fixed 60 Hz integration: right thrust 1.9, passive left acceleration 0.75, additional left thrust 1.0, and speed capped at 0.85 lane widths per second. Net right acceleration is 1.15. These are feel-tuning values; fish profiles, zone width and catch-meter rates are unchanged. [Camp and control validation](FISH_CAMP.md) records synthetic tracking and browser checks without claiming human success rates.
 
 ## Regional Movement
 

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createRun,activeNode,reachable,enterNode,offers,beginFishing,finishFishing,resolveVisit,shopOffers,buyOffer,rivalDeckFor,battleResult} from '../../src/game/run/state.ts';
+import {createRun,activeNode,reachable,enterNode,offers,beginFishing,finishFishing,resolveVisit,shopOffers,buyOffer,rivalDeckFor,battleResult,canCampRelease} from '../../src/game/run/state.ts';
 import {voyageEvent,eventChoiceAvailable} from '../../src/game/run/events.ts';
 import {random,REGIONS} from '../../src/game/run/maps.ts';
 import {tidePlayLimit,combinedScore,matchCharmSpending} from '../../src/game/twoTide.ts';
@@ -8,11 +8,11 @@ import {match} from './matches.mjs';
 import {chooseRecruit,recruitGain,trimCandidate} from './school-policy.mjs';
 
 /** Seeded route decisions and real combat/settlement; fishing success is an explicit assumption. */
-export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle,startingSchoolId,elitePolicy='neutral',checkpoint=run=>run,settle=(run,scores,killed,spent)=>{const score=combinedScore(scores);battleResult(run,score.player,score.rival,killed,spent);}}={}){
+export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle,startingSchoolId,camp=false,elitePolicy='neutral',checkpoint=run=>run,settle=(run,scores,killed,spent)=>{const score=combinedScore(scores);battleResult(run,score.player,score.rival,killed,spent);}}={}){
  assert.ok(['baseline','recruit','trim','both'].includes(schoolPolicy));
  const deliberate=['recruit','both'].includes(schoolPolicy),trimming=['trim','both'].includes(schoolPolicy);
  assert.ok(['neutral','seek','avoid'].includes(elitePolicy));
- let run=createRun(seed,2,startingSchoolId);
+ let run=createRun(seed,2,startingSchoolId,camp);
  const battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
  const startingSchool=run.school.map(c=>c.texture),balanceVersion=run.cardBalanceVersion;
  const healthy=()=>run.school.filter(c=>c.condition==='healthy').length;
@@ -30,7 +30,16 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
   const node=activeNode(run),region=run.region;
   const visit={region,nodeId:node.id,column:node.column,type:node.type,elite:!!node.elite,school:run.school.length,healthy:healthy(),shells:run.shells,resolve:run.resolve};visits.push(visit);
   const previousIds=new Set(run.school.map(c=>c.id)),previousInjured=new Set(run.school.filter(c=>c.condition==='killed').map(c=>c.id));
-  if(node.type==='battle'||node.type==='boss'){
+  if(node.type==='camp'){
+   if(trimming){let candidate;while((candidate=trimCandidate(run))&&canCampRelease(run,candidate.id))assert.ok(resolveVisit(run,candidate.id));}
+   assert.ok(resolveVisit(run,'fish'));
+   for(let attempt=0;attempt<2;attempt++){
+    const choices=offers(run),rng=random(seed+':'+node.id+':camp:'+attempt),choice=choices[Math.floor(rng()*choices.length)];
+    assert.ok(beginFishing(run,deliberate?chooseRecruit(run,choices):choice));const caught=rng()<catchRate;
+    assert.ok(finishFishing(run,{...run.fishing.snapshot,status:caught?'caught':'escaped',progress:caught?1:0}));caught?catches++:escapes++;
+   }
+   assert.ok(resolveVisit(run,'leave'));
+  }else if(node.type==='battle'||node.type==='boss'){
    const count=(attempts.get(node.id)??0)+1;attempts.set(node.id,count);
    if(count>maxBossAttempts){capped=true;break;}
    onBattle?.(structuredClone(run),count);

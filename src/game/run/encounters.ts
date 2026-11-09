@@ -1,9 +1,9 @@
 import { drawSeascape } from "./art.ts";
 import type { RegionId, Space } from "./maps.ts";
 
-export type EncounterSpace = Extract<Space, "shop" | "hydration" | "fishing" | "release" | "event">;
+export type EncounterSpace = Extract<Space, "camp" | "shop" | "hydration" | "fishing" | "release" | "event">;
 const TITLES: Record<EncounterSpace, string> = {
-  shop: "The Shell Exchange", hydration: "The Living Spring", fishing: "The Quiet Jetty",
+  camp: "Fish Camp", shop: "The Shell Exchange", hydration: "The Living Spring", fishing: "The Quiet Jetty",
   release: "An Open Current", event: "Secrets of the Wreck",
 };
 export function isEncounterSpace(type: Space): type is EncounterSpace { return Object.hasOwn(TITLES, type); }
@@ -65,6 +65,14 @@ export function drawEncounterArt(canvas: HTMLCanvasElement, type: Space, region:
       rect(x, y, 12, 12, "#69c6cb"); rect(x, y, 4, 4, "#d6fff1");
     }
     fish(-200, 120, gold); fish(168, 144, "#e6a6b0");
+  } else if (type === "camp") {
+    // Sheltered coral lodge, fishing pier and a school leaving the camp.
+    rect(-180, 128, 200, 84, wood); rect(-196, 112, 232, 16, gold);
+    for (let row = 0; row < 6; row++) rect(-180 + row * 12, 100 - row * 12, 200 - row * 24, 12, row % 2 ? light : "#6fae9c");
+    rect(-112, 156, 56, 56, dark); rect(-164, 148, 32, 28, light);
+    rect(20, 196, 196, 12, wood); rect(56, 208, 12, 36, wood); rect(184, 208, 12, 36, wood);
+    rect(132, 144, 8, 52, gold); rect(140, 144, 64, 4, gold); rect(200, 148, 4, 76, light);
+    fish(60, 100, gold); fish(120, 76, light); fish(176, 100, "#e6a6b0");
   } else if (type === "fishing") {
     rect(-216, 104, 260, 16, wood); rect(-200, 120, 12, 104, "#604f48"); rect(-20, 120, 12, 104, "#604f48");
     for (let x = -216; x < 44; x += 28) rect(x, 104, 4, 16, gold);

@@ -1,5 +1,9 @@
 # Design Decisions
 
+## 2026-11-09 — Fish Camp and weighted fishing
+
+Implement the owner's regional checkpoint as **Fish Camp**, with optional confirmed releases before two local fishing attempts. Healthy releases preserve the current per-tide play budget plus two reserves; catches are never assumed when enforcing that floor. Fishing locks release choices, and each outcome consumes one attempt. Keep ordinary map fishing, shops and passage recovery unchanged. Enable camps only for new playable runs and persist phase/attempt progress. Add inertia and constant leftward resistance to newly started fishing attempts; preserve old active attempts. [Evidence and limits](FISH_CAMP.md) show increased local recruitment but mixed automated progression; do not claim balance is solved or tune unrelated systems.
+
 ## 2026-11-09 — Separate rival composition from AI strength
 
 The [controlled attribution study](RIVAL_ATTRIBUTION.md) finds a larger early later-region difference between fully regional and carried-school composition than between adjacent AI settings. Unweighted regional schools remain difficult. Preserve the three regional AI levels, full regional pools and current weights; do not ship the diagnostic carried-school rivals. Investigate a modest player recruitment opportunity near regional arrival, with full-Voyage validation before choosing a reward or economy adjustment. No production balance or save changes in this pass.

@@ -2,13 +2,14 @@ import { OCEAN_POOL } from "../data/oceanPool.ts";
 import { REEF_POOL } from "../data/reefPool.ts";
 import { BERMUDA_POOL } from "../data/bermudaPool.ts";
 
-export type Space = "start" | "battle" | "fishing" | "shop" | "event" | "hydration" | "release" | "boss";
+export type Space = "start" | "camp" | "battle" | "fishing" | "shop" | "event" | "hydration" | "release" | "boss";
 export type RegionId = "shoreline" | "ocean" | "bermuda";
 export interface MapNode { id: string; column: number; lane: number; type: Space; elite?: boolean; next: string[] }
 export interface RegionMap { region: RegionId; nodes: MapNode[] }
 export const COLUMNS = 13;
 export const LONG_COLUMNS = 19;
 export const SPACE_INFO: Record<Space, { name: string; color: string; description: string }> = {
+  camp: { name: "Fish Camp", color: "#a7efae", description: "Thin your school, then try two local catches before sailing on." },
   start: { name: "Departure", color: "#e9d5a0", description: "Choose a current and begin your voyage." },
   battle: { name: "Battle", color: "#ff8c79", description: "Contest three reefs for shells. A loss costs one resolve." },
   fishing: { name: "Fishing", color: "#73ddc6", description: "Try one local catch or skip. Use Left / Right to follow the fish. An escape uses up this stop." },

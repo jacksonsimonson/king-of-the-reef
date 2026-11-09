@@ -42,6 +42,8 @@ export const STEP = 1 / 60;
 export class FishingModel {
   fish = 0.5;
   zone = 0.5;
+  controlVersion: 1 | 2 = 2;
+  zoneVelocity = 0;
   progress = 0.3;
   elapsed = 0;
   distance = 0;
@@ -64,18 +66,26 @@ export class FishingModel {
     return ((n ^ (n >>> 14)) >>> 0) / 4294967296;
   }
   snapshot(): FishingSnapshot {
-    const { movement, region, fish, zone, progress, elapsed, distance, status, target, timer, burst, velocity, runDirection, rngState } = this;
-    return { movement, region, fish, zone, progress, elapsed, distance, status, target, timer, burst, velocity, runDirection, rngState };
+    const { movement, region, fish, zone, progress, elapsed, distance, status, target, timer, burst, velocity, runDirection, rngState, controlVersion, zoneVelocity } = this;
+    return { movement, region, fish, zone, progress, elapsed, distance, status, target, timer, burst, velocity, runDirection, rngState, controlVersion, zoneVelocity };
   }
   static restore(saved: FishingSnapshot): FishingModel {
     if (!validSnapshot(saved)) throw new Error("Invalid fishing save");
-    return Object.assign(new FishingModel(saved.movement, saved.region, saved.rngState), saved);
+    return Object.assign(new FishingModel(saved.movement, saved.region, saved.rngState), saved, {controlVersion: saved.controlVersion ?? 1, zoneVelocity: saved.zoneVelocity ?? 0});
   }
   get contained(): boolean { return Math.abs(this.fish - this.zone) + FISH_RADIUS <= ZONE_WIDTH / 2; }
   step(left: boolean, right: boolean): void {
     if (this.status !== "playing") return;
     this.elapsed += STEP;
-    this.zone = clamp(this.zone + (Number(right) - Number(left)) * 0.8 * STEP, ZONE_WIDTH / 2, 1 - ZONE_WIDTH / 2);
+    if (this.controlVersion === 1) this.zone = clamp(this.zone + (Number(right) - Number(left)) * 0.8 * STEP, ZONE_WIDTH / 2, 1 - ZONE_WIDTH / 2);
+    else {
+      const direction = Number(right) - Number(left);
+      const acceleration = (direction > 0 ? 1.9 : direction < 0 ? -1 : 0) - 0.75;
+      this.zoneVelocity = clamp(this.zoneVelocity + acceleration * STEP, -0.85, 0.85);
+      const next = this.zone + this.zoneVelocity * STEP;
+      this.zone = clamp(next, ZONE_WIDTH / 2, 1 - ZONE_WIDTH / 2);
+      if (next !== this.zone) this.zoneVelocity = 0;
+    }
     const profile = MOVEMENTS[this.movement], multiplier = AREA_MOVEMENT[this.region];
     this.timer -= STEP; this.burst -= STEP;
     if (this.timer <= 0) {
@@ -107,9 +117,12 @@ export interface FishingSnapshot {
   movement: Movement; region: RegionId; fish: number; zone: number; progress: number; elapsed: number;
   distance: number; status: "playing" | "caught" | "escaped"; target: number; timer: number; burst: number;
   velocity: number; runDirection: number; rngState: number;
+  controlVersion?: 1 | 2; zoneVelocity?: number;
 }
 export function validSnapshot(s: FishingSnapshot): boolean {
   return Boolean(s && Object.hasOwn(MOVEMENTS, s.movement) && Object.hasOwn(AREA_MOVEMENT, s.region)
+    && (s.controlVersion === undefined || s.controlVersion === 1 || s.controlVersion === 2)
+    && (s.controlVersion !== 2 && s.zoneVelocity === undefined || Number.isFinite(s.zoneVelocity) && Math.abs(s.zoneVelocity!) <= .85)
     && ["playing", "caught", "escaped"].includes(s.status)
     && [s.fish, s.zone, s.progress, s.elapsed, s.distance, s.target, s.timer, s.burst, s.velocity, s.runDirection, s.rngState].every(Number.isFinite)
     && s.fish >= FISH_RADIUS && s.fish <= 1 - FISH_RADIUS && s.target >= FISH_RADIUS && s.target <= 1 - FISH_RADIUS
