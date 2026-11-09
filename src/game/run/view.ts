@@ -303,7 +303,7 @@ export class VoyageView {
       const picks: HTMLButtonElement[] = [];
       const update = () => {
         status.textContent = hydration ? `${selected.size} / ${Math.min(3, choices.length)} Cards Selected` : "Permanent release · 1 creature";
-        confirm.textContent = hydration ? `Hydrate ${selected.size} Cards · +1 Resolve` : "Confirm Release";
+        confirm.textContent = hydration ? `${selected.size ? `Hydrate ${selected.size} ${selected.size === 1 ? "Card" : "Cards"}` : "Continue"}${run.resolve < 3 ? " · +1 Resolve" : ""}` : "Confirm Release";
         confirm.disabled = !hydration && selected.size === 0;
         picks.forEach((pick) => {
           const checked = selected.has(pick.dataset.cardId!);
@@ -320,7 +320,7 @@ export class VoyageView {
         pick.append(cardElement(fish), element("strong", "", fish.name), element("small", "", fish.condition === "killed" ? "Killed" : "Ready"));
         picks.push(pick); actions.append(pick);
       }
-      if (hydration && !choices.length) panel.append(element("p", "", "All creatures healthy · +1 resolve available"));
+      if (hydration && !choices.length) panel.append(element("p", "", run.resolve < 3 ? "All creatures healthy · +1 resolve available" : "All creatures healthy"));
       if (node.type === "camp") panel.append(element("p", "care-selection", `Keep at least ${campMinimum(run)} ready creatures`));
       panel.append(status); update();
       const controls = element("div", "care-controls"); controls.append(confirm);

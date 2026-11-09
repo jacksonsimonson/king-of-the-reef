@@ -1,10 +1,10 @@
 # Fishing
 
-Fishing spaces offer three seeded local creatures. Choose **Try** on one creature or **Skip** the stop. Trying commits the stop to that one creature.
+Fishing spaces offer three seeded local creatures. Choose **Fish** on one creature or **Skip** the stop. Trying commits the stop to that one creature.
 
 ## Controls And Outcome
 
-- Hold **Right** to accelerate against a constant leftward pull. Release to coast, slow down and accelerate back left. **Left** pulls back faster. Changing direction takes time; holding both cancels input thrust but leaves the leftward pull. The weighted zone stops at the lane boundaries. Mouse movement, clicks, Up and Down do not move it.
+- Hold the primary mouse button or touch on the fishing lane, or hold **Right**, to accelerate against a constant leftward pull. Release to coast, slow down and accelerate back left. **Left** pulls back faster. Changing direction takes time; holding both cancels input thrust but leaves the leftward pull. The weighted zone stops at the lane boundaries. Dragging does not teleport the zone; pointer hold uses the same thrust as Right. Releasing outside the lane, canceling a touch, pausing or losing focus clears the hold. Up and Down do not move it.
 - Keep the fish entirely inside the zone to increase catch progress. Progress decreases when it is outside.
 - Progress starts at 30%, with a one-second grace period. Fill it to 100% to recruit the selected card. Reach zero, or the displayed 60-second limit, and the fish escapes.
 - An escaped fish automatically closes fishing, consumes the attempt, and gives no card. Ordinary fishing stops have one attempt; [Fish Camp](FISH_CAMP.md) has two separate attempts. There is no retry of a spent attempt and no abandon control.

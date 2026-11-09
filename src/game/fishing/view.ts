@@ -11,6 +11,7 @@ export class FishingSession {
   private action = document.createElement("button");
   private progress = document.createElement("progress");
   private keys = new Set<string>();
+  private pointerHeld = false;
   private model: FishingModel;
   private phase: "playing" | "paused" | "caught" = "paused";
   private frame = 0;
@@ -33,7 +34,7 @@ export class FishingSession {
     info.append(cardElement(fish), name);
     const stage = document.createElement("div"); stage.className = "fishing-stage";
     this.canvas.width = 672; this.canvas.height = 320; this.canvas.className = "fishing-canvas";
-    this.canvas.tabIndex = 0; this.canvas.setAttribute("aria-label", "Fishing lane. Hold Right to accelerate against the leftward pull. Left pulls back faster. Release retains momentum. Escape pauses.");
+    this.canvas.tabIndex = 0; this.canvas.setAttribute("aria-label", "Fishing lane. Hold the mouse button, touch, or Right to accelerate against the leftward pull. Left pulls back faster. Release retains momentum. Escape pauses.");
     this.scenery.width = 672; this.scenery.height = 320; drawSeascape(this.scenery, snapshot.region, seed);
     stage.append(this.canvas); layout.append(info, stage);
     this.status.className = "fishing-status"; this.status.setAttribute("role", "status");
@@ -51,9 +52,19 @@ export class FishingSession {
         if (this.phase === "playing" && (event.key === "ArrowLeft" || event.key === "ArrowRight")) this.keys.add(event.key);
       }
     }, options);
+    this.canvas.style.touchAction = "none";
+    this.canvas.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary || event.button !== 0 || this.phase !== "playing") return;
+      event.preventDefault(); this.canvas.focus();
+      this.pointerHeld = true; this.canvas.setPointerCapture(event.pointerId);
+    }, options);
+    const releasePointer = () => { this.pointerHeld = false; };
+    this.canvas.addEventListener("pointerup", releasePointer, options);
+    this.canvas.addEventListener("pointercancel", releasePointer, options);
+    this.canvas.addEventListener("lostpointercapture", releasePointer, options);
     window.addEventListener("keyup", (event) => this.keys.delete(event.key), options);
     window.addEventListener("blur", () => this.pause(), options);
-    this.dialog.addEventListener("focusout", () => this.keys.clear(), options);
+    this.dialog.addEventListener("focusout", () => { this.keys.clear(); this.pointerHeld = false; }, options);
     document.addEventListener("visibilitychange", () => { if (document.hidden) this.pause(); }, options);
     this.dialog.addEventListener("cancel", (event) => { event.preventDefault(); if (this.phase === "caught") this.close(); else this.pause(); }, options);
     this.dialog.showModal(); this.updateStatus(); this.draw();
@@ -62,19 +73,19 @@ export class FishingSession {
   destroy(): void {
     if (this.disposed) return;
     if (this.model.status === "playing") this.onSave(this.model.snapshot());
-    this.disposed = true; cancelAnimationFrame(this.frame); this.controller.abort(); this.keys.clear();
+    this.disposed = true; cancelAnimationFrame(this.frame); this.controller.abort(); this.keys.clear(); this.pointerHeld = false;
     this.dialog.close(); this.dialog.remove();
   }
   private close(): void { this.destroy(); this.onClose(); }
   private pause(): void {
-    this.keys.clear();
+    this.keys.clear(); this.pointerHeld = false;
     if (this.phase !== "playing") return;
     this.phase = "paused"; cancelAnimationFrame(this.frame); this.accumulator = 0;
     this.onSave(this.model.snapshot()); this.updateStatus(); this.draw();
   }
   private resume(): void {
     this.canvas.focus();
-    this.phase = "playing"; this.keys.clear(); this.lastTime = performance.now(); this.accumulator = 0;
+    this.phase = "playing"; this.keys.clear(); this.pointerHeld = false; this.lastTime = performance.now(); this.accumulator = 0;
     this.updateStatus(); this.frame = requestAnimationFrame(this.tick);
   }
   private tick = (now: number): void => {
@@ -82,13 +93,13 @@ export class FishingSession {
     if (now - this.lastTime > 250) { this.pause(); return; }
     this.accumulator += Math.max(0, now - this.lastTime) / 1000; this.lastTime = now;
     while (this.accumulator >= STEP && this.model.status === "playing") {
-      this.model.step(this.keys.has("ArrowLeft"), this.keys.has("ArrowRight")); this.accumulator -= STEP;
+      this.model.step(this.keys.has("ArrowLeft"), this.keys.has("ArrowRight") || this.pointerHeld); this.accumulator -= STEP;
     }
     this.progress.value = this.model.progress;
     if (this.model.status !== "playing") {
       this.onFinish(this.model.snapshot());
       if (this.model.status === "escaped") { this.close(); return; }
-      this.phase = "caught"; this.keys.clear(); this.updateStatus(); this.draw(); this.action.focus(); return;
+      this.phase = "caught"; this.keys.clear(); this.pointerHeld = false; this.updateStatus(); this.draw(); this.action.focus(); return;
     }
     if (this.model.elapsed - this.saveTime >= 0.5) { this.onSave(this.model.snapshot()); this.saveTime = this.model.elapsed; }
     this.draw(); this.frame = requestAnimationFrame(this.tick);
