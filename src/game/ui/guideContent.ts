@@ -54,7 +54,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     entry('Move the zone', 'Hold Right to accelerate the weighted capture zone against a constant leftward pull. Release to coast, slow down and drift back; Left pulls back faster. Reversing direction takes time. Stay over the moving fish to gain progress; losing it drains progress. Fill the meter within 60 seconds to catch it.'),
     entry('Pause and resume', 'Escape or Pause pauses the attempt. Leaving or reloading preserves it. Resume continues the same attempt rather than granting a fresh try. Losing focus also pauses fishing.'),
     ...Object.values(MOVEMENTS).map(m => entry(m.name, m.description)),
-    entry('Read the fish', 'The pattern name identifies its movement behavior. Later seas have stronger water movement. Watch the fish and adjust your zone instead of holding one direction.'),
+    entry('Read the fish', 'Fish follow the movement patterns described above. Later seas have stronger water movement. Watch the fish and adjust your zone instead of holding one direction.'),
   ] },
   { id: 'controls', title: 'Controls', intro: 'Mouse and keyboard controls are both available.', entries: [
     entry('Menus and guide tabs', 'Use Tab and Shift+Tab to move focus, Enter or Space to activate buttons, and arrow keys inside selection lists. Guide tabs also support Left/Right arrows, Home, and End. Search filters the current guide tab.'),

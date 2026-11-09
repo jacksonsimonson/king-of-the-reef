@@ -87,7 +87,7 @@ export class GalleryScene extends Phaser.Scene {
     this.add.text(32, 26, rosterMode ? "BATTLE ROSTER" : "CREATURE GALLERY", this.textStyle(26, "#39ff14", true));
     this.add.text(32, 62, rosterMode
       ? `${enabled.size}/${STARTERS.length} enabled`
-      : `${GALLERY_CARDS.length} creatures · Grouped by environment.`, this.textStyle(15, "#b8ffd0"));
+      : `${GALLERY_CARDS.length} creatures`, this.textStyle(15, "#b8ffd0"));
     const detail = this.add.text(32, (rosterMode ? ROSTER_HEIGHT : GALLERY_HEIGHT) - 92, rosterMode
       ? ""
       : "", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 64);
