@@ -1,8 +1,9 @@
+import { weightedRivalSchool, rivalStyle } from './rivalSchools.ts';
 import { drawOceanCard, LEGACY_OCEAN_POOL } from "../data/oceanPool.ts";
 import { STARTERS, BATCH_SIX_STARTERS, BATCH_FIVE_STARTERS, BATCH_FOUR_STARTERS, BATCH_THREE_STARTERS, BATCH_TWO_STARTERS, BATCH_ONE_STARTERS, PRE_BALANCE_STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
 import { FishingModel, movementFor, validSnapshot, type FishingSnapshot } from "../fishing/model.ts";
-import { generateMap, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
+import { generateMap, addEliteSpaces, random, REGIONS, SPACE_INFO, type MapNode, type RegionMap } from "./maps.ts";
 import { isCharm, CHARM_CAPACITY, availableCharms, type CharmId } from "../data/tideCharms.ts";
 import { generateShop, type ShopOffer } from "./shop.ts";
 import { enabledTextures } from "../data/roster.ts";
@@ -26,6 +27,7 @@ export interface Run {
   battle?: BattleSave;
   voyageVersion?: 2;
   eventVersion?: 1;
+  rivalSchoolVersion?: 1;
 }
 export const SAVE_KEY = "king-of-the-reef-voyage-v1";
 export const BOSS_REMATCH_GUIDANCE = "Rematches keep the same terrain and rival school. Injuries and spent charms carry over; there is no recovery between attempts. Try different placements or save a counter for the last play.";
@@ -43,6 +45,8 @@ export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: Sta
   const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 7, oceanPoolVersion: 1, charmPoolVersion: 3, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   if(startingSchool!==undefined)run.startingSchool=startingSchool;
   run.eventVersion = 1;
+  run.rivalSchoolVersion = 1;
+  if (version === 2) maps.forEach(map => addEliteSpaces(map, seed));
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
   for(const texture of startingTextures(roster,startingSchool))recruit(run,texture);
   return run;
@@ -88,6 +92,12 @@ export function offers(run: Run): string[] {
 }
 
 export function rivalDeckFor(run: Run): FishCard[] {
+  const node = activeNode(run);
+  if (run.rivalSchoolVersion === 1 && node.type === 'battle') {
+    const pool = [...new Set(regionPool(run))].filter(texture => run.roster.includes(texture))
+      .map(texture => ({ ...runFishDefinition(run, texture)!, owner: 'rival' as const, condition: 'healthy' as const }));
+    return weightedRivalSchool(pool, run.seed + ':' + node.id + ':weighted-rival', rivalStyle(run.seed, node.id), node.elite === true);
+  }
   const enabled = new Set(run.roster);
   const pool = regionPool(run).filter((texture) => enabled.has(texture));
   const excluded = REGIONS[0].pool.filter((texture) => !enabled.has(texture));
@@ -204,6 +214,10 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
   } else return false;
   return true;
 }
+export function battleWinReward(run: Run, node: MapNode): number {
+  const base = run.voyageVersion === 2 ? (node.type === 'boss' ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === 'boss' ? 25 : 12;
+  return base + (run.rivalSchoolVersion === 1 && node.type === 'battle' && node.elite ? 8 : 0);
+}
 export function battleResult(run: Run, player: number, rival: number, killedIds: string[] = [], spentCharms: CharmId[] = []): void {
   if (!run.pending || run.status !== "active") return;
   const node = activeNode(run);
@@ -222,7 +236,7 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
     run.log = "The Colossal held the reef. Rematch to pass; no resolve lost.";
     return;
   }
-  const reward = player > rival ? (run.voyageVersion === 2 ? (node.type === "boss" ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === "boss" ? 25 : 12) : run.voyageVersion === 2 ? 6 : 4;
+  const reward = player > rival ? battleWinReward(run, node) : run.voyageVersion === 2 ? 6 : 4;
   run.shells += reward;
   finishNode(run, player > rival ? `Victory! Earned ${reward} shells.` : `A tied match. Earned ${reward} shells and sailed onward.`);
   if (node.type === "boss") {
@@ -245,6 +259,7 @@ export function loadRun(): Run | null {
     if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
     // Rebuild topology, but preserve existing encounter types when rates change.
     const savedMaps = run.maps;
+    if (run.rivalSchoolVersion !== undefined && run.rivalSchoolVersion !== 1) return null;
     if (run.eventVersion !== undefined && run.eventVersion !== 1) return null;
     if (run.startingSchool !== undefined && !isStartingSchool(run.startingSchool)) return null;
     if (run.voyageVersion !== undefined && run.voyageVersion !== 2) return null;
@@ -252,6 +267,7 @@ export function loadRun(): Run | null {
     run.maps.forEach((map, i) => map.nodes.forEach((node) => {
       const saved = savedMaps?.[i]?.nodes?.find((n) => n.id === node.id);
       if (saved && Object.hasOwn(SPACE_INFO, saved.type)) node.type = saved.type;
+      if (run.rivalSchoolVersion === 1 && node.type === 'battle' && saved?.elite === true) node.elite = true;
     }));
     if (!run.maps[run.region].nodes.some((node) => node.id === run.current)) return null;
     if (run.pending && !run.maps[run.region].nodes.find((node) => node.id === run.current)?.next.includes(run.pending)) return null;

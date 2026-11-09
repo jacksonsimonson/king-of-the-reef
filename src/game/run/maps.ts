@@ -4,7 +4,7 @@ import { BERMUDA_POOL } from "../data/bermudaPool.ts";
 
 export type Space = "start" | "battle" | "fishing" | "shop" | "event" | "hydration" | "release" | "boss";
 export type RegionId = "shoreline" | "ocean" | "bermuda";
-export interface MapNode { id: string; column: number; lane: number; type: Space; next: string[] }
+export interface MapNode { id: string; column: number; lane: number; type: Space; elite?: boolean; next: string[] }
 export interface RegionMap { region: RegionId; nodes: MapNode[] }
 export const COLUMNS = 13;
 export const LONG_COLUMNS = 19;
@@ -85,4 +85,14 @@ export function generateMap(seed: string, regionIndex: number, version: 1 | 2 = 
     }
   }
   return { region: region.id, nodes };
+}
+
+/** Every immediate approach to an elite also reaches a normal space. */
+export function addEliteSpaces(map: RegionMap, seed: string): void {
+  const rng = random(seed + ':' + map.region + ':elites');
+  for (const column of [8, 14]) {
+    const candidates = map.nodes.filter(n => n.column === column && n.type === 'battle'
+      && map.nodes.filter(p => p.next.includes(n.id)).every(p => p.next.length > 1));
+    if (candidates.length) candidates[Math.floor(rng() * candidates.length)].elite = true;
+  }
 }

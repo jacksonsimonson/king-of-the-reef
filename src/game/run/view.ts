@@ -1,3 +1,4 @@
+import { RIVAL_STYLES, rivalStyle } from './rivalSchools.ts';
 import { FishingSession } from "../fishing/view.ts";
 import { recordDiscoveries } from '../journal.ts';
 import { openJournal } from '../ui/journal.ts';
@@ -8,7 +9,7 @@ import { cardElement } from "../ui/cardElement";
 import { tidePlayLimit } from '../twoTide';
 import { voyageMatchFormat } from './battleSave';
 import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
-import { shopOffers, runFishDefinition, BOSS_REMATCH_GUIDANCE } from "./state.ts";
+import { shopOffers, battleWinReward, runFishDefinition, BOSS_REMATCH_GUIDANCE } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
@@ -113,15 +114,15 @@ export class VoyageView {
     stage.append(layers);
     map.nodes.forEach((node) => {
       const info = SPACE_INFO[node.type];
-      const label = node.type === "boss" ? region.boss : info.name;
+      const label = node.type === "boss" ? region.boss : node.elite ? "Elite battle" : info.name;
       const btn = button("", () => { this.selected = node.id; this.renderDetail(); }, `map-node node-${node.type}`);
-      btn.style.setProperty("--node-color", info.color);
+      btn.style.setProperty("--node-color", node.elite ? "#ffd582" : info.color);
       btn.setAttribute("aria-label", `${label}, step ${node.column}${available.includes(node.id) ? ", available" : ""}`);
       btn.title = `${label} — ${info.description}`;
       if (available.includes(node.id)) btn.classList.add("available");
       if (run?.visited.includes(node.id)) btn.classList.add("visited");
       if (run?.current === node.id || run?.pending === node.id) btn.classList.add("current");
-      const icon = element("canvas"); drawIcon(icon, node.type, info.color);
+      const icon = element("canvas"); drawIcon(icon, node.type, node.elite ? "#ffd582" : info.color);
       btn.append(icon, element("span", "node-label", label));
       stage.append(btn); buttons.set(node.id, btn);
     });
@@ -159,6 +160,10 @@ export class VoyageView {
       const item = element("span"); const icon = element("canvas"); drawIcon(icon, type, SPACE_INFO[type].color);
       item.append(icon, element("span", "", SPACE_INFO[type].name)); legend.append(item);
     });
+    if (map.nodes.some(n => n.elite)) {
+      const item = element('span'), icon = element('canvas'); drawIcon(icon, 'battle', '#ffd582');
+      item.append(icon, element('span', '', 'Elite battle')); legend.append(item);
+    }
     footer.append(legend, element("p", "voyage-seed", run ? `SEED ${run.seed} · ${this.storageOk ? "AUTO-SAVED" : "SAVE UNAVAILABLE — KEEP THIS TAB OPEN"}` : "A different chart for every voyage"));
     this.root.append(footer);
     const detail = element("section", "voyage-detail"); detail.id = "voyage-detail"; detail.setAttribute("aria-live", "polite"); this.root.append(detail);
@@ -201,7 +206,13 @@ export class VoyageView {
     const node = run.pending ? activeNode(run) : run.maps[run.region].nodes.find((n) => n.id === this.selected);
     if (!node) { panel.append(element("h3", "", "Follow the bright current →"), element("p", "", run.log), element("p", "", "Select a connected, glowing space to inspect it. Your route becomes permanent when you enter.")); return; }
     const info = SPACE_INFO[node.type];
-    panel.append(element("h3", "", node.type === "boss" ? REGIONS[run.region].boss : info.name), element("p", "", info.description));
+    panel.append(element("h3", "", node.type === "boss" ? REGIONS[run.region].boss : node.elite ? "Elite battle" : info.name), element("p", "", info.description));
+    if (node.type === 'battle' && run.rivalSchoolVersion === 1) {
+      const style = RIVAL_STYLES[rivalStyle(run.seed, node.id)];
+      panel.append(element('p', '', style.name + ': ' + style.description + ' Random creatures from this region; exact school stays hidden.'));
+      if (node.elite) panel.append(element('p', '', 'Elite: a stronger local school. Victory earns eight extra shells.')) ;
+      if (!run.pending) panel.append(element('p', '', 'Win: ' + battleWinReward(run, node) + ' shells. Tie: ' + (run.voyageVersion === 2 ? 6 : 4) + ' shells. Loss: −1 resolve.'));
+    }
     if (!run.pending) {
       if (reachable(run).includes(node.id)) panel.append(button("Enter this space →", () => { if (enterNode(run, node.id)) { this.viewingMap = false; this.save(); this.render(); } }));
       else panel.append(element("p", "", run.visited.includes(node.id) ? "Already visited." : "This space is not connected to your current position."));
@@ -239,7 +250,7 @@ export class VoyageView {
       panel.append(element("p", "", voyageMatchFormat(run.battle) === 'two-tide'
         ? `Two tides · ${tidePlayLimit(REGIONS[run.region].id)} plays per side per tide. Rival starts tide 2. Combined reef scores decide one result. Hands and charms refresh; fish killed in either tide need hydration afterward. Used charms are consumed after the match.`
         : 'Resume this saved single-tide battle under its original rules.'));
-      const reward = run.voyageVersion === 2 ? (node.type === "boss" ? 28 + run.region * 4 : 14 + run.region * 2) : node.type === "boss" ? 25 : 12;
+      const reward = battleWinReward(run, node);
       panel.append(element("p", "", `Win: ${reward} shells. ${node.type === "boss" ? "Tie: rematch." : `Tie: ${run.voyageVersion === 2 ? 6 : 4} shells.`} Loss: −1 resolve.`));
       if(node.type==='boss')panel.append(element('p','',BOSS_REMATCH_GUIDANCE));
       panel.append(element("p", "", run.log));

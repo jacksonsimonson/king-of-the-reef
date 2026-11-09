@@ -69,3 +69,42 @@ The second tide restores the opening hands, reserves, board and up to three avai
 Checkpoints include both-round bookkeeping, the original deal, current charms, action RNG position and the intermission. Leaving at the intermission resumes the Next tide screen; leaving during tide 2 preserves tide 1’s score and casualties. Existing saved single-tide battles finish unchanged; their next battle or boss rematch uses two tides. No card catalog or map migration is required. See [balance and pacing evidence](TWO_TIDE_PROTOTYPE.md).
 
 After the combined result, a scrolling match summary shows both tide scores, actual shell/resolve changes, casualties, charm copies consumed and regional-passage recovery. Inspect final board closes it; Battle controls → View match summary reopens it before leaving. It is not persistent match history. See the [full Voyage balance study](FULL_VOYAGE_BALANCE.md) for current attrition and pacing evidence.
+
+## Weighted rival schools and optional elites
+
+New voyages use rival-school version 1. Ordinary and elite battles draw ten creatures from the current area's enabled roster, with saved card definitions. No creature repeats until that pool is exhausted. Each node has a seeded broad style: Mixed current (no preference), Reef keepers (defense/scoring), Hunting party (predation/disruption), or Current riders (movement/displacement). Every local creature remains eligible; a matching creature receives twice the base selection weight. There are no authored decks or mandatory signature cards.
+
+Selection uses a provisional, relative recruitment rating in src/game/run/rivalSchools.ts, independent of the design framework's component-load budgets and card rarity. Directional coverage, diminishing returns for repeated effects, and innate utility inform the rating. Sixteen random candidate schools are compared to a shared regional average rating, with a strong penalty for fewer than three positioners when the pool permits. This limits random difficulty spikes without requiring a rigid role quota. A restricted pool can repeat cards and may not meet the usual composition target. These ratings are hypotheses, not universal strength scores; changing abilities calls for rerunning the matchup study.
+
+Elites favor higher-rated cards and target the regional average plus 0.45 regional standard deviations. They retain the same board, plays, regional AI, and rules. New long maps can mark one battle at each of steps 8 and 14 as elite, only where every immediate predecessor also connects to a normal alternative. Some maps therefore have fewer than two elites. The gold icon, Elite battle label, style, and reward preview appear before committing. Wins pay 22/24/26 shells (eight more than normal); ties still pay six and losses cost one resolve. Saved node types and elite markers survive reload. Older voyages retain their original generator; Colossal placeholder decks and Quick Match are unchanged.
+
+### Validation and balance evidence
+
+Reproduce with:
+
+~~~powershell
+node scripts/balance/rival-schools.mjs 3200 16
+node scripts/balance/rival-schools.mjs 4200 16
+node scripts/balance/rival-schools.mjs 5200 2 expert
+~~~
+
+The main comparison covers 3,072 Tactical tides: 32 seed groups × three regions × four styles × normal/elite × both starting orders × both ownership assignments. Each generated opponent faces a separately generated balanced local school. Opposing starts share terrain and deal seeds; ownership also swaps to control directional advantages. Each row below averages 128 tides per difficulty across both batches. Positive margin favors the balanced comparison school; negative favors the styled opponent.
+
+| Region | Style | Normal mean margin | Elite mean margin |
+| --- | --- | ---: | ---: |
+| Shoreline | balanced | -0.148 | -0.195 |
+| Shoreline | holders | -0.094 | -0.219 |
+| Shoreline | hunters | -0.063 | -0.094 |
+| Shoreline | currents | -0.094 | -0.266 |
+| Open Ocean | balanced | -0.063 | -0.242 |
+| Open Ocean | holders | 0.125 | -0.250 |
+| Open Ocean | hunters | 0.086 | -0.094 |
+| Open Ocean | currents | -0.094 | 0.016 |
+| Bermuda | balanced | 0.133 | -0.172 |
+| Bermuda | holders | 0.000 | -0.383 |
+| Bermuda | hunters | 0.141 | -0.031 |
+| Bermuda | currents | 0.016 | -0.477 |
+
+Normal styles remain near parity in this sample. Elites improve the aggregate opponent margin in every region, but not every style or seed batch: higher recruitment rating is not a guaranteed win. No creature edges or abilities were changed. A further 192 Expert tides on two fresh seeds completed as a policy smoke check, not a precise estimate. An earlier 384-tide exploratory sample used both starts without ownership swaps and is excluded from the table.
+
+Generation tests exercise 480 region/style/seed combinations, all regional creatures' observed eligibility, unique IDs, duplicate avoidance, style bias, budget spread, elite rating, tiny pools, roster filtering, legacy generation, save/reload, optional routes, and reward settlement. Browser smoke testing uses an isolated seed: elite preview, entry, visible battle title, a player placement, rival response, and saved-battle resume. This is not a full-Voyage economy test or proof of equal human difficulty. Simulations omit charms and long-run injury/recruitment decisions; repeated seed variants are correlated. Next useful validation is full-Voyage integration with recruiting, injuries, charms, and elite route choices.

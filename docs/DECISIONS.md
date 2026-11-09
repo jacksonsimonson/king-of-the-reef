@@ -277,3 +277,7 @@ Implement all twenty approved hosts and edge tradeoffs as one PR, tested in inte
 ## 2026-10-29 — Consolidate all twenty ability cards into one mixed-school pass
 
 After #45, complete the [all-20 study](ALL_ABILITY_SCHOOL_STUDY.md) in one PR: varied regional schools, ability-heavy lineups, all-twenty stress decks, all 16 charms, both seats/starters, fresh seeds and an Expert smoke test. Retain all current version-seven assignments; no new save version. Record observed choices, immediate differences, reveals and delayed events instead of equating deck inclusion with activation. Include Octopus and Snare interpretation in this same report; avoid a sequence of single-card balance PRs without new gameplay evidence.
+
+## 2026-11-09 — Weighted regional rival schools
+
+Use broad playstyle biases over the entire enabled regional pool, not fixed themed decks. Version new voyages to preserve old seeded encounters. Compare random schools against a shared relative recruitment budget; optional elites modestly favor higher-rated creatures and award eight extra shells, with no stat or turn cheats. Keep the provisional recruitment heuristic separate from component-load balance budgets. See [Voyage rules and paired simulation evidence](VOYAGE.md#weighted-rival-schools-and-optional-elites). Colossal decks remain deferred.
