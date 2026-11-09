@@ -11,7 +11,7 @@ import { regionalRules, scoringReefs, type BattleRules } from '../battleRules.ts
 import { chooseRivalMove } from '../rivalAI.ts';
 import { combinedScore, matchCharmSpending, freshTide, tidePlayLimit, type TideScore } from '../twoTide.ts';
 import { random, REGIONS } from '../run/maps.ts';
-import { describeFrame, tileName, type CombatFrame } from "../combatFeedback";
+import { frameHighlights, describeFrame, tileName, type CombatFrame } from "../combatFeedback";
 import { ABILITIES, canPlaceFish, scoreBoard } from "../abilities";
 import Phaser from "phaser";
 import { battleTerrain, terrainForRules, placementCard, placementDestination, TERRAIN_INFO } from "../terrain";
@@ -103,6 +103,7 @@ export class FoundationScene extends Phaser.Scene {
   private ui?: Phaser.GameObjects.Container;
   private placementPreview?: Phaser.GameObjects.Container;
   private previewIndex: number | null = null;
+  private legalMarkers?: Phaser.GameObjects.Graphics;
   private voyageBattle?: VoyageBattle;
   private killedIds = new Set<string>();
   private shocked = new Set<string>();
@@ -257,6 +258,7 @@ export class FoundationScene extends Phaser.Scene {
     if (this.twoTide) message = `Tide ${Math.min(this.tideScores.length + (this.finished ? 0 : 1), 2)}/2 · ${this.tideScores.length ? 'Combined ' + combinedScore(this.tideScores).player + '–' + combinedScore(this.tideScores).rival + ' · ' : ''}${message}`;
     this.checkpoint();
     this.placementPreview = undefined;
+    this.legalMarkers = undefined;
     this.previewIndex = null;
     this.ui?.destroy(true);
     this.boardDrawings.clear();
@@ -285,6 +287,8 @@ export class FoundationScene extends Phaser.Scene {
 
     const playerHandCenter = board.x - 280;
     const rivalHandCenter = board.x + this.boardSpan() + 280;
+    const activeCenter = this.turn === "player" ? playerHandCenter : rivalHandCenter;
+    if (!this.finished) add(this.add.rectangle(activeCenter, board.y - 12, 184, 4, this.turn === "player" ? 0x69bbff : 0xff8b8b));
     add(this.add.text(playerHandCenter - 92, board.y - 35, this.turn === "player" ? "YOUR HAND" : "RIVAL TURN", this.textStyle(15, "#69bbff", true)));
     this.playerHand.forEach((slot, index) => {
       const position = this.handPosition(index, playerHandCenter, board.y);
@@ -317,6 +321,11 @@ export class FoundationScene extends Phaser.Scene {
       if (!this.board[index]) this.drawTerrain(index, x, y);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
+      if (reef && this.board[index]) {
+        const color = this.board[index]!.owner === "player" ? 0x69bbff : 0xff8b8b;
+        add(this.add.rectangle(x + 20, y + CELL - 2, 24, 4, color));
+        add(this.add.rectangle(x + CELL - 20, y + CELL - 2, 24, 4, color));
+      }
       const marker=this.abilityMemory.decoys.some(t=>t.index===index)?'AFTERIMAGE':this.abilityMemory.snares.some(t=>t.index===index)?'SNARE':null;
       if(marker)add(this.add.text(x+CELL/2,y+CELL/2,marker,this.textStyle(8,marker==='SNARE'?'#ffcc88':'#c6a4ff')).setOrigin(.5));
       const tokenFish=this.board[index];
@@ -343,6 +352,7 @@ export class FoundationScene extends Phaser.Scene {
           .on("pointerdown", () => this.playPlayerCard(index));
       }
     }
+    this.drawLegalMarkers();
     if (this.pendingReveal === "charm") {
       const cancel = this.add.text(38, board.y + 520, "CANCEL REVEAL", this.textStyle(8, "#eed49b")).setInteractive({ useHandCursor: true });
       cancel.on("pointerdown", () => { this.pendingReveal = null; this.render("Reveal canceled. Charm kept."); });
@@ -406,6 +416,7 @@ export class FoundationScene extends Phaser.Scene {
       dragged = true;
       this.selectedId = slot.card.id;
       card.setDepth(100);
+      this.drawLegalMarkers();
     });
     card.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       card.setPosition(dragX, dragY);
@@ -420,6 +431,7 @@ export class FoundationScene extends Phaser.Scene {
       else {
         card.setPosition(x, y).setScale(1).setDepth(2);
         this.selectedId = null;
+        this.render("Your turn");
       }
     });
     card.on("pointerup", () => {
@@ -472,6 +484,21 @@ export class FoundationScene extends Phaser.Scene {
     const card = drawFishCard({ scene: this, container: this.ui, fish, x, y, size, selected, silhouette, shocked: this.shocked.has(fish.id) });
     if (!silhouette) card.setInteractive().on("pointerover", () => this.events.emit("card-hover", fish));
     return card;
+  }
+
+  private drawLegalMarkers(): void {
+    this.legalMarkers?.destroy();
+    this.legalMarkers = this.add.graphics(); this.ui?.add(this.legalMarkers);
+    const origin = this.boardOrigin();
+    for (let index=0;index<this.board.length;index++) {
+      if (!this.isLegalPlayerPlacement(index)) continue;
+      const x=origin.x+index%this.rules.size*(CELL+GAP),y=origin.y+Math.floor(index/this.rules.size)*(CELL+GAP);
+      this.legalMarkers.lineStyle(3,0xffdd88,0.9);
+      for(const [dx,dy,sx,sy] of [[7,7,1,1],[CELL-7,7,-1,1],[7,CELL-7,1,-1],[CELL-7,CELL-7,-1,-1]]) {
+        this.legalMarkers.lineBetween(x+dx,y+dy,x+dx+sx*10,y+dy);
+        this.legalMarkers.lineBetween(x+dx,y+dy,x+dx,y+dy+sy*10);
+      }
+    }
   }
 
   private showPlacementPreview(index: number, fish: FishCard): void {
@@ -802,17 +829,51 @@ export class FoundationScene extends Phaser.Scene {
 
   private async showCombatFrame(frame: CombatFrame): Promise<void> {
     const before = this.board;
+    const highlights = frameHighlights(before, this.shocked, frame);
+    const oldScore = this.getScores();
     const cue = combatCue(before, this.shocked, frame);
     if (cue) reefAudio.play(cue);
     for (const line of describeFrame(before, this.shocked, frame)) this.logCombat(line);
     this.board = frame.board; this.shocked = frame.shocked;
     this.render("Resolving: " + frame.label);
-    if (this.motionReduced || !this.sys.isActive()) return;
+    if (!this.sys.isActive()) return;
     const origin = this.boardOrigin();
     const position = (index: number) => ({ x: origin.x + (index % this.rules.size) * (CELL + GAP) + CELL / 2, y: origin.y + Math.floor(index / this.rules.size) * (CELL + GAP) + CELL / 2 });
+    const marks = this.add.graphics(); this.ui?.add(marks);
+    const corners = (point: {x:number;y:number}, color:number) => {
+      marks.lineStyle(3,color);
+      for(const sx of [-1,1])for(const sy of [-1,1]) {
+        const x=point.x+sx*45,y=point.y+sy*45;
+        marks.lineBetween(x,y,x-sx*12,y);marks.lineBetween(x,y,x,y-sy*12);
+      }
+    };
+    for(const move of highlights.moves) {
+      const a=position(move.from),b=position(move.to),distance=Math.hypot(b.x-a.x,b.y-a.y);
+      marks.fillStyle(0x81e8ed,0.8);
+      for(let step=0;step<=distance;step+=12) marks.fillRect(Math.round(a.x+(b.x-a.x)*step/distance)-2,Math.round(a.y+(b.y-a.y)*step/distance)-2,4,4);
+      corners(b,0x81e8ed);
+    }
+    for(const index of highlights.blocked) {
+      const p=position(index);corners(p,0xffdd88);marks.lineStyle(4,0xffdd88);
+      marks.lineBetween(p.x-12,p.y-16,p.x+12,p.y-16);
+    }
+    for(const index of highlights.removed) {
+      const p=position(index);marks.lineStyle(4,0xff7777);
+      marks.lineBetween(p.x-24,p.y-24,p.x+24,p.y+24);marks.lineBetween(p.x+24,p.y-24,p.x-24,p.y+24);
+    }
+    for(const index of highlights.changed) {
+      corners(position(index),0xffdd88);
+    }
+    const newScore=this.getScores();
+    for(const [owner,offset,color] of [['player',-100,'#69bbff'],['rival',100,'#ff8b8b']] as const) {
+      const delta=newScore[owner]-oldScore[owner];
+      if(delta) this.ui?.add(this.add.text(origin.x+this.boardSpan()/2+offset,origin.y-28,(owner==='player'?'YOU ':'RIVAL ')+(delta>0?'+':'')+delta,this.textStyle(16,color)).setOrigin(.5));
+    }
+    if (this.motionReduced) { await new Promise<void>(resolve=>this.time.delayedCall(180,resolve)); return; }
+    const duration = highlights.blocked.length || newScore.player !== oldScore.player || newScore.rival !== oldScore.rival ? 420 : 280;
     const animations: Promise<void>[] = [];
     const animate = (drawing: Phaser.GameObjects.Container, values: object) => animations.push(new Promise(resolve => {
-      this.tweens.add({ targets: drawing, ...values, duration: 260, ease: "Sine.easeInOut", onUpdate: () => { drawing.x = Math.round(drawing.x); drawing.y = Math.round(drawing.y); }, onComplete: () => resolve() });
+      this.tweens.add({ targets: drawing, ...values, duration, ease: "Sine.easeInOut", onUpdate: () => { drawing.x = Math.round(drawing.x); drawing.y = Math.round(drawing.y); }, onComplete: () => resolve() });
     }));
     for (const [from, fish] of before.entries()) {
       if (!fish) continue;
@@ -829,12 +890,11 @@ export class FoundationScene extends Phaser.Scene {
     }
     for (const fish of frame.board) {
       if (!fish) continue;
-      const prior = before.find(card => card?.id === fish.id);
-      if (!prior || prior.edges.length !== fish.edges.length || frame.label.includes("shock") || frame.label === "Full-card ability" || frame.label === "Storm field") {
+      if (highlights.changed.includes(frame.board.indexOf(fish))) {
         const drawing = this.boardDrawings.get(fish.id)!; drawing.setAlpha(0.4); animate(drawing, { alpha: 1 });
       }
     }
-    if (!animations.length) animations.push(new Promise(resolve => { this.time.delayedCall(260, () => resolve()); }));
+    if (!animations.length) animations.push(new Promise(resolve => { this.time.delayedCall(duration, () => resolve()); }));
     await Promise.all(animations);
   }
 

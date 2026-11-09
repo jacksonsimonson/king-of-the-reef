@@ -92,7 +92,7 @@ export function drawFishCard({
   const card = scene.add.container(x, y).setSize(size, size);
 
   const outer = scene.add.rectangle(0, 0, size, size, COLORS.water)
-    .setStrokeStyle(border, frameColor);
+    .setStrokeStyle(border, selected ? 0xffdd88 : frameColor);
   const inset = scene.add.rectangle(0, 0, insetSize, insetSize, COLORS.deep)
     .setStrokeStyle(2, 0x001725);
 
