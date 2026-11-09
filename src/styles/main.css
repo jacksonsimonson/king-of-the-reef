@@ -199,8 +199,6 @@ input::placeholder { color: #a0b4ae; opacity: 1; }
 .quick-match-setup label { display: flex; justify-content: space-between; gap: 16px; margin: 16px 0; align-items: center; }
 .quick-match-setup select { font: inherit; padding: 8px; background: #102d38; color: #eed49b; max-width: 65%; }
 
-.tutorial-dialog { width: min(680px, calc(100vw - 48px)); }
-.tutorial-copy { font-family: system-ui, sans-serif; font-size: 18px; line-height: 1.7; min-height: 180px; }
 .battle-controls { margin: 16px; padding: 16px; border: 2px solid #77b9b7; background: #092e40; }
 .battle-controls label { display: block; margin: 12px 0; }
 .battle-controls select, .encounter-screen select { max-width: 100%; padding: 8px; font: inherit; }
@@ -233,3 +231,30 @@ button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visib
 .ability-dialog { width: min(720px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; box-sizing: border-box; }
 .ability-dialog select { font: inherit; width: 100%; padding: 12px; color: #f2e9c9; background: #071e2a; }
 .ability-dialog p { line-height: 1.5; overflow-wrap: anywhere; }
+
+/* Guide is a separate screen. Pixel UI stays native-size; prose uses readable body text. */
+.menu-guide-link { margin-top: 16px; color: var(--muted); }
+.game-guide { max-width: 1200px; margin: 24px auto; padding: 24px; border: 8px solid #537f79; border-image: var(--frame) 8 / 8px / 0 repeat; background: #0b2b38; }
+.guide-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.guide-header h2 { color: var(--gold); margin: 0; font-size: 32px; line-height: 48px; }
+.guide-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 20px; border-bottom: 2px solid #537f79; }
+.guide-tabs button { padding: 12px 16px; border: 2px solid #537f79; background: #143c48; }
+.guide-tabs [aria-selected="true"] { color: #082c36; background: var(--gold); border-color: var(--gold); }
+.guide-panel { padding-top: 24px; }
+.guide-panel h3 { color: var(--gold); font-size: 24px; }
+.guide-intro { color: var(--muted); max-width: 72ch; line-height: 1.6; font-family: system-ui, sans-serif; font-size: 18px; }
+.guide-search { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 20px 0; }
+.guide-search input { min-width: 0; width: 320px; max-width: 100%; padding: 12px; color: var(--ink); background: #071c29; border: 2px solid #537f79; }
+.guide-count:empty { display: none; }
+.guide-entries { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.guide-entry { background: #123744; border: 2px solid #315e68; padding: 20px; overflow-wrap: anywhere; }
+.guide-entry h4 { font-size: 16px; line-height: 24px; color: var(--gold); margin: 0 0 12px; font-weight: 400; }
+.guide-entry p { font-family: system-ui, sans-serif; font-size: 18px; line-height: 1.65; margin-bottom: 0; }
+body:has(#guide:not([hidden])) { min-width: 320px; }
+@media (max-width: 700px) {
+  .game-guide { padding: 16px; margin: 8px; }
+  .guide-header { flex-wrap: wrap; }
+  .guide-header h2 { font-size: 24px; }
+  .guide-entries { grid-template-columns: 1fr; }
+  .guide-tabs button { padding: 12px; }
+}

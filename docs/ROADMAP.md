@@ -79,7 +79,7 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Later development
 
-Implemented: twelve regional event presentations across rescue, salvage, recovery, and trading choices; an optional eight-page How to Play menu; keyboard/text battle and gallery controls. Further accessibility testing with assistive technologies remains useful.
+Implemented: twelve regional event presentations across rescue, salvage, recovery, and trading choices; a nine-tab Game Guide at the bottom of the main menu; keyboard/text battle and gallery controls. Further accessibility testing with assistive technologies remains useful.
 
 Implemented: three regional rival difficulty levels, 5×5/6×6/7×7 boards with five/six/seven plays per side, sparse seeded terrain, and a Quick Match setup popup with independent choices. Rival strength still needs human playtesting; Expert uses bounded public-information counterplay forecasts.
 
@@ -98,4 +98,4 @@ Implemented: stable battle checkpoints (including charms and pending choices), c
 
 - [Complete Bermuda pass](BERMUDA_BALANCE.md): 43/43 entries reviewed in six internal families, 23 changed and 20 retained. This completes authored roles for all 167 catalog entries. Ordinary counters, saved versions, internal role batches and 13,952 final-evidence simulated tides validate the pass; future tuning remains evidence-driven. Starting-school choices can now build on the reviewed roster; Colossals remain last.
 
-- Implemented weighted random regional rival schools with five broad playstyles and optional elite branches for new voyages. Paired Tactical and Expert simulation evidence is recorded in [Voyage](VOYAGE.md#weighted-rival-schools-and-optional-elites). Next PR: presentation cleanup with a bottom main-menu Game Guide tab, moving long explanations out of active play while retaining decision-critical information and accessible controls. Then full-Voyage integration across recruiting, injuries, charms, and elite rewards; bespoke Colossals remain last.
+- Implemented weighted random regional rival schools with five broad playstyles and optional elite branches for new voyages. Paired Tactical and Expert simulation evidence is recorded in [Voyage](VOYAGE.md#weighted-rival-schools-and-optional-elites). Implemented presentation cleanup: a bottom main-menu Game Guide tab holds long explanations; active play retains decision-critical information and optional accessible controls. Next: full-Voyage integration across recruiting, injuries, charms, and elite rewards; bespoke Colossals remain last.

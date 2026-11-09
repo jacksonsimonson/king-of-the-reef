@@ -86,11 +86,11 @@ export class GalleryScene extends Phaser.Scene {
     if (this.restoreControlFocus) { select.focus({preventScroll:true}); this.restoreControlFocus = false; }
     this.add.text(32, 26, rosterMode ? "BATTLE ROSTER" : "CREATURE GALLERY", this.textStyle(26, "#39ff14", true));
     this.add.text(32, 62, rosterMode
-      ? `${enabled.size}/${STARTERS.length} enabled · Click to toggle for Quick Match and your next Voyage.`
+      ? `${enabled.size}/${STARTERS.length} enabled`
       : `${GALLERY_CARDS.length} creatures · Grouped by environment.`, this.textStyle(15, "#b8ffd0"));
     const detail = this.add.text(32, (rosterMode ? ROSTER_HEIGHT : GALLERY_HEIGHT) - 92, rosterMode
-      ? "Active Voyages keep their starting roster. New fish are enabled by default."
-      : "Card backgrounds: Eyes = Revelation. Flags = Rally.", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 64);
+      ? ""
+      : "", this.textStyle(16, "#b8d7dc")).setWordWrapWidth(this.scale.width - 64);
 
     let sectionY = START_Y;
     for (const section of catalogSections(definitions)) {

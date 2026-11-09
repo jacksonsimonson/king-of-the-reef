@@ -291,3 +291,9 @@ After the weighted-rival PR, prioritize a presentation cleanup. Add a Game Guide
 Regional progression refines these five broad tendencies: Shoreline teaches the categories, Open Ocean adds a mild specialty preference, and Bermuda adds a stronger specialty preference. All retain the same regional budget targets and random local pool. Specialties must fit mechanics actually present in that region; Open Ocean disruption uses pulls/lures, not nonexistent Shock cards.
 
 Keep broad and specialized rival-type names internal only; never expose them in the game UI. Preserve a wide variety in every area through full-pool eligibility, no fixed signature cards, and gentle 1.6 broad-style multipliers with 1.2/1.4 regional specialty multipliers. Players see normal versus elite and the actual reward, not archetype labels or generator explanations.
+
+## 2026-11-09 — Game Guide and concise gameplay screens
+
+Replace the old paged tutorial dialog with a dedicated #guide screen, linked last in the main menu. Nine keyboard-navigable tabs cover basics, battles, edges, full-card abilities, terrain, charms, Voyage, fishing, and controls; each tab has local search. Reference entries reuse live catalogs so new abilities, charms, edge descriptions, and fishing patterns do not silently disappear from the guide.
+
+Tutorial prose belongs in the guide. Remove persistent terrain rule walls, hover instructions, repeated encounter explanations, fishing controls prose, setup paragraphs, and developer balance notes in school inspection. Keep scores, turn state, selected card/terrain effects, actual costs and consequences, and required choice previews where the decision happens. Combat log starts collapsed; keyboard battle controls remain available. No combat, fishing, economy, roster, or save rules change.

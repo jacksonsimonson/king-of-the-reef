@@ -2,7 +2,6 @@
 export function abilityDialog(title:string,options:string[],allowCancel=false,details?:string[]):{element:HTMLDialogElement;result:Promise<number>} {
  const dialog=document.createElement('dialog');dialog.className='voyage-dialog ability-dialog';
  const heading=document.createElement('h3');heading.textContent=title;dialog.setAttribute('aria-label',title);dialog.append(heading);
- const help=document.createElement('p');help.textContent=allowCancel?'Preview the effect, choose an option, or cancel the placement.':'Choose how this ability resolves.';dialog.append(help);
  let done:(n:number)=>void;
  const result=new Promise<number>(resolve=>done=resolve);
  const finish=(n:number)=>{done(n);dialog.remove();};

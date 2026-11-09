@@ -8,7 +8,7 @@ import { cardElement } from "../ui/cardElement";
 import { tidePlayLimit } from '../twoTide';
 import { voyageMatchFormat } from './battleSave';
 import { CHARMS, availableCharms, CHARM_CAPACITY, charmCanvas } from "../data/tideCharms.ts";
-import { shopOffers, battleWinReward, runFishDefinition, BOSS_REMATCH_GUIDANCE } from "./state.ts";
+import { shopOffers, battleWinReward, runFishDefinition } from "./state.ts";
 import { drawEncounterArt, encounterTitle, isEncounterSpace } from "./encounters.ts";
 import { drawIcon, drawSeascape } from "./art.ts";
 import { REGIONS, SPACE_INFO, type MapNode, type Space } from "./maps.ts";
@@ -117,7 +117,7 @@ export class VoyageView {
       const btn = button("", () => { this.selected = node.id; this.renderDetail(); }, `map-node node-${node.type}`);
       btn.style.setProperty("--node-color", node.elite ? "#ffd582" : info.color);
       btn.setAttribute("aria-label", `${label}, step ${node.column}${available.includes(node.id) ? ", available" : ""}`);
-      btn.title = `${label} — ${info.description}`;
+      btn.title = label;
       if (available.includes(node.id)) btn.classList.add("available");
       if (run?.visited.includes(node.id)) btn.classList.add("visited");
       if (run?.current === node.id || run?.pending === node.id) btn.classList.add("current");
@@ -195,28 +195,30 @@ export class VoyageView {
     const panel = this.root.querySelector<HTMLElement>("#voyage-detail")!;
     panel.replaceChildren();
     const run = this.run;
-    if (!run) { panel.append(element("p", "", "Preview all three seas above, then begin your voyage to choose a route.")); return; }
+    if (!run) return;
     if (run.status !== "active") {
       panel.append(element("h3", "", run.status === "won" ? "The three seas are yours." : "Your voyage has ended."), element("p", "", run.log), button("Sail again →", () => this.newRunDialog())); return;
     }
     if (this.preview !== run.region) {
-      panel.append(element("h3", "", this.preview > run.region ? "Waters yet to be charted" : "A sea behind you"), element("p", "", "You can inspect this chart. Continue along the active region to advance."), button("Return to your school →", () => { this.preview = run.region; this.render(); })); return;
+      panel.append(element("h3", "", this.preview > run.region ? "Waters yet to be charted" : "A sea behind you"), button("Return to your school →", () => { this.preview = run.region; this.render(); })); return;
     }
     const node = run.pending ? activeNode(run) : run.maps[run.region].nodes.find((n) => n.id === this.selected);
-    if (!node) { panel.append(element("h3", "", "Follow the bright current →"), element("p", "", run.log), element("p", "", "Select a connected, glowing space to inspect it. Your route becomes permanent when you enter.")); return; }
+    if (!node) { panel.append(element("h3", "", "Next stop"), element("p", "", run.log)); return; }
     const info = SPACE_INFO[node.type];
-    panel.append(element("h3", "", node.type === "boss" ? REGIONS[run.region].boss : node.elite ? "Elite battle" : info.name), element("p", "", info.description));
+    panel.append(element("h3", "", node.type === "boss" ? REGIONS[run.region].boss : node.elite ? "Elite battle" : info.name));
     if (node.type === 'battle' && run.rivalSchoolVersion === 1) {
-      if (node.elite) panel.append(element('p', '', 'Elite victory: +8 shells.')) ;
+
       if (!run.pending) panel.append(element('p', '', 'Win: ' + battleWinReward(run, node) + ' shells. Tie: ' + (run.voyageVersion === 2 ? 6 : 4) + ' shells. Loss: −1 resolve.'));
     }
     if (!run.pending) {
+      const impact: Partial<Record<Space, string>> = { fishing: '1 catch attempt', shop: '3 offers', hydration: 'Restore up to 3 creatures · +1 resolve', release: 'Permanent release · Minimum school: 5', event: 'Unknown encounter' };
+      if (impact[node.type]) panel.append(element('p', '', impact[node.type]));
       if (reachable(run).includes(node.id)) panel.append(button("Enter this space →", () => { if (enterNode(run, node.id)) { this.viewingMap = false; this.save(); this.render(); } }));
       else panel.append(element("p", "", run.visited.includes(node.id) ? "Already visited." : "This space is not connected to your current position."));
       return;
     }
     if (isEncounterSpace(node.type)) {
-      panel.append(element("p", "", "Your visit is still in progress. Viewing the chart does not spend this stop."), button("Resume visit →", () => { this.viewingMap = false; this.render(); }));
+      panel.append(button("Resume visit →", () => { this.viewingMap = false; this.render(); }));
       return;
     }
     this.renderEncounterActions(panel, run, node);
@@ -229,10 +231,10 @@ export class VoyageView {
     const art = element("canvas"); art.setAttribute("aria-hidden", "true"); artFrame.append(art);
     const panel = element("div", "encounter-content");
     const heading = element("h3", "", node.type === 'event' && run.eventVersion === 1 ? voyageEvent(run, '').title : encounterTitle(node.type)); heading.tabIndex = -1;
-    panel.append(heading, element("p", "encounter-description", SPACE_INFO[node.type].description));
+    panel.append(heading);
     const resources = element("p", "encounter-resources", run.shells + " Shells · " + run.resolve + "/3 Resolve · " + run.school.filter(f => f.condition === "healthy").length + "/" + run.school.length + " Ready");
-    const status = element("p", "encounter-status", node.type === "shop" ? `${run.shop?.purchased.length ?? 0} / 3 Offers Purchased · ${this.storageOk ? "Auto-saved" : "Save unavailable"}` : "Choose when you are ready. Viewing the chart keeps this visit open."); status.setAttribute("role", "status");
-    panel.append(resources, status);
+    const status = element("p", "encounter-status", node.type === "shop" ? `${run.shop?.purchased.length ?? 0} / 3 Offers Purchased · ${this.storageOk ? "Auto-saved" : "Save unavailable"}` : ""); status.setAttribute("role", "status");
+    panel.append(resources); if (status.textContent) panel.append(status);
     if (!this.storageOk) panel.append(element("p", "encounter-status", "Save unavailable — keep this tab open."));
     this.renderEncounterActions(panel, run, node);
     screen.append(nav, artFrame, panel); this.root.append(screen);
@@ -245,16 +247,16 @@ export class VoyageView {
     const actions = element("div", "encounter-actions");
     if (node.type === "battle" || node.type === "boss") {
       panel.append(element("p", "", voyageMatchFormat(run.battle) === 'two-tide'
-        ? `Two tides · ${tidePlayLimit(REGIONS[run.region].id)} plays per side per tide. Rival starts tide 2. Combined reef scores decide one result. Hands and charms refresh; fish killed in either tide need hydration afterward. Used charms are consumed after the match.`
-        : 'Resume this saved single-tide battle under its original rules.'));
+        ? `2 tides · ${tidePlayLimit(REGIONS[run.region].id)} plays per side each`
+        : '1 tide · Saved battle'));
       const reward = battleWinReward(run, node);
       panel.append(element("p", "", `Win: ${reward} shells. ${node.type === "boss" ? "Tie: rematch." : `Tie: ${run.voyageVersion === 2 ? 6 : 4} shells.`} Loss: −1 resolve.`));
-      if(node.type==='boss')panel.append(element('p','',BOSS_REMATCH_GUIDANCE));
-      panel.append(element("p", "", run.log));
+
+
       actions.append(button(run.battle ? "Resume saved battle →" : node.type === "boss" ? "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
     } else if (node.type === "shop") {
       panel.append(this.charmInventory(run));
-      panel.append(element("p", "", `${run.shells} Shells · Each Offer Can Be Bought Once. Tide Charms Are Single-Use Battle Items.`));
+
       const stock = element("div", "shop-stock");
       for (const offer of shopOffers(run)) {
         const full = offer.kind === "charm" && run.charms.length >= CHARM_CAPACITY;
@@ -263,7 +265,7 @@ export class VoyageView {
         pick.dataset.offerId = offer.id;
         if (offer.kind === "fish") {
           const fish = runFishDefinition(run, offer.texture)!;
-          pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("span", "offer-description", "Healthy Creature · Joins Your School"));
+          pick.append(cardElement({ ...fish, owner: "player", condition: "healthy" }), element("strong", "", fish.name), element("span", "offer-description", "Ready"));
         } else {
           const art = element("span", "school-card-art charm-card"); art.append(charmCanvas(offer.charm, 8));
           art.style.borderColor = CHARMS[offer.charm].color;
@@ -299,7 +301,7 @@ export class VoyageView {
       });
       const picks: HTMLButtonElement[] = [];
       const update = () => {
-        status.textContent = hydration ? `${selected.size} / ${Math.min(3, choices.length)} Cards Selected` : "Choose One Card to Release Permanently";
+        status.textContent = hydration ? `${selected.size} / ${Math.min(3, choices.length)} Cards Selected` : "Permanent release · 1 creature";
         confirm.textContent = hydration ? `Hydrate ${selected.size} Cards · +1 Resolve` : "Confirm Release";
         confirm.disabled = !hydration && selected.size === 0;
         picks.forEach((pick) => {
@@ -317,7 +319,7 @@ export class VoyageView {
         pick.append(cardElement(fish), element("strong", "", fish.name), element("small", "", fish.condition === "killed" ? "Killed" : "Ready"));
         picks.push(pick); actions.append(pick);
       }
-      if (hydration && !choices.length) panel.append(element("p", "", "All your cards are healthy. You can still recover one resolve."));
+      if (hydration && !choices.length) panel.append(element("p", "", "All creatures healthy · +1 resolve available"));
       panel.append(status); update();
       const controls = element("div", "care-controls"); controls.append(confirm);
       if (!hydration) controls.append(button("Keep My School", () => this.resolve("leave")));
@@ -343,7 +345,7 @@ export class VoyageView {
           if (resolveVisit(run, choice.id, choice.trade || choice.heal ? selected : [])) { reefAudio.play('reward'); this.selected = null; this.save(); this.render(); }
         }); buttons.push(pick); actions.append(pick);
       }
-      panel.append(element('p', '', 'Choose one outcome. Unavailable options need more shells, resolve, or an eligible selected creature.'));
+
       update();
     }
     else if (node.type === "event") {
@@ -359,7 +361,7 @@ export class VoyageView {
     const run = this.run, offer = run && shopOffers(run).find(o => o.id === offerId);
     if (!run || !offer || offer.kind !== "charm") return;
     const dialog = element("dialog", "voyage-dialog"); dialog.setAttribute("aria-label", "Replace a held charm");
-    dialog.append(element("h3", "", `Buy ${CHARMS[offer.charm].name} · ${offer.price} Shells`), element("p", "", "Choose one held charm to discard permanently. No refund. Nothing changes until you confirm."));
+    dialog.append(element("h3", "", `Buy ${CHARMS[offer.charm].name} · ${offer.price} Shells`), element("p", "", "Discard one held charm. No refund."));
     const status = element("p", ""); status.setAttribute("role", "status");
     let selected: number | undefined;
     const confirm = button("Choose a charm first", () => {

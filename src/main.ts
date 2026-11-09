@@ -12,7 +12,7 @@ import { drawSeascape } from "./game/run/art";
 import { regionalRules } from './game/battleRules';
 import { quickMatchSetup, type QuickMatchSettings } from './game/ui/quickMatchSetup';
 import { voyageMatchFormat } from './game/run/battleSave';
-import { openTutorial } from './game/ui/tutorial';
+import { mountGameGuide } from './game/ui/gameGuide';
 import { openJournal } from './game/ui/journal';
 
 const playView = document.querySelector<HTMLElement>("#play");
@@ -23,7 +23,7 @@ let voyage: VoyageView | undefined;
 let quickRules: QuickMatchSettings | undefined;
 let previousQuickRules: QuickMatchSettings | undefined;
 let quickDialog: HTMLDialogElement | undefined;
-let activeView: GameView | "menu" | "voyage" | "voyage-battle" | undefined;
+let activeView: GameView | "menu" | "voyage" | "voyage-battle" | "guide" | undefined;
 const voyageRoot = document.querySelector<HTMLElement>("#voyage")!;
 
 function drawMenu(): void {
@@ -33,7 +33,7 @@ function drawMenu(): void {
 }
 
 function syncView(): void {
-  let nextView: GameView | "menu" | "voyage" | "voyage-battle" = window.location.hash === "#voyage"
+  let nextView: GameView | "menu" | "voyage" | "voyage-battle" | "guide" = window.location.hash === "#guide" ? "guide" : window.location.hash === "#voyage"
     ? "voyage"
     : window.location.hash === "#voyage-battle"
       ? "voyage-battle"
@@ -62,12 +62,15 @@ function syncView(): void {
   if (playView) playView.hidden = !showPlay;
   if (galleryView) galleryView.hidden = !showGallery;
   voyageRoot.hidden = nextView !== "voyage";
+  const guide = document.querySelector<HTMLElement>("#guide")!;
+  guide.hidden = nextView !== "guide";
   if (activeView === nextView) return;
   reefAudio.setTrack(showPlay ? `battle-${nextView === "voyage-battle" && run ? run.region as 0 | 1 | 2 : 0}` : `map-${nextView === "voyage" && run ? run.region as 0 | 1 | 2 : 0}`);
   activeGame?.destroy(true);
   activeGame = undefined;
   voyage?.destroy(); voyage = undefined;
   if (nextView === "voyage") voyage = new VoyageView(voyageRoot);
+  else if (nextView === "guide") mountGameGuide(guide);
   else if (nextView !== "menu") {
     document.querySelector(showGallery ? "#gallery-game" : "#game")?.replaceChildren();
     const battle = nextView === "voyage-battle" && run;
@@ -114,7 +117,7 @@ function syncView(): void {
 // Canvas text must wait for the local typeface rather than caching a fallback.
 async function boot(): Promise<void> {
   mountAudioControls();
-  document.querySelector<HTMLButtonElement>('#tutorial-button')!.onclick = openTutorial;
+
   document.querySelector<HTMLButtonElement>('#journal-button')!.onclick = () => openJournal(currentRun());
   const setup = document.createElement('button'); setup.className = 'voyage-button'; setup.textContent = 'Quick Match Setup';
   setup.onclick = () => { activeGame?.scene.pause('foundation'); activeView = undefined; quickRules = undefined; syncView(); };
