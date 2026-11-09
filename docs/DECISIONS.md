@@ -313,3 +313,7 @@ Tutorial prose belongs in the guide. Remove persistent terrain rule walls, hover
 ## 2026-11-09 — Remove remaining implementation labels from play
 
 Keep fishing movement-profile names in the Game Guide, not on fish offers or the fishing overlay. Remove the follow-the-fish tutorial banner, persistent battle difficulty/grid readout, Voyage seed footer, camp phase terminology, save-migration prose, empty-slot instructions, and journal role disclaimer. Shorten repeated battle guidance to turn/action status. Retain actionable ability choices, costs, minimum school size, attempts, save warnings, card inspection and accessible controls. This is presentation only; generation, movement, saves and balance remain unchanged.
+
+## 2026-11-09 — Voyage playability follow-up
+
+The [three-region playability pass](VOYAGE_PLAYABILITY.md) combines 32 complete-policy route attempts and carried-save browser checks. Preserve current balance: later-region losses and repeated deterministic boss draws do not isolate a fair numerical adjustment. Add fishing mouse/touch hold through existing rightward thrust, preserving resistance and momentum, and show hydration resolve gains only when below capacity. Keep browser flow evidence separate from skilled human play and synthetic catch assumptions.
