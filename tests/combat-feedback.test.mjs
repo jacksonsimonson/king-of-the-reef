@@ -42,3 +42,26 @@ test('retaliation and shocks are recorded with named causes',()=>{
  const shock=resolvePlacement(input,6,fish('eel',[edge('shock')]),5,true);
  assert.match(describeFrame(shock.frames[0].board,new Set(),shock.frames[1]).join(' '),/urchin shocked/);
 });
+
+test('presentation tracks duplicate-species swaps, removal and same-length edge changes on every board size', async()=>{
+ const {frameHighlights}=await import('../src/game/combatFeedback.ts');
+ for(const size of [5,6,7]){
+  const a=fish('a',[edge('standard')]),b={...fish('b',[edge('shield')]),name:a.name},c=fish('c');
+  const before=Array(size*size).fill(null);before[0]=a;before[1]=b;before[size]=c;
+  const after=[...before];after[0]=b;after[1]={...a,edges:[edge('double')]};after[size]=null;
+  const cues=frameHighlights(before,new Set(),{label:'effect',board:after,shocked:new Set(['b']),notes:[],blockedTiles:[size+1]});
+  assert.deepEqual(cues,{moves:[{from:0,to:1},{from:1,to:0}],removed:[size],changed:[0,1],blocked:[size+1]});
+  assert.equal(before[0].edges[0].effect,'standard');
+  assert.match(describeFrame(before,new Set(),{label:'ability',board:after,shocked:new Set(),notes:[]}).join(' '),/changed edges/);
+ }
+});
+test('blocked cues identify the actual defender and obstacle without changing combat',()=>{
+ for(const size of [5,6,7])for(const defense of [true,false]){
+  const board=Array(size*size).fill(null),source=size+1,target=source+1,obstacle=source+2;
+  board[target]=fish('defender',defense?[edge('shield','left')]:[]);if(!defense)board[obstacle]=fish('wall');
+  const recorded=resolvePlacement({board,shocked:new Set()},source,fish('actor',[edge('standard')]),size,true);
+  const plain=resolvePlacement({board,shocked:new Set()},source,fish('actor',[edge('standard')]),size,false);
+  assert.deepEqual(recorded.board,plain.board);
+  assert.deepEqual(recorded.frames.at(-1).blockedTiles,[defense?target:obstacle]);
+ }
+});
