@@ -1,5 +1,9 @@
 # Design Decisions
 
+## 2026-11-09 — Reject unproven rival target reductions
+
+The [carried-school experiment](CARRIED_RIVAL_STUDY.md) tests 104 identical later-region encounters under current, −0.1 SD and −0.2 SD ordinary-school rating targets. Initial improvements did not hold consistently across fresh seeds; the smaller change worsened Open Ocean results in the larger confirmation batch. Retain current values and save versions. Treat the rating as a provisional composition budget, not a proven difficulty control. Separate composition and AI decision strength before adopting another adjustment; keep Colossals last.
+
 ## 2026-10-28 — Shelve school selection; expand tactical items
 
 Restore the pre-picker departure and New Voyage screens, including the original fixed starter school. Preserve existing saved cards and school metadata; retain the school definitions and evidence for later use. Add four consumable Tide Charms through the existing hand-targeted flow, with no new inventory category or permanent upgrades. Version the shop pool as 3 so prior four- and twelve-charm offers and purchase IDs remain stable. Keep new full-card ability concepts in the backlog until selected.
