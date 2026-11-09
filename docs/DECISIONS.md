@@ -1,5 +1,9 @@
 # Design Decisions
 
+## 2026-11-09 — Separate rival composition from AI strength
+
+The [controlled attribution study](RIVAL_ATTRIBUTION.md) finds a larger early later-region difference between fully regional and carried-school composition than between adjacent AI settings. Unweighted regional schools remain difficult. Preserve the three regional AI levels, full regional pools and current weights; do not ship the diagnostic carried-school rivals. Investigate a modest player recruitment opportunity near regional arrival, with full-Voyage validation before choosing a reward or economy adjustment. No production balance or save changes in this pass.
+
 ## 2026-11-09 — Reject unproven rival target reductions
 
 The [carried-school experiment](CARRIED_RIVAL_STUDY.md) tests 104 identical later-region encounters under current, −0.1 SD and −0.2 SD ordinary-school rating targets. Initial improvements did not hold consistently across fresh seeds; the smaller change worsened Open Ocean results in the larger confirmation batch. Retain current values and save versions. Treat the rating as a provisional composition budget, not a proven difficulty control. Separate composition and AI decision strength before adopting another adjustment; keep Colossals last.

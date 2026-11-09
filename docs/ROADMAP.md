@@ -61,7 +61,9 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
-- [Carried-school rival target experiment](CARRIED_RIVAL_STUDY.md): 104 distinct later-region encounters, three target settings and 624 tides across discovery and two fresh-seed checks. Reject −0.1/−0.2 standard-deviation target reductions: lower heuristic ratings did not reliably ease actual encounters. Current weights stay unchanged. Next diagnostic: separate rival composition from AI decision strength on the saved carried-school scenarios, alongside human checks; no blanket roster or economy changes.
+- [Rival composition versus AI](RIVAL_ATTRIBUTION.md): 136 carried encounters × three compositions × three AI levels, including eight new map seeds; 2,448 tides and exact baseline reproduction. The regional-versus-carried school gap is larger than the tested AI changes, and removing weighting does not resolve it. Keep gameplay values unchanged. Next: test one modest regional recruitment opportunity near arrival against unchanged full-Voyage progression, including economy and school dilution; no blanket AI or roster nerfs.
+
+- [Carried-school rival target experiment](CARRIED_RIVAL_STUDY.md): 104 distinct later-region encounters, three target settings and 624 tides across discovery and two fresh-seed checks. Reject −0.1/−0.2 standard-deviation target reductions: lower heuristic ratings did not reliably ease actual encounters. Current weights stay unchanged. The composition-versus-AI diagnostic is complete above; human checks remain. No blanket roster or economy changes.
 
 - [Current full Voyage integration pass](VOYAGE_INTEGRATION.md): 128 runs, 1,831 two-tide matches and 4,423 encounter save/reloads cover current abilities, weighted rivals/elites, recruiting/trimming, shops/charms, injuries/recovery and summaries together. No balance values changed; later-region ordinary battles remain the main difficulty concern despite ample healthy cards. The controlled carried-school target comparison is complete above; human validation remains. Boss caps are unresolved outcomes, not losses; this does not certify human pacing or visual behavior.
 
