@@ -34,7 +34,7 @@ export class FishingSession {
     info.append(cardElement(fish), name, pattern);
     const stage = document.createElement("div"); stage.className = "fishing-stage";
     this.canvas.width = 672; this.canvas.height = 320; this.canvas.className = "fishing-canvas";
-    this.canvas.tabIndex = 0; this.canvas.setAttribute("aria-label", "Fishing lane. Use Left and Right arrows to follow the fish. Escape pauses.");
+    this.canvas.tabIndex = 0; this.canvas.setAttribute("aria-label", "Fishing lane. Hold Right to accelerate against the leftward pull. Left pulls back faster. Release retains momentum. Escape pauses.");
     this.scenery.width = 672; this.scenery.height = 320; drawSeascape(this.scenery, snapshot.region, seed);
     stage.append(this.canvas); layout.append(info, stage);
     this.status.className = "fishing-status"; this.status.setAttribute("role", "status");

@@ -61,7 +61,9 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
-- [Rival composition versus AI](RIVAL_ATTRIBUTION.md): 136 carried encounters × three compositions × three AI levels, including eight new map seeds; 2,448 tides and exact baseline reproduction. The regional-versus-carried school gap is larger than the tested AI changes, and removing weighting does not resolve it. Keep gameplay values unchanged. Next: test one modest regional recruitment opportunity near arrival against unchanged full-Voyage progression, including economy and school dilution; no blanket AI or roster nerfs.
+- [Fish Camp](FISH_CAMP.md) implemented at each new Voyage region entrance: safe optional thinning followed by two local fishing attempts, with original camp art, saved phases and no repeat payouts. Fishing now has momentum, acceleration and passive leftward resistance. Existing voyages/active fishing attempts remain compatible. Paired 64-run study shows more local recruitment but mixed progression; human fishing feel and boss retry pacing remain open.
+
+- [Rival composition versus AI](RIVAL_ATTRIBUTION.md): 136 carried encounters × three compositions × three AI levels, including eight new map seeds; 2,448 tides and exact baseline reproduction. The regional-versus-carried school gap is larger than the tested AI changes, and removing weighting does not resolve it. Keep gameplay values unchanged. The requested Fish Camp checkpoint is implemented above and compared against unchanged progression; no blanket AI or roster nerfs.
 
 - [Carried-school rival target experiment](CARRIED_RIVAL_STUDY.md): 104 distinct later-region encounters, three target settings and 624 tides across discovery and two fresh-seed checks. Reject −0.1/−0.2 standard-deviation target reductions: lower heuristic ratings did not reliably ease actual encounters. Current weights stay unchanged. The composition-versus-AI diagnostic is complete above; human checks remain. No blanket roster or economy changes.
 

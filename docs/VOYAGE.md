@@ -6,6 +6,8 @@ Departure uses the original fixed eight-creature reef school and optional seed. 
 
 Noncombat visits use [dedicated encounter screens](ENCOUNTER_SCREENS.md) with original scene art. The chart can be inspected and the visit resumed without spending its action. Shop purchases and pending visits survive reload; unconfirmed card selections do not.
 
+New playable Voyages begin each region at [Fish Camp](FISH_CAMP.md): optional safe thinning, then two local fishing attempts. Camps have their own native-pixel lodge/pier art and Game Guide entry. Existing runs retain their original departure stops. The ordinary first-column fishing stop remains, so camp adds two opportunities rather than replacing that stop.
+
 ## The three regions
 
 1. **Shoreline:** sunlit sand and shallows on the left, tidepools through the middle, coral reefs on the right.
@@ -18,7 +20,7 @@ Each region ends at a **Colossal**, a giant ocean creature ruling that part of t
 
 ## Map generation
 
-New voyages have a departure, seventeen encounter columns and one Colossal (19 columns total): 18 stops per region, 54 per voyage. Existing saves retain their original 13-column maps. Interior columns have two to four nodes spread over five lanes. Adjacent columns connect through monotone branches and merges. Every node is reachable from departure and can reach the Colossal; paths never cross except where they join a node. Only connected successors may be entered, and a visited space cannot pay out twice.
+New voyages have a Fish Camp, seventeen encounter columns and one Colossal (19 columns total): the camp plus 18 onward stops per region. Older long voyages keep noninteractive departures; older short saves retain their 13-column maps. Interior columns have two to four nodes spread over five lanes. Adjacent columns connect through monotone branches and merges. Every node is reachable from departure and can reach the Colossal; paths never cross except where they join a node. Camp opens automatically on regional arrival, then only connected successors may be entered. A completed camp cannot be reopened for more catches.
 
 The following percentages apply to unforced encounter columns:
 

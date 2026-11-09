@@ -5,14 +5,16 @@ import { AREA_MOVEMENT, MOVEMENTS, FISH_MOVEMENT, FishingModel, movementFor, ZON
 import { createRun, beginFishing, finishFishing, enterNode, reachable, offers, resolveVisit, saveRun, loadRun } from "../src/game/run/state.ts";
 
 function stop(seed = "fishing") {
-  const run = createRun(seed); enterNode(run, reachable(run)[0]); return run;
+  const run = createRun(seed,2,undefined,false); enterNode(run, reachable(run)[0]); return run;
 }
 test("every creature has exactly one supported fishing movement group", () => {
   assert.deepEqual(Object.keys(FISH_MOVEMENT).sort(), STARTERS.map((f) => f.texture).sort());
   STARTERS.forEach((f) => assert.ok(MOVEMENTS[movementFor(f.texture)]));
 });
-test("left/right moves the zone, release stops it, opposite keys cancel, and boundaries clamp", () => {
-  const game = new FishingModel("gradual", "shoreline", 1);
+test("legacy saves preserve direct controls and boundaries", () => {
+  const snapshot = new FishingModel("gradual", "shoreline", 1).snapshot();
+  delete snapshot.controlVersion; delete snapshot.zoneVelocity;
+  const game = FishingModel.restore(snapshot);
   game.step(true, false); assert.ok(game.zone < 0.5);
   const position = game.zone; game.step(false, false); assert.equal(game.zone, position);
   game.step(true, true); assert.equal(game.zone, position);
