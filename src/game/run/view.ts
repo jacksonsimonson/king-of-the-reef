@@ -271,9 +271,9 @@ export class VoyageView {
         : '1 tide · Saved battle'));
       const reward = battleWinReward(run, node);
       panel.append(element("p", "", `Win: ${reward} shells. ${node.type === "boss" ? "Tie: rematch." : `Tie: ${run.voyageVersion === 2 ? 6 : 4} shells.`} Loss: −1 resolve.`));
-
-
-      actions.append(button(run.battle ? "Resume saved battle →" : node.type === "boss" ? "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
+      const attempts=node.type==='boss'?run.recap?.regions[run.region].bossAttempts:undefined;
+      if(node.type==='boss')panel.append(element('p','encounter-status',`${attempts===undefined?'':`Attempt ${attempts+1} · `}${run.charms.length} charm${run.charms.length===1?'':'s'} remaining`));
+      actions.append(button(run.battle ? "Resume saved battle →" : node.type === "boss" ? attempts ? "Rematch Colossal →" : "Challenge Colossal →" : "Enter battle →", () => { this.save(); window.location.hash = "#voyage-battle"; }));
     } else if (node.type === "shop") {
       panel.append(this.charmInventory(run));
 
