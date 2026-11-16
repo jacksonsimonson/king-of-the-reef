@@ -61,6 +61,8 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
+- Full Voyage pass with Colossals and an ending recap implemented: 112 seeded routes, 1,495 two-tide matches and 3,953 save/load checks cover carried schools, companions, camps, charms, injuries and regional progression. Victory/defeat screens record regional results, boss attempts, companions and run totals; older saves retain a final snapshot without invented history. No balance values changed. Four of five sampled stalled encounters had a winning alternate opening; one remained unresolved. Next: human adaptive Colossal playtests and retry pacing, especially Midnight Marauder and Bermuda. See the 2026-11-16 recap decision for reproducible commands and limitations.
+
 - Battle presentation pass implemented: clearer selection/legal targets, movement and block/removal cues, affected-creature highlights, reef ownership and score deltas. Tested synthetic combat cases on all three board sizes, reduced motion and valid/invalid dragging; rules and balance unchanged. Keep human readability feedback separate from functional validation.
 
 - [Three-region Voyage playability pass](VOYAGE_PLAYABILITY.md): 32 seeded route attempts, 434 matches, 1,088 save round trips and browser encounter checks across all regions. Added fishing pointer hold and corrected capped hydration reward labels; no balance changes. Three full browser matches validate flow, not skilled-play difficulty. Human fishing feel and adaptive boss feedback remain open.

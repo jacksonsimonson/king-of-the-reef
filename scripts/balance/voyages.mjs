@@ -1,5 +1,7 @@
+import {COLOSSALS} from '../../src/game/run/colossals.ts';
+import {playerPolicy} from './colossal-policy.mjs';
 import assert from 'node:assert/strict';
-import {createRun,activeNode,reachable,enterNode,offers,beginFishing,finishFishing,resolveVisit,shopOffers,buyOffer,rivalDeckFor,battleResult,canCampRelease} from '../../src/game/run/state.ts';
+import {createRun,activeNode,reachable,enterNode,offers,beginFishing,finishFishing,resolveVisit,shopOffers,buyOffer,rivalDeckFor,battleResult,canCampRelease,claimColossalReward} from '../../src/game/run/state.ts';
 import {voyageEvent,eventChoiceAvailable} from '../../src/game/run/events.ts';
 import {random,REGIONS} from '../../src/game/run/maps.ts';
 import {tidePlayLimit,combinedScore,matchCharmSpending} from '../../src/game/twoTide.ts';
@@ -8,11 +10,12 @@ import {match} from './matches.mjs';
 import {chooseRecruit,recruitGain,trimCandidate} from './school-policy.mjs';
 
 /** Seeded route decisions and real combat/settlement; fishing success is an explicit assumption. */
-export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle,startingSchoolId,camp=false,elitePolicy='neutral',checkpoint=run=>run,settle=(run,scores,killed,spent)=>{const score=combinedScore(scores);battleResult(run,score.player,score.rival,killed,spent);}}={}){
+export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery',playerDifficulty='tactical',catchRate=.85,maxBossAttempts=6,schoolPolicy='baseline',onBattle,startingSchoolId,camp=false,colossals=false,companionChoice=0,elitePolicy='neutral',checkpoint=run=>run,settle=(run,scores,killed,spent)=>{const score=combinedScore(scores);battleResult(run,score.player,score.rival,killed,spent);}}={}){
  assert.ok(['baseline','recruit','trim','both'].includes(schoolPolicy));
  const deliberate=['recruit','both'].includes(schoolPolicy),trimming=['trim','both'].includes(schoolPolicy);
  assert.ok(['neutral','seek','avoid'].includes(elitePolicy));
- let run=createRun(seed,2,startingSchoolId,camp);
+ let run=createRun(seed,2,startingSchoolId,camp,colossals);
+ const companionIds=new Set();
  const battles=[],visits=[],attempts=new Map(),bossOpenings=new Set();let purchases=0,healed=0,catches=0,escapes=0,lowSchoolBattles=0,capped=false;
  const startingSchool=run.school.map(c=>c.texture),balanceVersion=run.cardBalanceVersion;
  const healthy=()=>run.school.filter(c=>c.condition==='healthy').length;
@@ -50,13 +53,16 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
    const signature=JSON.stringify([node.id,run.school.map(c=>[c.id,c.condition]),opening]);
    const repeatedOpening=node.type==='boss'&&bossOpenings.has(signature);if(node.type==='boss')bossOpenings.add(signature);
    const args={region,seed:run.seed+':'+node.id,current:true,customDecks:{player:run.school,rival:rivalDeckFor(run)},loadout:opening,charmMode:'player',playerDifficulty,playLimit:format==='two-tide'?tidePlayLimit(REGIONS[region].id):5+region,collectFrames:true};
+   if(colossals&&node.type==='boss'){args.colossal=COLOSSALS[region].id;args.playerPolicy=playerPolicy;}
    const tides=[match({...args,first:'player'})];if(format==='two-tide')tides.push(match({...args,first:'rival'}));
    const score=combinedScore(tides.map(t=>t.score)),killed=[...new Set(tides.flatMap(t=>t.killedIds))],spent=tides.reduce((ledger,t)=>matchCharmSpending(opening,t.inventories.player,ledger),[]);
    const shells=run.shells,resolve=run.resolve;
    settle(run,tides.map(t=>t.score),killed,spent);
+   let companionAdded=0;
+   if(run.colossalReward!==undefined){run=checkpoint(run);const prior=new Set(run.school.map(c=>c.id));assert.ok(claimColossalReward(run,companionChoice));for(const c of run.school)if(!prior.has(c.id)){companionIds.add(c.id);companionAdded++;}}
    const dead=killed.filter(id=>run.school.some(c=>c.id===id));
    visit.battleRestored=run.school.filter(c=>c.condition==='healthy'&&(previousInjured.has(c.id)||dead.includes(c.id))).length;
-   battles.push({region,elite:!!node.elite,rivalTextures:args.customDecks.rival.map(c=>c.texture),charmIds:opening,boss:node.type==='boss',attempt:count,before,school:run.school.length,after:healthy(),regionalHealthy,distinctHealthy,playLimit,repeatedOpening,score,dead:dead.length,injuredAfter:run.school.length-healthy(),restored:visit.battleRestored,spent:spent.length,playerPlays:tides.reduce((n,t)=>n+t.plays.player,0),rivalPlays:tides.reduce((n,t)=>n+t.plays.rival,0),frames:tides.reduce((n,t)=>n+t.frameCount,0),shellDelta:run.shells-shells,resolveDelta:run.resolve-resolve,playedTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').map(x=>x.card)))],availableTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').flatMap(x=>x.available)))]});
+   battles.push({region,companionAdded,companionPlays:tides.flatMap(t=>t.trace).filter(t=>t.owner==='player'&&companionIds.has(t.id)).length,elite:!!node.elite,rivalTextures:args.customDecks.rival.map(c=>c.texture),charmIds:opening,boss:node.type==='boss',attempt:count,before,school:run.school.length,after:healthy(),regionalHealthy,distinctHealthy,playLimit,repeatedOpening,score,dead:dead.length,injuredAfter:run.school.length-healthy(),restored:visit.battleRestored,spent:spent.length,playerPlays:tides.reduce((n,t)=>n+t.plays.player,0),rivalPlays:tides.reduce((n,t)=>n+t.plays.rival,0),frames:tides.reduce((n,t)=>n+t.frameCount,0),shellDelta:run.shells-shells,resolveDelta:run.resolve-resolve,playedTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').map(x=>x.card)))],availableTextures:[...new Set(tides.flatMap(t=>t.trace.filter(x=>x.owner==='player').flatMap(x=>x.available)))]});
   }else if(node.type==='hydration'){
    const selected=run.school.filter(c=>c.condition==='killed').slice(0,3).map(c=>c.id);healed+=selected.length;assert.ok(resolveVisit(run,'rest',selected));
   }else if(node.type==='fishing'){
@@ -91,5 +97,5 @@ export function voyage({seed='VOYAGE-STUDY-0',format='two-tide',route='recovery'
  }
  assert.ok(run.status!=='active'||capped,'Study guard reached without a terminal outcome or declared boss cap');
  run=checkpoint(run);
- return {seed,format,elitePolicy,rivalSchoolVersion:run.rivalSchoolVersion,route,playerDifficulty,catchRate,schoolPolicy,balanceVersion,startingSchool,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),school:run.school.map(c=>({texture:c.texture,condition:c.condition})),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
+ return {seed,format,elitePolicy,colossals,companionChoice,recap:run.recap,rivalSchoolVersion:run.rivalSchoolVersion,route,playerDifficulty,catchRate,schoolPolicy,balanceVersion,startingSchool,status:run.status,capped,region:run.region,shells:run.shells,healthy:healthy(),school:run.school.map(c=>({texture:c.texture,condition:c.condition})),purchases,healed,catches,escapes,lowSchoolBattles,battles,visits};
 }

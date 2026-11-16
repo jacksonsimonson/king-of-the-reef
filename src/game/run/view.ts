@@ -1,4 +1,5 @@
 import { FishingSession } from "../fishing/view.ts";
+import {runRecapView} from '../ui/runRecap.ts';
 import { COLOSSALS, companionCard } from './colossals.ts';
 import { drawColossalArt } from './colossalArt.ts';
 import { claimColossalReward } from './state.ts';
@@ -62,7 +63,7 @@ export class VoyageView {
     const top = element("header", "voyage-top");
     const encounter = run?.status === "active" && run.pending && (isEncounterSpace(activeNode(run).type) || run.colossalVersion===1 && activeNode(run).type==='boss') && !this.viewingMap;
     const title = element("div");
-    title.append(element("p", "voyage-kicker", "KING OF THE REEF / EXPEDITION"), element("h2", "voyage-title", encounter ? (run && activeNode(run).type==="boss" ? "A Colossal awaits" : "A pause in the current") : run ? "Chart your course" : "Beyond the shallows"));
+    title.append(element("p", "voyage-kicker", "KING OF THE REEF / EXPEDITION"), element("h2", "voyage-title", run?.status==="won" ? "Voyage victorious" : run?.status==="lost" ? "Voyage recap" : encounter ? (run && activeNode(run).type==="boss" ? "A Colossal awaits" : "A pause in the current") : run ? "Chart your course" : "Beyond the shallows"));
     const controls = element("nav", "voyage-controls");
     const menu = element("a", "voyage-button", "Main Menu"); menu.href = "#menu";
     controls.append(menu);
@@ -71,6 +72,9 @@ export class VoyageView {
     if (run) controls.append(button("New voyage", () => this.newRunDialog()));
     if (this.viewingMap && run?.pending && isEncounterSpace(activeNode(run).type)) controls.prepend(button("Resume visit →", () => { this.viewingMap = false; this.preview = run.region; this.render(); }));
     top.append(title, controls); this.root.append(top);
+    if(run&&run.status!=='active'){
+      const recap=runRecapView(run,()=>this.newRunDialog());this.root.append(recap);recap.querySelector('h2')?.focus({preventScroll:true});window.scrollTo({top:0});return;
+    }
     if (run?.colossalReward!==undefined) {
       const panel=element('section','encounter-content'),boss=COLOSSALS[run.colossalReward];
       panel.append(element('h3','',boss.name+' yields'),element('p','','Choose a companion'));

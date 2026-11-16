@@ -3,6 +3,7 @@ import {combinedScore, type TideScore} from '../twoTide.ts';
 import type {CharmId} from '../data/tideCharms.ts';
 
 export interface BattleSummary {
+  outcome?:Run['status'];
   scores: TideScore[]; total: TideScore; charmLedgerComplete: boolean;
   casualties: Array<{name: string; recovered: boolean}>;
   recovered: string[]; spentCharms: CharmId[];
@@ -17,7 +18,7 @@ export function settleBattleWithSummary(run: Run, scores: TideScore[], killedIds
   battleResult(run,total.player,total.rival,killedIds,spentCharms);
   const remaining=[...run.charms],consumed:CharmId[]=[];
   for(const id of before.charms){const index=remaining.indexOf(id);if(index<0)consumed.push(id);else remaining.splice(index,1);}
-  return {scores:structuredClone(scores),total,charmLedgerComplete:scores.length===2,
+  return {outcome:run.status,scores:structuredClone(scores),total,charmLedgerComplete:scores.length===2,
     casualties:before.school.filter(c=>c.condition==='healthy'&&killedIds.includes(c.id)).map(c=>({name:c.name,recovered:run.school.find(f=>f.id===c.id)?.condition==='healthy'})),
     recovered:before.school.filter(c=>c.condition==='killed'&&run.school.find(f=>f.id===c.id)?.condition==='healthy').map(c=>c.name),
     spentCharms:consumed,shells:run.shells-before.shells,resolve:run.resolve-before.resolve,resolveNow:run.resolve,
