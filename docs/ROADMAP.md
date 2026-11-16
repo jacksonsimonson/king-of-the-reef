@@ -50,7 +50,7 @@ The roadmap contains accepted work. Speculative ideas remain in [IDEA_BACKLOG.md
 - Add knockout and hydration recovery
 - Add a basic run win/loss flow
 
-The first playable version of the above loop is implemented in Voyage; see [generation rules and current encounter scope](VOYAGE.md). Fishing gameplay, casualty rules, regional events, and stable combat saves are implemented. Bespoke Colossal work is deferred until last.
+The first playable version of the above loop is implemented in Voyage; see [generation rules and current encounter scope](VOYAGE.md). Fishing gameplay, casualty rules, regional events, and stable combat saves are implemented. Bespoke Colossals are now implemented for new voyages; see the later-development milestone.
 
 ## Fishing prototype
 
@@ -87,11 +87,11 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 - [Complete Shoreline pass](SHORELINE_BALANCE.md): 77/77 reviewed in nine internal families, 11 changed and 66 retained. Authored identities appear in the journal and inventory; ordinary contribution, counters and saved versions are tested. Two regional seed batches cover 24,960 tides, with every species actually played. Open Ocean is complete below; ongoing human tuning is separate from the completed Shoreline checklist.
 - Use [Creature Balancing Guidelines](CREATURE_BALANCE.md), now part of the game design, to inventory tactical roles, redundant upgrades, and missing ordinary counters.
 - Initial [167-creature inventory and ten-creature pilot](BALANCE_PILOT.md) complete, including three simulation-only proposals. The [first role-specific content batch](BALANCE_BATCH_1.md) follows with two changes and a preserved Eel gimmick. The [896-match mixed-school study](MIXED_SCHOOL_STUDY.md) is complete. The [fresh-seed charm follow-up](BALANCE_BATCH_2.md) adopts the Angler/Buoy reductions. The optional [two-tide Quick Match prototype](TWO_TIDE_PROTOTYPE.md) is implemented. Voyage now uses the same 4/5/6 progression with resumable tides and one settlement. The [192-run combat/economy study](FULL_VOYAGE_BALANCE.md) and post-match summary are implemented, with no balance-value changes justified. Next: human pacing/adaptation checks; no catalog-wide reshuffle yet.
-- Establish the remaining intended main systems and ordinary roster before bespoke Colossals. Colossals are last.
+- The ordinary roster and main-system passes preceded the three bespoke Colossals, now implemented for new voyages.
 
 ## Later development
 
-Implemented: twelve regional event presentations across rescue, salvage, recovery, and trading choices; a nine-tab Game Guide at the bottom of the main menu; keyboard/text battle and gallery controls. Further accessibility testing with assistive technologies remains useful.
+Implemented: twelve regional event presentations across rescue, salvage, recovery, and trading choices; a ten-tab Game Guide at the bottom of the main menu; keyboard/text battle and gallery controls. Further accessibility testing with assistive technologies remains useful.
 
 Implemented: three regional rival difficulty levels, 5×5/6×6/7×7 boards with five/six/seven plays per side, sparse seeded terrain, and a Quick Match setup popup with independent choices. Rival strength still needs human playtesting; Expert uses bounded public-information counterplay forecasts.
 
@@ -100,7 +100,7 @@ Implemented: stable battle checkpoints (including charms and pending choices), c
 - Multiple aquatic regions
 - Environmental board tiles and currents
 - Expanded events and shops
-- Colossal-specific rules — deferred until last. Each Colossal should have its own themed deck; possible exclusive creatures and a defeated-boss creature reward are tracked in the [idea backlog](IDEA_BACKLOG.md#colossal-decks-and-creature-rewards).
+- Colossal-specific rules: implemented Reefback King, Midnight Marauder and The Sunken Eye for new voyages, with themed schools, armor/sonar/laser signatures, encounter art and companion choices after the first two bosses. See [implementation and checks](DECISIONS.md#2026-11-16--three-themed-colossals). Next: human encounter pacing/readability and reward-choice feedback; exclusive new species remain optional.
 - Collection journal and school inspection: implemented persistent recruited-species discovery, regional progress, searchable/filterable creature inspection, saved-copy health and role counts, and two-card comparison. Further roster-role changes remain incremental and evidence-based.
 - Accessibility and input options
 - Sound and music: implemented three original regional map loops, an escalating battle arrangement per area, combat/encounter cues, and saved audio controls. Next: listening feedback and mix refinement.

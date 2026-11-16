@@ -1,4 +1,8 @@
 import { FishingSession } from "../fishing/view.ts";
+import { COLOSSALS, companionCard } from './colossals.ts';
+import { drawColossalArt } from './colossalArt.ts';
+import { claimColossalReward } from './state.ts';
+import { ABILITIES } from '../abilities.ts';
 import { recordDiscoveries } from '../journal.ts';
 import { openJournal } from '../ui/journal.ts';
 import { voyageEvent, eventChoiceAvailable } from './events.ts';
@@ -44,7 +48,7 @@ export class VoyageView {
   private save(): void { if (this.run) this.storageOk = persistRun(this.run); }
   private start(seed?: string): void {
     const id = seed?.trim().slice(0, 64) || crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase();
-    this.viewingMap = false; this.run = createRun(id, 2, undefined, true); this.preview = 0; this.selected = null; this.save(); this.render();
+    this.viewingMap = false; this.run = createRun(id, 2, undefined, true, true); this.preview = 0; this.selected = null; this.save(); this.render();
   }
   private render(): void {
     reefAudio.setTrack(`map-${(this.run?.region ?? 0) as 0 | 1 | 2}`);
@@ -56,9 +60,9 @@ export class VoyageView {
     const run = this.run;
     this.root.dataset.region = REGIONS[this.preview].id;
     const top = element("header", "voyage-top");
-    const encounter = run?.status === "active" && run.pending && isEncounterSpace(activeNode(run).type) && !this.viewingMap;
+    const encounter = run?.status === "active" && run.pending && (isEncounterSpace(activeNode(run).type) || run.colossalVersion===1 && activeNode(run).type==='boss') && !this.viewingMap;
     const title = element("div");
-    title.append(element("p", "voyage-kicker", "KING OF THE REEF / EXPEDITION"), element("h2", "voyage-title", encounter ? "A pause in the current" : run ? "Chart your course" : "Beyond the shallows"));
+    title.append(element("p", "voyage-kicker", "KING OF THE REEF / EXPEDITION"), element("h2", "voyage-title", encounter ? (run && activeNode(run).type==="boss" ? "A Colossal awaits" : "A pause in the current") : run ? "Chart your course" : "Beyond the shallows"));
     const controls = element("nav", "voyage-controls");
     const menu = element("a", "voyage-button", "Main Menu"); menu.href = "#menu";
     controls.append(menu);
@@ -67,6 +71,18 @@ export class VoyageView {
     if (run) controls.append(button("New voyage", () => this.newRunDialog()));
     if (this.viewingMap && run?.pending && isEncounterSpace(activeNode(run).type)) controls.prepend(button("Resume visit →", () => { this.viewingMap = false; this.preview = run.region; this.render(); }));
     top.append(title, controls); this.root.append(top);
+    if (run?.colossalReward!==undefined) {
+      const panel=element('section','encounter-content'),boss=COLOSSALS[run.colossalReward];
+      panel.append(element('h3','',boss.name+' yields'),element('p','','Choose a companion'));
+      const stock=element('div','shop-stock');
+      boss.rewards.forEach((reward,index)=>{
+        if (!run.roster.includes(reward.texture)) return;
+        const fish=companionCard(runFishDefinition(run,reward.texture)!,reward);
+        const item=element('div','shop-offer');item.append(cardElement(fish),element('p','',ABILITIES[reward.ability].name),button('Recruit '+fish.name,()=>{if(claimColossalReward(run,index)){this.preview=run.region;this.save();this.render();}}));stock.append(item);
+      });
+      panel.append(stock,button('Continue without recruiting',()=>{claimColossalReward(run,-1);this.preview=run.region;this.save();this.render();}));
+      this.root.append(panel);return;
+    }
     if (encounter && run) {
       this.renderEncounter(run, activeNode(run));
       if (run.fishing) this.openFishing(true);
@@ -112,7 +128,7 @@ export class VoyageView {
     stage.append(layers);
     map.nodes.forEach((node) => {
       const info = SPACE_INFO[node.type];
-      const label = node.type === "boss" ? region.boss : node.elite ? "Elite battle" : info.name;
+      const label = node.type === "boss" ? run?.colossalVersion===1 ? COLOSSALS[this.preview].name : region.boss : node.elite ? "Elite battle" : info.name;
       const btn = button("", () => { this.selected = node.id; this.renderDetail(); }, `map-node node-${node.type}`);
       btn.style.setProperty("--node-color", node.elite ? "#ffd582" : info.color);
       btn.setAttribute("aria-label", `${label}, step ${node.column}${available.includes(node.id) ? ", available" : ""}`);
@@ -204,7 +220,7 @@ export class VoyageView {
     const node = run.pending ? activeNode(run) : run.maps[run.region].nodes.find((n) => n.id === this.selected);
     if (!node) { panel.append(element("h3", "", "Next stop"), element("p", "", run.log)); return; }
     const info = SPACE_INFO[node.type];
-    panel.append(element("h3", "", node.type === "boss" ? REGIONS[run.region].boss : node.elite ? "Elite battle" : info.name));
+    panel.append(element("h3", "", node.type === "boss" ? run.colossalVersion===1 ? COLOSSALS[run.region].name : REGIONS[run.region].boss : node.elite ? "Elite battle" : info.name));
     if (node.type === 'battle' && run.rivalSchoolVersion === 1) {
 
       if (!run.pending) panel.append(element('p', '', 'Win: ' + battleWinReward(run, node) + ' shells. Tie: ' + (run.voyageVersion === 2 ? 6 : 4) + ' shells. Loss: −1 resolve.'));
@@ -216,7 +232,7 @@ export class VoyageView {
       else panel.append(element("p", "", run.visited.includes(node.id) ? "Already visited." : "This space is not connected to your current position."));
       return;
     }
-    if (isEncounterSpace(node.type)) {
+    if (isEncounterSpace(node.type) || node.type==='boss' && run.colossalVersion===1) {
       panel.append(button("Resume visit →", () => { this.viewingMap = false; this.render(); }));
       return;
     }
@@ -229,7 +245,7 @@ export class VoyageView {
     const artFrame = element("div", "encounter-art");
     const art = element("canvas"); art.setAttribute("aria-hidden", "true"); artFrame.append(art);
     const panel = element("div", "encounter-content");
-    const heading = element("h3", "", node.type === 'event' && run.eventVersion === 1 ? voyageEvent(run, '').title : encounterTitle(node.type)); heading.tabIndex = -1;
+    const heading = element("h3", "", node.type==='boss' ? COLOSSALS[run.region].name : node.type === 'event' && run.eventVersion === 1 ? voyageEvent(run, '').title : encounterTitle(node.type)); heading.tabIndex = -1;
     panel.append(heading);
     const resources = element("p", "encounter-resources", run.shells + " Shells · " + run.resolve + "/3 Resolve · " + run.school.filter(f => f.condition === "healthy").length + "/" + run.school.length + " Ready");
     const status = element("p", "encounter-status", node.type === "shop" ? `${run.shop?.purchased.length ?? 0} / 3 Offers Purchased · ${this.storageOk ? "Auto-saved" : "Save unavailable"}` : ""); status.setAttribute("role", "status");
@@ -238,7 +254,7 @@ export class VoyageView {
     if (!this.storageOk) panel.append(element("p", "encounter-status", "Save unavailable — keep this tab open."));
     this.renderEncounterActions(panel, run, node);
     screen.append(nav, artFrame, panel); this.root.append(screen);
-    const draw = () => { art.width = Math.max(640, Math.floor(artFrame.clientWidth)); art.height = 256; drawEncounterArt(art, node.type, REGIONS[run.region].id, run.seed); };
+    const draw = () => { art.width = Math.max(640, Math.floor(artFrame.clientWidth)); art.height = 256; if(node.type==='boss')drawColossalArt(art,REGIONS[run.region].id,run.seed);else drawEncounterArt(art, node.type, REGIONS[run.region].id, run.seed); };
     draw(); this.observer = new ResizeObserver(draw); this.observer.observe(artFrame);
     heading.focus({ preventScroll: true });
     window.scrollTo({ top: 0 });

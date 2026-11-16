@@ -1,4 +1,5 @@
 import { weightedRivalSchool, rivalStyle } from './rivalSchools.ts';
+import { COLOSSALS, colossalSchool, companionCard } from './colossals.ts';
 import { drawOceanCard, LEGACY_OCEAN_POOL } from "../data/oceanPool.ts";
 import { STARTERS, BATCH_SIX_STARTERS, BATCH_FIVE_STARTERS, BATCH_FOUR_STARTERS, BATCH_THREE_STARTERS, BATCH_TWO_STARTERS, BATCH_ONE_STARTERS, PRE_BALANCE_STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
@@ -13,6 +14,8 @@ import { startingTextures, isStartingSchool, type StartingSchoolId } from './sta
 import { tidePlayLimit } from '../twoTide.ts';
 
 export interface Run {
+  colossalVersion?: 1;
+  colossalReward?: 0 | 1;
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
   visited: string[]; pending: string | null; school: FishCard[]; shells: number;
   resolve: number; status: "active" | "won" | "lost"; log: string; serial: number;
@@ -43,12 +46,13 @@ export function recruit(run: Run, texture: string): void {
   run.school.push({ ...definition, id: `run-${++run.serial}`, owner: "player", condition: "healthy" });
 }
 /** The playable departure opts into camps; the default preserves historical study fixtures. */
-export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId, withCamp = false): Run {
+export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId, withCamp = false, withColossals = false): Run {
   const maps = REGIONS.map((_, i) => generateMap(seed, i, version));
   const roster = enabledTextures();
   const run: Run = { version: 1, seed, region: 0, maps, current: maps[0].nodes[0].id, visited: [maps[0].nodes[0].id], pending: null, school: [], roster, reefPoolVersion: 3, cardBalanceVersion: 7, oceanPoolVersion: 1, charmPoolVersion: 3, charms: [], shells: 18, resolve: 3, status: "active", log: "A new school gathers in the shallows. Choose your first fishing spot.", serial: 0 };
   if(startingSchool!==undefined)run.startingSchool=startingSchool;
   run.eventVersion = 1;
+  if (withColossals) run.colossalVersion = 1;
   run.rivalSchoolVersion = 1;
   if (version === 2) maps.forEach(map => addEliteSpaces(map, seed));
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
@@ -76,7 +80,7 @@ export function activeNode(run: Run): MapNode {
   return run.maps[run.region].nodes.find((node) => node.id === (run.pending ?? run.current))!;
 }
 export function reachable(run: Run): string[] {
-  if (run.status !== "active" || run.pending) return [];
+  if (run.status !== "active" || run.pending || run.colossalReward !== undefined) return [];
   return activeNode(run).next;
 }
 export function enterNode(run: Run, id: string): boolean {
@@ -114,6 +118,10 @@ export function offers(run: Run): string[] {
 
 export function rivalDeckFor(run: Run): FishCard[] {
   const node = activeNode(run);
+  if (run.colossalVersion === 1 && node.type === 'boss') {
+    const pool=regionPool(run).filter(texture=>run.roster.includes(texture)).map(texture=>({...runFishDefinition(run,texture)!,owner:'rival' as const,condition:'healthy' as const}));
+    return colossalSchool(pool,run.region,run.seed+':'+node.id);
+  }
   if (run.rivalSchoolVersion === 1 && node.type === 'battle') {
     const pool = [...new Set(regionPool(run))].filter(texture => run.roster.includes(texture))
       .map(texture => ({ ...runFishDefinition(run, texture)!, owner: 'rival' as const, condition: 'healthy' as const }));
@@ -279,6 +287,7 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
   if (node.type === "boss") {
     if (run.region === 2) { run.status = "won"; run.log = "You reached the heart of the Triangle. The three seas are yours."; }
     else {
+      if (run.colossalVersion === 1) run.colossalReward=run.region as 0|1;
       run.region++;
       if (run.voyageVersion === 2) {
         run.school.filter(f => f.condition === "killed").slice(0, 3).forEach(f => { f.condition = "healthy"; });
@@ -297,6 +306,8 @@ export function loadRun(): Run | null {
     if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
     // Rebuild topology, but preserve existing encounter types when rates change.
     const savedMaps = run.maps;
+    if (run.colossalVersion !== undefined && run.colossalVersion !== 1) return null;
+    if (run.colossalReward !== undefined && (run.colossalVersion !== 1 || ![0,1].includes(run.colossalReward) || run.region!==run.colossalReward+1 || run.status!=='active' || run.battle)) return null;
     if (run.campVersion !== undefined && run.campVersion !== 1) return null;
     if (run.rivalSchoolVersion !== undefined && run.rivalSchoolVersion !== 1) return null;
     if (run.eventVersion !== undefined && run.eventVersion !== 1) return null;
@@ -342,4 +353,19 @@ export function loadRun(): Run | null {
 export function saveRun(run: Run): boolean {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(run)); return true; }
   catch { return false; }
+}
+
+export function claimColossalReward(run: Run, choice: number): boolean {
+  if (run.status!=='active'||run.colossalReward===undefined||!Number.isInteger(choice)) return false;
+  const options=COLOSSALS[run.colossalReward].rewards,option=options[choice];
+  if (!option && choice!==-1) return false;
+  if (option) {
+    if (!run.roster.includes(option.texture)) return false;
+    const definition=runFishDefinition(run,option.texture);
+    if (!definition) return false;
+    run.school.push({...companionCard(definition,option),id:`run-${++run.serial}`});
+    run.log=definition.name+' joined your school.';
+  }
+  delete run.colossalReward;
+  return true;
 }

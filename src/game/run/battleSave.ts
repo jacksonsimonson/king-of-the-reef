@@ -32,6 +32,8 @@ export function validBattleSave(value: unknown, nodeId: string): value is Battle
   if (s.rules !== undefined && !validRules(s.rules)) return false;
   const size = s.rules?.size ?? 5, limit = s.twoTide && s.rules ? tidePlayLimit(s.rules.region) : s.rules?.plays ?? 5;
   if(s.memory!==undefined&&!validAbilityMemory(s.memory,size))return false;
+  if (s.rules?.colossal !== s.memory?.colossal?.id) return false;
+  if (s.memory?.colossal && (s.memory.colossal.limit!==limit || s.memory.colossal.plays.player!==s.plays?.player || s.memory.colossal.plays.rival!==s.plays?.rival)) return false;
   const integer = (n: number, max: number) => Number.isInteger(n) && n >= 0 && n <= max;
   const card = (f: FishCard) => f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.species === 'string'
     && STARTERS.some(base => base.texture === f.texture) && ['player', 'rival'].includes(f.owner) && f.condition === 'healthy'

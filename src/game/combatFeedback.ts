@@ -1,5 +1,5 @@
 import type { FishCard } from "./data/starterFish.ts";
-export interface CombatFrame { label: string; board: Array<FishCard | null>; shocked: Set<string>; notes: string[]; blockedTiles?: number[] }
+export interface CombatFrame { label: string; board: Array<FishCard | null>; shocked: Set<string>; notes: string[]; blockedTiles?: number[]; beamTiles?: number[] }
 export function tileName(index: number, size = 5): string { return String.fromCharCode(65 + index % size) + (Math.floor(index / size) + 1); }
 export function describeFrame(before: readonly (FishCard | null)[], shocked: ReadonlySet<string>, frame: CombatFrame): string[] {
   const lines = [...frame.notes];

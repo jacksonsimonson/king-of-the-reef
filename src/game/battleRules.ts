@@ -1,6 +1,8 @@
 import type { RegionId } from './run/maps.ts';
+import {COLOSSAL_IDS,type ColossalId} from './colossalState.ts';
 export type Difficulty = 'beginner' | 'tactical' | 'expert';
 export interface BattleRules {
+  colossal?: ColossalId;
   size: 5 | 6 | 7; plays: 5 | 6 | 7; difficulty: Difficulty;
   region: RegionId; seed: string; legacyTerrain?: boolean;
 }
@@ -14,6 +16,7 @@ export function validRules(value: unknown): value is BattleRules {
   const r = value as BattleRules;
   return [5, 6, 7].includes(r.size) && [5, 6, 7].includes(r.plays) && DIFFICULTIES.includes(r.difficulty)
     && ['shoreline', 'ocean', 'bermuda'].includes(r.region) && typeof r.seed === 'string' && r.seed.length <= 300
+    && (r.colossal === undefined || COLOSSAL_IDS.includes(r.colossal))
     && (r.legacyTerrain === undefined || r.legacyTerrain === true && r.size === 5 && r.plays === 5);
 }
 export function scoringReefs(size = 5): ReadonlySet<number> {

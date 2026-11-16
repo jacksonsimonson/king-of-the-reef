@@ -1,5 +1,6 @@
 import {freshAbilityMemory, prepareAbilityCard, applyPostAbility, rotateCard, SIDES, type AbilityChoice, type AbilityMemory} from './battleAbilityState.ts';
 import type { CombatFrame } from "./combatFeedback.ts";
+import { colossalAfterPlay } from './colossalCombat.ts';
 import { hasAbility } from "./abilities.ts";
 import type { Direction, EdgeEffect, FishCard } from "./data/starterFish.ts";
 import { removedCardIds } from "./run/casualties.ts";
@@ -271,6 +272,14 @@ export function resolvePlacement(state: BattleState, placedIndex: number, card: 
     }
   }
   checkpoint("Whirlpool");
+  if (memory.colossal) {
+    const beforeColossal=[...board];
+    const effect=colossalAfterPlay(board,shocked,memory.colossal,card.owner,state.terrain);
+    beforeColossal.forEach((victim,index)=>{if(victim&&!board.some(f=>f?.id===victim.id))leaveDecoy(victim,index,'rival');});
+    notes.push(...effect.notes);
+    checkpoint(memory.colossal.id==='reefback'?'Reefback King':memory.colossal.id==='midnight'?'Midnight Marauder':'The Sunken Eye');
+    if (record && effect.beamTiles.length && frames.length) frames[frames.length-1].beamTiles=effect.beamTiles;
+  }
   memory.decoys=memory.decoys.filter(t=>!board[t.index]&&!(t.owner===card.owner&&t.expires<=memory.turns[card.owner]));
   return { memory, frames, board, shocked, killedIds: removedCardIds(before, board), pushedEnemyIds: [...pushedEnemies] };
 }

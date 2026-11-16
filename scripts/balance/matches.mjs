@@ -1,4 +1,5 @@
 import {beginAbilityTurn,readyGrowth,growArm,blankSides,freshAbilityMemory} from '../../src/game/battleAbilityState.ts';
+import {freshColossal} from '../../src/game/colossalState.ts';
 import {abilityHandSteps,automatedHandChoice} from '../../src/game/abilityHands.ts';
 import {placementOptions} from '../../src/game/abilityOptions.ts';
 import {useStudyCharm} from './charms.mjs';
@@ -29,8 +30,9 @@ export function shuffled(items,seed){const result=[...items],rng=random(seed);fo
 const other=owner=>owner==='player'?'rival':'player';
 // The same production rival policy controls both seats. Swap ownership, never geometry.
 const perspective=(card,owner)=>card&&({...card,owner:card.owner===owner?'rival':'player'});
-export function match({region=0,seed='study',school=0,first='player',legacy=false,terrain=true,difficulty,override,loadout=[],charmMode='both',target,initiative='alternating',playLimit,current=false,customDecks,playerDifficulty,collectFrames=false,auditAbilities=false}={}){
+export function match({region=0,seed='study',school=0,first='player',legacy=false,terrain=true,difficulty,override,loadout=[],charmMode='both',target,initiative='alternating',playLimit,current=false,customDecks,playerDifficulty,collectFrames=false,auditAbilities=false,colossal,playerPolicy}={}){
  const rules=regionalRules(region,seed);if(difficulty)rules.difficulty=difficulty;if(playLimit!==undefined)rules.plays=playLimit;
+ if(colossal&&!playerPolicy)throw Error('Asymmetric Colossal studies require a player policy in actual ownership');
  const roster=current?CURRENT_STARTERS:STARTERS;
  const focal=region===2?'phantom-shark':'sea-urchin';
  const lookup=(id,owner)=>{
@@ -46,6 +48,7 @@ export function match({region=0,seed='study',school=0,first='player',legacy=fals
   hands[owner]=decks[owner].splice(0,5).map(card=>({card,played:false}));
  }
  let state={board:Array(rules.size**2).fill(null),shocked:new Set(),terrain:terrain?terrainForRules(rules):{rocks:new Set(),whirlpools:[-1,-1],features:new Map()}};
+ if(colossal)state.memory={...freshAbilityMemory(),colossal:freshColossal(colossal,rules.plays)};
  const plays={player:0,rival:0},trace=[],charmLog=[];
  const inventories={player:[...loadout],rival:charmMode==='both'?[...loadout]:[]};
  const checkpoints=[],killedIds=new Set();let frameCount=0;
@@ -64,7 +67,7 @@ export function match({region=0,seed='study',school=0,first='player',legacy=fals
   const publicThreats=[...hands[opponent].filter(s=>!s.played&&s.revealed).map(s=>perspective(s.card,owner)),...pool.filter((_,i)=>i%Math.max(1,Math.floor(pool.length/6))===0).map(c=>({...c,owner:'player',condition:'healthy'}))];
   const memory=structuredClone(state.memory??freshAbilityMemory());if(owner==='player'){[memory.turns.player,memory.turns.rival]=[memory.turns.rival,memory.turns.player];for(const list of [memory.growth,memory.snares,memory.decoys])for(const token of list)token.owner=other(token.owner);memory.lureUsed=memory.lureUsed.map(other);}
   const policyPosition={...state,memory,board:state.board.map(c=>perspective(c,owner)),hand:hands[owner].map(s=>({...s,card:perspective(s.card,owner)})),difficulty:owner==='player'&&playerDifficulty?playerDifficulty:rules.difficulty,rivalPlaysLeft:rules.plays-plays[owner],playerPlaysLeft:legal(opponent)?rules.plays-plays[opponent]:0,publicThreats};
-  const choice=chooseRivalMove(policyPosition,rng);
+  const choice=owner==='player'&&playerPolicy?playerPolicy(state,hands.player,rng):chooseRivalMove(policyPosition,rng);
   if(!choice)throw new Error('Policy failed to select a legal move');
   const slot=hands[owner][choice.slotIndex],card=slot.card,before=scoreBoard(state.board);
   const available=hands[owner].filter(s=>!s.played).map(s=>s.card.texture);
