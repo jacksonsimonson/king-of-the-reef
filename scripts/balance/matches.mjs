@@ -92,7 +92,7 @@ export function match({region=0,seed='study',school=0,first='player',legacy=fals
   }
   for(const id of result.killedIds)killedIds.add(id);frameCount+=result.frames?.length??0;
   const after=scoreBoard(result.board), own=new Set(state.board.filter(c=>c?.owner===owner).map(c=>c.id));own.add(card.id);
-  trace.push({owner,card:card.texture,index:choice.index,available,delta:(after[owner]-after[opponent])-(before[owner]-before[opponent]),allyKilled:result.killedIds.filter(id=>own.has(id)).length,enemyKilled:result.killedIds.filter(id=>!own.has(id)).length,allyShocked:[...result.shocked].filter(id=>!state.shocked.has(id)&&id.startsWith(owner+'-')).length,enemyShocked:[...result.shocked].filter(id=>!state.shocked.has(id)&&id.startsWith(opponent+'-')).length,last:plays[owner]+1===rules.plays});
+  trace.push({owner,id:card.id,ability:card.ability,card:card.texture,index:choice.index,available,delta:(after[owner]-after[opponent])-(before[owner]-before[opponent]),allyKilled:result.killedIds.filter(id=>own.has(id)).length,enemyKilled:result.killedIds.filter(id=>!own.has(id)).length,allyShocked:[...result.shocked].filter(id=>!state.shocked.has(id)&&id.startsWith(owner+'-')).length,enemyShocked:[...result.shocked].filter(id=>!state.shocked.has(id)&&id.startsWith(opponent+'-')).length,last:plays[owner]+1===rules.plays});
   state={...result,terrain:state.terrain};slot.played=true;plays[owner]++;
   if(triggersRally(card,result.pushedEnemyIds,decks[owner]))resolveRally(decks[owner],rivalRallyChoice(decks[owner][0]));
   const knownIds=()=>new Set([...hands.player,...hands.rival].map(s=>s.card).concat(decks.player,decks.rival).filter(c=>c.known).map(c=>c.id));

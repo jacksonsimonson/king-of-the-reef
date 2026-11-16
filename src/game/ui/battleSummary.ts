@@ -16,8 +16,8 @@ export function showBattleSummary(summary: BattleSummary, onContinue: () => void
   if(summary.recovered.length)section('Earlier casualties restored',summary.recovered);
   const counts=new Map<string,number>();for(const id of summary.spentCharms)counts.set(CHARMS[id].name,(counts.get(CHARMS[id].name)??0)+1);
   section('Charms consumed',!summary.charmLedgerComplete?['Legacy single-tide battle: earlier charm spending is not tracked in this summary.']:counts.size?[...counts].map(([name,count])=>`${name} ×${count}`):['None.']);
-  paragraph(`${summary.healthy} healthy creatures ready for the next encounter.`);
-  const proceed=document.createElement('button');proceed.className='voyage-button';proceed.textContent='Return to map';proceed.onclick=()=>{dialog.close();onContinue();};
+  paragraph(`${summary.healthy} healthy creatures${summary.outcome==='won'||summary.outcome==='lost'?' in your final school.':' ready for the next encounter.'}`);
+  const proceed=document.createElement('button');proceed.className='voyage-button';proceed.textContent=summary.outcome==='won'?'View victory':summary.outcome==='lost'?'View voyage recap':'Return to map';proceed.onclick=()=>{dialog.close();onContinue();};
   const inspect=document.createElement('button');inspect.className='voyage-button';inspect.textContent='Inspect final board';inspect.onclick=()=>dialog.close();dialog.append(proceed,inspect);
   dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();heading.focus();return dialog;
 }

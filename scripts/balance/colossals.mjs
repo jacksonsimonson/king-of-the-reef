@@ -5,30 +5,14 @@ import {COLOSSALS,colossalSchool} from '../../src/game/run/colossals.ts';
 import {STARTERS} from '../../src/game/data/starterFish.ts';
 import {REGIONS} from '../../src/game/run/maps.ts';
 import {weightedRivalSchool} from '../../src/game/run/rivalSchools.ts';
-import {resolvePlacement} from '../../src/game/combat.ts';
-import {canPlaceFish,scoreBoard} from '../../src/game/abilities.ts';
-import {placementOptions} from '../../src/game/abilityOptions.ts';
-import {scoringReefs} from '../../src/game/battleRules.ts';
+
+
+
+
 import {randomCharms} from '../../src/game/data/tideCharms.ts';
 import {random} from '../../src/game/run/maps.ts';
 
-// Explicit player policy in actual board ownership: the asymmetric boss must never
-// be mirrored into the player's seat. This is a greedy probe, not human play evidence.
-export function playerPolicy(state,hand,rng){
- const size=Math.sqrt(state.board.length),reefs=[...scoringReefs(size)];let best;
- hand.forEach((slot,slotIndex)=>{if(slot.played)return;state.board.forEach((_,index)=>{
-  if(!canPlaceFish(state.board,index,slot.card,state.terrain,state.memory))return;
-  for(const {choice} of placementOptions(state,index,slot.card)){
-   const result=resolvePlacement(state,index,slot.card,size,false,choice),score=scoreBoard(result.board);
-   let value=18*(score.player-score.rival)+rng()*.01;
-   result.board.forEach((c,i)=>{if(!c)return;const sign=c.owner==='player'?1:-1;
-    const distance=Math.min(...reefs.map(r=>Math.abs(i%size-r%size)+Math.abs(Math.floor(i/size)-Math.floor(r/size))));
-    value+=sign*(4+3/(1+distance)-(result.shocked.has(c.id)?c.edges.length*.65:0));
-   });
-   if(!best||value>best.value)best={slotIndex,index,abilityChoice:choice,value};
-  }
- });});return best;
-}
+import {playerPolicy} from './colossal-policy.mjs';
 const count=Number(process.argv[2]??12),start=Number(process.argv[3]??7100),rows=[];
 for(let region=0;region<3;region++) {
  const pool=STARTERS.filter(c=>REGIONS[region].pool.includes(c.texture));

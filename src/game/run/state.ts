@@ -1,5 +1,6 @@
 import { weightedRivalSchool, rivalStyle } from './rivalSchools.ts';
 import { COLOSSALS, colossalSchool, companionCard } from './colossals.ts';
+import {freshRecap,validRecap,type RunRecap} from './recap.ts';
 import { drawOceanCard, LEGACY_OCEAN_POOL } from "../data/oceanPool.ts";
 import { STARTERS, BATCH_SIX_STARTERS, BATCH_FIVE_STARTERS, BATCH_FOUR_STARTERS, BATCH_THREE_STARTERS, BATCH_TWO_STARTERS, BATCH_ONE_STARTERS, PRE_BALANCE_STARTERS, LEGACY_STARTERS, ORIGINAL_FISH_TEXTURES, type FishCard } from "../data/starterFish.ts";
 import { drawReefCard } from "../data/reefPool.ts";
@@ -14,6 +15,7 @@ import { startingTextures, isStartingSchool, type StartingSchoolId } from './sta
 import { tidePlayLimit } from '../twoTide.ts';
 
 export interface Run {
+  recap?:RunRecap;
   colossalVersion?: 1;
   colossalReward?: 0 | 1;
   version: 1; seed: string; region: number; maps: RegionMap[]; current: string;
@@ -44,6 +46,7 @@ export function recruit(run: Run, texture: string): void {
   const definition = runFishDefinition(run, texture);
   if (!definition) throw new Error("Unknown creature");
   run.school.push({ ...definition, id: `run-${++run.serial}`, owner: "player", condition: "healthy" });
+  if(run.recap)run.recap.recruited++;
 }
 /** The playable departure opts into camps; the default preserves historical study fixtures. */
 export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: StartingSchoolId, withCamp = false, withColossals = false): Run {
@@ -57,6 +60,7 @@ export function createRun(seed: string, version: 1 | 2 = 2, startingSchool?: Sta
   if (version === 2) maps.forEach(map => addEliteSpaces(map, seed));
   if (version === 2) { run.voyageVersion = 2; run.shells = 24; }
   for(const texture of startingTextures(roster,startingSchool))recruit(run,texture);
+  if(withColossals)run.recap=freshRecap();
   if (withCamp) {
     run.campVersion = 1;
     maps.forEach(map => { map.nodes[0].type = 'camp'; });
@@ -164,6 +168,7 @@ export function buyOffer(run: Run, id: string, replaceIndex?: number): boolean {
   if (!full && replaceIndex !== undefined) return false;
   run.shop ??= { nodeId: run.pending!, purchased: [] };
   run.shells -= offer.price;
+  if(run.recap)run.recap.purchases++;
   run.shop.purchased.push(id);
   if (offer.kind === "fish") recruit(run, offer.texture);
   else if (full) run.charms[replaceIndex!] = offer.charm;
@@ -176,6 +181,7 @@ export function consumeCharm(run: Run, id: CharmId): boolean {
   const index = run.charms.indexOf(id);
   if (index < 0) return false;
   run.charms.splice(index, 1);
+  if(run.recap)run.recap.charmsUsed++;
   return true;
 }
 export function beginFishing(run: Run, texture: string): boolean {
@@ -193,6 +199,7 @@ export function finishFishing(run: Run, snapshot: FishingSnapshot): boolean {
     || (snapshot.status === "caught" ? snapshot.progress < 1 : snapshot.progress > 0 && snapshot.elapsed < 60)) return false;
   const name = STARTERS.find((fish) => fish.texture === attempt.texture)!.name;
   if (snapshot.status === "caught") recruit(run, attempt.texture);
+  if(snapshot.status==='caught'&&run.recap)run.recap.caught++;
   delete run.fishing;
   if (run.camp) {
     run.camp.attempts++;
@@ -213,6 +220,7 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
     if (!canCampRelease(run, choice)) return false;
     const fish = run.school.find(f => f.id === choice)!;
     run.school = run.school.filter(f => f.id !== choice);
+    if(run.recap)run.recap.departed++;
     run.log = fish.name + " was released.";
     return true;
   } else if (node.type === "fishing") {
@@ -225,6 +233,7 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
     if (choice !== "rest" || selected.length > 3 || new Set(selected).size !== selected.length
       || !selected.every((id) => run.school.some((fish) => fish.id === id && fish.condition === "killed"))) return false;
     run.school.forEach((fish) => { if (selected.includes(fish.id)) fish.condition = "healthy"; });
+    if(run.recap)run.recap.recoveries+=selected.length;
     run.resolve = Math.min(3, run.resolve + 1);
     finishNode(run, `Hydrated ${selected.length} card${selected.length === 1 ? "" : "s"} and recovered one resolve.`);
   } else if (node.type === "release") {
@@ -233,6 +242,7 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
       if (!canRelease(run, choice)) return false;
       const fish = run.school.find((f) => f.id === choice)!;
       run.school = run.school.filter((f) => f.id !== choice);
+      if(run.recap)run.recap.departed++;
       finishNode(run, `${fish.name} was released back into the ocean.`);
     }
   } else if (node.type === "event") {
@@ -243,7 +253,9 @@ export function resolveVisit(run: Run, choice: string, selected: string[] = []):
       const option = event.choices.find(o => o.id === choice);
       if (!option || !eventChoiceAvailable(run, option, selected)) return false;
       if (option.trade) run.school = run.school.filter(f => f.id !== selected[0]);
+      if(option.trade&&run.recap)run.recap.departed++;
       if (option.heal) run.school.find(f => f.id === selected[0])!.condition = 'healthy';
+      if(option.heal&&run.recap)run.recap.recoveries++;
       if (option.recruit) recruit(run, texture);
       run.shells += option.shells ?? 0;
       run.resolve = Math.min(3, run.resolve + (option.resolve ?? 0));
@@ -267,6 +279,12 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
   if (!run.pending || run.status !== "active") return;
   const node = activeNode(run);
   if (node.type !== "battle" && node.type !== "boss") return;
+  if(run.recap){
+    const record=run.recap.regions[run.region];record[player>rival?'wins':player<rival?'losses':'draws']++;
+    record.pointsFor+=player;record.pointsAgainst+=rival;
+    if(node.type==='boss'){record.bossAttempts++;if(player>rival)record.bossDefeated=true;}
+    run.recap.casualties+=run.school.filter(f=>f.condition==='healthy'&&killedIds.includes(f.id)).length;
+  }
   for (const id of spentCharms) consumeCharm(run, id);
   delete run.battle;
   for (const fish of run.school) if (killedIds.includes(fish.id)) fish.condition = "killed";
@@ -290,6 +308,7 @@ export function battleResult(run: Run, player: number, rival: number, killedIds:
       if (run.colossalVersion === 1) run.colossalReward=run.region as 0|1;
       run.region++;
       if (run.voyageVersion === 2) {
+        if(run.recap)run.recap.recoveries+=Math.min(3,run.school.filter(f=>f.condition==='killed').length);
         run.school.filter(f => f.condition === "killed").slice(0, 3).forEach(f => { f.condition = "healthy"; });
         run.resolve = Math.min(3, run.resolve + 1);
       }
@@ -306,6 +325,7 @@ export function loadRun(): Run | null {
     if (!run || run.version !== 1 || typeof run.seed !== "string" || !Number.isInteger(run.region) || run.region < 0 || run.region > 2 || !Array.isArray(run.school) || run.school.length < 5 || !Array.isArray(run.visited) || !["active", "won", "lost"].includes(run.status)) return null;
     // Rebuild topology, but preserve existing encounter types when rates change.
     const savedMaps = run.maps;
+    if(run.recap!==undefined&&!validRecap(run.recap))return null;
     if (run.colossalVersion !== undefined && run.colossalVersion !== 1) return null;
     if (run.colossalReward !== undefined && (run.colossalVersion !== 1 || ![0,1].includes(run.colossalReward) || run.region!==run.colossalReward+1 || run.status!=='active' || run.battle)) return null;
     if (run.campVersion !== undefined && run.campVersion !== 1) return null;
@@ -364,6 +384,7 @@ export function claimColossalReward(run: Run, choice: number): boolean {
     const definition=runFishDefinition(run,option.texture);
     if (!definition) return false;
     run.school.push({...companionCard(definition,option),id:`run-${++run.serial}`});
+    if(run.recap){run.recap.recruited++;run.recap.companions.push({region:run.colossalReward,name:definition.name,ability:option.ability});}
     run.log=definition.name+' joined your school.';
   }
   delete run.colossalReward;
