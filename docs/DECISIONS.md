@@ -1,5 +1,25 @@
 # Design Decisions
 
+## 2026-11-16 — Colossal adaptation and retry pacing
+
+Keep Colossal balance unchanged after sequential retry testing. Unlike the earlier best-opening probe, each attempt now settles real casualties, spent charms and resolve before the next attempt. Compare three policies from identical states: repeat the greedy policy; change opening rank after each unsuccessful match; or retain the greedy opening ranking while adding public-board preferences to deny armor support, shelter prey before sonar and screen laser lanes. The latter two only adapt after an observed failure; no unplayed outcome chooses the next action. These are deliberately limited automated policies, not optimal or human play.
+
+`node scripts/balance/colossal-stalls.mjs` replays one capped route per region/batch in the PR57 evidence and asserts exact battle-history reproduction: Shoreline seeds 11/28 and Ocean seed 47. It captures the sixth-attempt starting state with real attrition. Run this after the two PR57 `colossal-voyages.mjs` commands, then `node scripts/balance/colossal-retries.mjs`. The retry study includes ten earlier boss/rematch snapshots plus those three genuine stall states: 13 states from eight seeds, with related snapshots explicitly not independent samples. Each policy gets at most six further matches, stopping on victory or loss. Raw results and captured attempt states remain under `.cache`.
+
+| Boss | States per policy | Repeat: won / lost / capped | Vary opening: won / lost / capped | Counter preference: won / lost / capped |
+| --- | --- | --- | --- | --- |
+| Reefback King | 6 | 2 / 2 / 2 | 5 / 1 / 0 | 2 / 2 / 2 |
+| Midnight Marauder | 5 | 0 / 4 / 1 | 0 / 5 / 0 | 0 / 4 / 1 |
+| The Sunken Eye | 2 | 0 / 2 / 0 | 0 / 2 / 0 | 0 / 2 / 0 |
+
+All 118 matches / 236 tides settled and round-tripped saves; 2,224 placements respected the 16/20/24-per-complete-match limits. No healthy-school shortage occurred. First attempts are asserted identical between policies; unchanged rival schools, failed-attempt economy, resolve and injury persistence are checked. Varying openings broke the two captured Reefback loops on the second/fourth tested attempts (the seventh/ninth overall attempts on those routes). Midnight's captured 3–3 loop became losses instead; this is not an improvement. Counter preferences did not reliably help. Do not infer fair human difficulty, good wall-clock pacing, guaranteed solvability or a reason for a blanket nerf from these outcomes. Infinite draws are still possible; the study cap is not a new game rule.
+
+Browser play on an isolated origin completed both tides of a carried Reefback rematch: 0–0, one Anchovy casualty, resolve unchanged, nine healthy creatures left. Its rival displaced a creature pushed onto a reef. The next attempt used Minnow instead of Crab at C3; returning to the encounter preserved the saved battle and attempt number. Focused synthetic 6×6 cases compared supporting Midnight's marked B2 creature from B1 (survives) against ignoring it from A1 (removed). Synthetic 7×7 cases compared an upper Shield at B1 (laser blocked, B2 safe) against leaving the lane exposed (B2 shocked). These verify decisions and feedback, not full human matches against Midnight/ARGUS. Extended human play, touch and assistive-technology testing remain open.
+
+Small presentation correction: failed-boss result actions say **Review rematch** instead of Return to map; the encounter shows **Rematch Colossal**, the upcoming attempt number when recorded, and remaining charm count alongside existing resolve/healthy-school totals. Resuming a saved battle retains its current attempt number. Legacy saves without recap history omit the count rather than inventing it. No new tutorial prose, recovery, rerolls, rewards, turn limits or boss powers. Screenshot: `.cache/colossal-rematch.jpg`.
+
+Validation: `node --test tests/colossals.test.mjs tests/battle-summary.test.mjs` passed 13 tests; final `npm.cmd run verify` passed workflow checks, all 319 tests, type-check and build. `git diff --check` passed. The final browser tab reported no console errors, and carried retry screens showed the correct regional 4/5/6 budgets, resolve, healthy counts and attempt numbers for all three bosses.
+
 ## 2026-11-16 — Colossal Voyage integration and run recap
 
 New departures record successful actions and settled matches in an optional versioned recap. Count recruits after the starting school, catches, departures (including trades), purchases, consumed charms, casualty/recovery incidences, regional W/D/L and reef points, boss attempts/defeats, and selected companions. Repeated injuries/recoveries count as separate incidents. Preserve missing history on old saves rather than reconstructing it from a final school; reject malformed supplied records.

@@ -61,6 +61,8 @@ The first playable version of the above loop is implemented in Voyage; see [gene
 
 ## Next design work
 
+- Colossal adaptation/retry pass complete: 13 carried states from eight seeds, 118 sequential matches, three policies and exact reproduction of three previously capped routes. Varied openings broke two Reefback loops, but did not rescue sampled later bosses; no balance change justified. Added concise rematch labels, recorded attempt number and remaining charms. Browser checks cover one full Reefback rematch and focused sonar/laser counters. Human later-region difficulty and prolonged retry pacing remain unresolved; see the 2026-11-16 adaptation decision.
+
 - Full Voyage pass with Colossals and an ending recap implemented: 112 seeded routes, 1,495 two-tide matches and 3,953 save/load checks cover carried schools, companions, camps, charms, injuries and regional progression. Victory/defeat screens record regional results, boss attempts, companions and run totals; older saves retain a final snapshot without invented history. No balance values changed. Four of five sampled stalled encounters had a winning alternate opening; one remained unresolved. Next: human adaptive Colossal playtests and retry pacing, especially Midnight Marauder and Bermuda. See the 2026-11-16 recap decision for reproducible commands and limitations.
 
 - Battle presentation pass implemented: clearer selection/legal targets, movement and block/removal cues, affected-creature highlights, reef ownership and score deltas. Tested synthetic combat cases on all three board sizes, reduced motion and valid/invalid dragging; rules and balance unchanged. Keep human readability feedback separate from functional validation.

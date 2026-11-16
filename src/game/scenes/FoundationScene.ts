@@ -712,7 +712,7 @@ export class FoundationScene extends Phaser.Scene {
         + (feature ? TERRAIN_INFO[feature].name + ': ' + TERRAIN_INFO[feature].rule + ' ' : '') + (f ? f.owner + ' ' + cardDescription(f) + (this.shocked.has(f.id) ? ' Shocked.' : '') : 'empty');
     };
     const busy = this.resolving || this.turn !== 'player';
-    if (this.finished) button('result', this.intermission ? 'Next tide · rival starts' : this.voyageBattle ? (this.summary?.outcome==='won'?'View victory':this.summary?.outcome==='lost'?'View voyage recap':'Return to map') : 'Play again', () => this.resultAction());
+    if (this.finished) button('result', this.intermission ? 'Next tide · rival starts' : this.voyageBattle ? (this.summary?.outcome==='won'?'View victory':this.summary?.outcome==='lost'?'View voyage recap':this.summary?.rematchAdvice?'Review rematch':'Return to map') : 'Play again', () => this.resultAction());
     else if (!busy) {
       if (this.pendingRally) {
         text('Next reserve: ' + (this.playerDeck[0] ? cardDescription(this.playerDeck[0]) : 'empty'));
@@ -995,7 +995,7 @@ export class FoundationScene extends Phaser.Scene {
     const button = this.add.rectangle(centerX, centerY + 58, 200, 32, 0x28545a).setInteractive({ useHandCursor: true });
     button.on("pointerover", () => button.setFillStyle(0x3b6b65));
     button.on("pointerout", () => button.setFillStyle(0x28545a));
-    const label = this.add.text(centerX, centerY + 58, this.intermission ? "NEXT TIDE" : this.voyageBattle ? (this.summary?.outcome==="won"?"VIEW VICTORY":this.summary?.outcome==="lost"?"VIEW RECAP":"RETURN TO MAP") : "PLAY AGAIN", this.textStyle(16, "#eed49b")).setOrigin(0.5);
+    const label = this.add.text(centerX, centerY + 58, this.intermission ? "NEXT TIDE" : this.voyageBattle ? (this.summary?.outcome==="won"?"VIEW VICTORY":this.summary?.outcome==="lost"?"VIEW RECAP":this.summary?.rematchAdvice?"REVIEW REMATCH":"RETURN TO MAP") : "PLAY AGAIN", this.textStyle(16, "#eed49b")).setOrigin(0.5);
     button.once("pointerdown", () => {
       button.disableInteractive();
       this.resultAction();
