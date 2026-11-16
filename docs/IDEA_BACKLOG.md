@@ -108,9 +108,9 @@ Could manipulate targeting, visibility, or enemy placement.
 
 ### Colossal decks and creature rewards
 
-**Status:** Planned for themed decks; Exploring for exclusive cards and rewards. Colossals remain last, after the ordinary roster pass.
+**Status:** Implemented initial themed encounters and companion choices; new exclusive species remain Exploring.
 
-Give each Colossal a coherent themed deck that supports its identity and battle plan. It may contain exclusive creatures. Defeating a Colossal could award one of those creatures for the remainder of the current Voyage, giving the victory a playable reward in later regions. Exclusivity, reward choice versus fixed grant, and whether a boss card needs a player-appropriate variant remain undecided. A final-region reward has no remaining normal voyage encounters, so its purpose needs a separate decision; do not assume permanent unlocks or postgame content.
+Reefback King carries a reef, Midnight Marauder is an abyssal whale, and The Sunken Eye is the abandoned ARGUS observatory with a laser. New voyages use themed weighted schools, signature encounter powers and original pixel-grid encounter illustrations. Shoreline/Open Ocean wins offer two special copies of existing creatures (choose one or pass), trading an edge for an innate full-card ability. The final boss ends the voyage without an unusable recruit reward. See [decisions and validation](DECISIONS.md#2026-11-16--three-themed-colossals). Exclusive juvenile species, mechanical minions and more elaborate boss animation remain possible follow-ups, not implemented catalog entries or permanent unlocks.
 
 ### Other progression possibilities
 

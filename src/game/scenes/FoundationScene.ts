@@ -1,4 +1,6 @@
 import {abilityDialog} from '../ui/abilityDialog';
+import {freshColossal} from '../colossalState';
+import {COLOSSALS} from '../run/colossals';
 import {placementOptions} from '../abilityOptions.ts';
 import {abilityHandSteps,automatedHandChoice} from '../abilityHands.ts';
 import {freshAbilityMemory,beginAbilityTurn,readyGrowth,growArm,blankSides,type AbilityChoice} from '../battleAbilityState.ts';
@@ -225,6 +227,7 @@ export class FoundationScene extends Phaser.Scene {
     if (this.twoTide) this.tideRandom = random(this.tideSeed + ':deal');
     this.resolving = false; this.feedbackLog?.replaceChildren();
     this.abilityMemory=freshAbilityMemory();
+    if (this.rules.colossal) this.abilityMemory.colossal=freshColossal(this.rules.colossal,this.playLimit);
     this.board = Array(this.rules.size * this.rules.size).fill(null);
     const playerRound = this.dealRound(this.voyageBattle?.playerDeck ?? createEnabledDeck("player"));
     const rivalRound = this.dealRound(this.voyageBattle?.rivalDeck ?? createEnabledDeck("rival"));
@@ -255,6 +258,7 @@ export class FoundationScene extends Phaser.Scene {
   }
 
   private render(message: string): void {
+    if (this.rules.colossal) message=COLOSSALS.find(c=>c.id===this.rules.colossal)!.name+' · '+message;
     if (this.twoTide) message = `Tide ${Math.min(this.tideScores.length + (this.finished ? 0 : 1), 2)}/2 · ${this.tideScores.length ? 'Combined ' + combinedScore(this.tideScores).player + '–' + combinedScore(this.tideScores).rival + ' · ' : ''}${message}`;
     this.checkpoint();
     this.placementPreview = undefined;
@@ -321,6 +325,12 @@ export class FoundationScene extends Phaser.Scene {
       if (!this.board[index]) this.drawTerrain(index, x, y);
       if (reef && !this.board[index]) this.drawPearl(x + CELL / 2, y + CELL / 2);
       if (this.board[index]) this.drawBoardFish(this.board[index]!, x, y);
+      const threat=this.abilityMemory.colossal;
+      if (!this.finished && (threat?.lane===column || threat?.prey?.index===index && threat.prey.id===this.board[index]?.id)) {
+        const color=threat.lane!==undefined?0xff7777:0x8de4eb;
+        add(this.add.rectangle(x+CELL/2,y+CELL/2,CELL-8,CELL-8).setStrokeStyle(3,color));
+        add(this.add.text(x+CELL/2,y+CELL-12,threat.lane!==undefined?'LASER':'SONAR',this.textStyle(8,threat.lane!==undefined?'#ff9999':'#8de4eb')).setOrigin(.5));
+      }
       if (reef && this.board[index]) {
         const color = this.board[index]!.owner === "player" ? 0x69bbff : 0xff8b8b;
         add(this.add.rectangle(x + 20, y + CELL - 2, 24, 4, color));
@@ -680,6 +690,9 @@ export class FoundationScene extends Phaser.Scene {
     const summaryControl = document.createElement('summary'); summaryControl.textContent = 'Battle controls · keyboard and text'; root.append(summaryControl);
     const text = (value: string) => { const p = document.createElement('p'); p.textContent = value; root.append(p); return p; };
     const heading = document.createElement('h3'); heading.textContent = 'Battle controls'; root.append(heading);
+    const threat=this.abilityMemory.colossal;
+    if (!this.finished && threat?.prey) text(this.board[threat.prey.index]?.id===threat.prey.id ? 'Sonar: '+this.board[threat.prey.index]!.name+' at '+tileName(threat.prey.index,this.rules.size)+' · strike after your next placement.' : 'Sonar target escaped.');
+    if (!this.finished && threat?.lane!==undefined) text('Laser: column '+String.fromCharCode(65+threat.lane)+' · fires after your next placement.');
     const scores = this.getScores();
     const status = text(message + ` Reef points: you ${scores.player}, rival ${scores.rival}. Plays: you ${this.plays.player}/${this.playLimit}, rival ${this.plays.rival}/${this.playLimit}.`); status.setAttribute('role', 'status'); status.tabIndex = -1; status.dataset.control = 'status';
     if (this.twoTide && this.tideScores.length) text(this.tideScores.map((s, i) => `Tide ${i + 1}: you ${s.player}, rival ${s.rival}`).join(' · '));
@@ -840,6 +853,10 @@ export class FoundationScene extends Phaser.Scene {
     const origin = this.boardOrigin();
     const position = (index: number) => ({ x: origin.x + (index % this.rules.size) * (CELL + GAP) + CELL / 2, y: origin.y + Math.floor(index / this.rules.size) * (CELL + GAP) + CELL / 2 });
     const marks = this.add.graphics(); this.ui?.add(marks);
+    for (const index of frame.beamTiles??[]) {
+      const p=position(index);marks.fillStyle(0xff7777,.65);marks.fillRect(p.x-6,p.y-CELL/2,12,CELL);
+      marks.fillStyle(0xffe8d4);marks.fillRect(p.x-2,p.y-CELL/2,4,CELL);
+    }
     const corners = (point: {x:number;y:number}, color:number) => {
       marks.lineStyle(3,color);
       for(const sx of [-1,1])for(const sy of [-1,1]) {

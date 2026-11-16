@@ -1,9 +1,11 @@
 import {hasAbility} from './abilities.ts';
+import {validColossal,type ColossalState} from './colossalState.ts';
 import type {Direction, EdgeEffect, FishCard, Owner} from './data/starterFish.ts';
 import type {Terrain} from './terrain.ts';
 export const SIDES: Direction[]=['up','right','down','left'];
 export interface AbilityChoice {direction?:Direction;target?:number;rotation?:number;effect?:EdgeEffect;reverse?:boolean;skip?:boolean}
 export interface AbilityMemory {
+ colossal?: ColossalState;
  turns:Record<Owner,number>; inflated:string[]; grown:string[];
  growth:{id:string;owner:Owner;ready:number}[];
  decoys:{index:number;owner:Owner;expires:number}[];
@@ -29,7 +31,7 @@ export function validAbilityMemory(value:unknown,size:number):value is AbilityMe
  const m=value as AbilityMemory,owner=(o:unknown)=>o==='player'||o==='rival',num=(n:unknown)=>Number.isInteger(n)&&Number(n)>=0&&Number(n)<=1000;
  const ids=(v:unknown)=>Array.isArray(v)&&v.length<=200&&v.every(id=>typeof id==='string')&&new Set(v).size===v.length;
  const tiles=(v:unknown)=>Array.isArray(v)&&v.length<=size*size&&v.every(t=>t&&num(t.index)&&t.index<size*size&&owner(t.owner))&&new Set(v.map(t=>t.index)).size===v.length;
- return Boolean(m.turns&&num(m.turns.player)&&num(m.turns.rival)&&ids(m.inflated)&&ids(m.grown)
+ return Boolean((m.colossal===undefined||validColossal(m.colossal,size))&&m.turns&&num(m.turns.player)&&num(m.turns.rival)&&ids(m.inflated)&&ids(m.grown)
   &&Array.isArray(m.growth)&&m.growth.length<=200&&m.growth.every(g=>g&&typeof g.id==='string'&&owner(g.owner)&&num(g.ready))
   &&tiles(m.decoys)&&m.decoys.every(t=>num(t.expires))&&tiles(m.snares)&&m.snares.length<=2&&new Set(m.snares.map(t=>t.owner)).size===m.snares.length
   &&Array.isArray(m.lureUsed)&&m.lureUsed.length<=2&&m.lureUsed.every(owner)&&new Set(m.lureUsed).size===m.lureUsed.length);
